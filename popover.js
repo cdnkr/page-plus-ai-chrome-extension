@@ -894,8 +894,10 @@ export class PopoverAI {
       if (spaceBelow >= popoverHeight || spaceBelow > spaceAbove) {
         y = rect.bottom + 10;
       } else {
+        y = rect.bottom - popoverHeight - 10;
+
         // Place above the selection
-        y = rect.top - popoverHeight - 10;
+        // y = rect.top - popoverHeight - 10;
       }
       
       // Ensure popover doesn't go above viewport
