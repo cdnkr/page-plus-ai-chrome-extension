@@ -414,19 +414,35 @@ class SelectionAI {
       position: fixed;
       top: 20px;
       right: 20px;
-      background: #10b981;
+      background: #3b82f6;
       color: white;
       padding: 12px 20px;
-      border-radius: 8px;
+      border-radius: 50px;
       z-index: 10002;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      opacity: 0;
+      filter: blur(20px);
+      transition: opacity 0.3s ease-out, filter 0.3s ease-out;
     `;
     
     document.body.appendChild(notification);
     
     setTimeout(() => {
-      notification.remove();
-    }, 3000);
+    // Trigger fade in
+    requestAnimationFrame(() => {
+      notification.style.opacity = '1';
+      notification.style.filter = 'blur(0px)';
+    });
+    }, 100);
+    
+    setTimeout(() => {
+      // Fade out before removing
+      notification.style.opacity = '0';
+      notification.style.filter = 'blur(20px)';
+      setTimeout(() => {
+        notification.remove();
+      }, 300);
+    }, 2700);
   }
 
   handleClick(event) {
@@ -859,7 +875,6 @@ class SelectionAI {
       .drag-box {
         position: absolute;
         border: 2px dashed #3b82f6;
-        background: rgba(59, 130, 246, 0.1);
         pointer-events: none;
       }
     `;

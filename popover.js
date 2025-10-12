@@ -13,6 +13,19 @@ export class PopoverAI {
             this.writer = null;
             this.currentResponse = '';
             this.popoverElement = null;
+            
+            // History management
+            this.sessionId = this.generateSessionId();
+            this.conversationHistory = [];
+            this.isHistoryLoaded = false;
+            this.currentUserMessage = null;
+            
+            // Drag functionality
+            this.isDragging = false;
+            this.dragStartX = 0;
+            this.dragStartY = 0;
+            this.initialX = 0;
+            this.initialY = 0;
 
             this.createPopover();
             this.init();
@@ -21,7 +34,7 @@ export class PopoverAI {
             console.error('Error in PopoverAI constructor:', error);
             throw error;
         }
-    }
+        }
 
     createPopover() {
         try {
@@ -84,6 +97,12 @@ export class PopoverAI {
           align-items: center;
           justify-content: space-between;
           position: relative;
+          cursor: move;
+          user-select: none;
+        }
+        
+        .header.dragging {
+          cursor: grabbing;
         }
 
         .header::after {
@@ -156,7 +175,7 @@ export class PopoverAI {
         
         .input-section {
           padding: 16px 12px 12px 18px;
-          background: rgba(0, 0, 0, 0.1);
+          background: rgba(0, 0, 0, 0.07);
           border-radius: 30px;
           box-sizing: border-box;
         }
@@ -340,7 +359,6 @@ export class PopoverAI {
           border-top: 2px solid rgb(135, 137, 138);
           border-radius: 50%;
           animation: spin 1s linear infinite;
-          margin-right: 12px;
         }
         
         @keyframes spin {
@@ -387,6 +405,205 @@ export class PopoverAI {
         .hidden {
           display: none !important;
         }
+        
+        .message {
+          margin-bottom: 12px;
+          display: flex;
+          flex-direction: column;
+        }
+        
+        .message:last-child {
+          margin-bottom: 0;
+        }
+        
+        .user-message {
+          align-self: flex-end;
+          margin-left: auto;
+          max-width: 80%;
+        }
+        
+        .user-message .message-content {
+          background: #3b82f6;
+          color: white;
+          padding: 12px 16px;
+          border-radius: 18px 18px 4px 18px;
+          font-size: 14px;
+          line-height: 1.4;
+          word-wrap: break-word;
+        }
+        
+        .ai-message {
+          align-self: flex-start;
+          max-width: 100%;
+        }
+        
+        .ai-message .message-content {
+          color: #374151;
+          font-size: 14px;
+          line-height: 1.4;
+          word-wrap: break-word;
+        }
+        
+        .ai-message .message-actions {
+          display: flex;
+          gap: 4px;
+          margin-top: 8px;
+          opacity: 1;
+        }
+        
+        .message-action-btn {
+          padding: 8px;
+          border-radius: 50%;
+          color: black;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          background: transparent;
+          border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .message-action-btn, .message-action-btn svg, .message-action-btn path {
+            cursor: pointer !important;
+        }
+        
+        .message-action-btn:hover {
+          background: rgba(0, 0, 0, 0.1);
+          color: #374151;
+        }
+        
+        .message-content h1, 
+        .message-content h2, 
+        .message-content h3 {
+          color: inherit;
+          margin: 8px 0 4px 0;
+        }
+        
+        .message-content h1:first-child,
+        .message-content h2:first-child,
+        .message-content h3:first-child {
+          margin-top: 0;
+        }
+        
+        .message-content p {
+          margin: 4px 0;
+        }
+        
+        .message-content ul, 
+        .message-content ol {
+          margin: 4px 0;
+          padding-left: 20px;
+        }
+        
+        .message-content li {
+          margin: 2px 0;
+        }
+        
+        .message-content blockquote {
+          border-left: 3px solid currentColor;
+          padding-left: 12px;
+          margin: 8px 0;
+          opacity: 0.8;
+        }
+        
+        .message-content table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 8px 0;
+          font-size: 13px;
+        }
+        
+        .message-content th,
+        .message-content td {
+          border: 1px solid currentColor;
+          padding: 6px 8px;
+          text-align: left;
+        }
+        
+        .message-content th {
+          background: rgba(0, 0, 0, 0.1);
+          font-weight: 600;
+        }
+        
+        .message-content a {
+          color: inherit;
+          text-decoration: underline;
+        }
+        
+        .message-content strong {
+          font-weight: 600;
+        }
+        
+        .message-content em {
+          font-style: italic;
+        }
+
+        .color-info-wrapper {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .color-item {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .color-swatch {
+            width: 100%;
+            height: 60px;
+            border-radius: 14px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .color-info {
+            flex: 1;
+        }
+
+        .color-hex {
+            font-family: monospace;
+            font-size: 12px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 2px;
+        }
+
+        .color-rgb {
+            font-family: monospace;
+            font-size: 10px;
+            color: #6b7280;
+        }
+
+        .copy-color-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.7;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+        }
+
+        .copy-color-btn svg, .copy-color-btn path {
+            cursor: pointer;
+        }
+
+        .copy-color-btn:hover {
+            opacity: 1;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .colors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+        }
       `;
 
             // Create popover HTML structure in shadow root
@@ -407,11 +624,15 @@ export class PopoverAI {
             <div class="context-text" id="context-text">
               ${this.selectionType === 'dragbox' 
                 ? `<div style="margin-bottom: 12px;">
-                     <img src="${this.selectedText}" style="width: 100%; height: auto; border-radius: 8px; border: 1px solid rgba(0, 0, 0, 0.1);" alt="Selected area screenshot" />
+                     <img src="${this.selectedText}" style="width: 100%; height: auto; border-radius: 20px;" alt="Selected area screenshot" />
                    </div>`
                 : (this.selectedText?.length > 100 ? this.selectedText?.slice(0, 100) + '...' : this.selectedText)
               }
             </div>
+          </div>
+          
+          <div class="conversation-history" id="conversation-history" style="display: none;">
+            <!-- Conversation history will be populated here -->
           </div>
           
           <div class="response-section" id="response-section" style="display: none;">
@@ -499,12 +720,13 @@ export class PopoverAI {
         this.contextText = this.shadowRoot.querySelector('#context-text');
         this.selectedTextContext = this.shadowRoot.querySelector('#selected-text-context');
         this.content = this.shadowRoot.querySelector('.content');
+        this.header = this.shadowRoot.querySelector('.header');
 
         // Ensure context text is populated immediately
         if (this.contextText) {
             if (this.selectionType === 'dragbox') {
                 this.contextText.innerHTML = `<div style="margin-bottom: 12px;">
-                  <img src="${this.selectedText}" style="width: 100%; height: auto; border-radius: 8px; border: 1px solid rgba(0, 0, 0, 0.1);" alt="Selected area screenshot" />
+                  <img src="${this.selectedText}" style="width: 100%; height: auto; border-radius: 20px;" alt="Selected area screenshot" />
                 </div>`;
             } else {
                 this.contextText.textContent = this.selectedText.length > 100 ? this.selectedText.slice(0, 100) + '...' : this.selectedText;
@@ -535,8 +757,16 @@ export class PopoverAI {
             this.shareResponse();
         });
 
+        // Add drag functionality to header
+        this.setupDragHandlers();
+
         // Setup for the specific action
         this.setupForAction();
+        
+        // Load conversation history for prompt and write actions
+        if (this.action === 'prompt' || this.action === 'write') {
+            this.loadConversationHistory();
+        }
     }
 
     setupForAction() {
@@ -589,6 +819,14 @@ export class PopoverAI {
     async handleSubmit() {
         const userInput = this.userInput.value.trim();
         if (!userInput) return;
+
+        // Add user message to conversation history immediately
+        if (this.action === 'prompt' || this.action === 'write') {
+            this.addUserMessageToHistory(userInput);
+        }
+
+        // Clear the input field
+        this.userInput.value = '';
 
         this.submitBtn.disabled = true;
         this.submitBtn.innerHTML = `
@@ -650,17 +888,22 @@ export class PopoverAI {
             // Show loading
             this.showLoading();
 
+            // Get conversation history context
+            const historyContext = this.getHistoryContext();
+            
             let stream;
             if (this.selectionType === 'dragbox') {
-                // For drag box, send image with text prompt
+                // For drag box, send image with text prompt and history
                 const imageFile = await this.dataURLtoFile(this.selectedText, 'screenshot.png');
+                const fullPrompt = historyContext + userInput;
+                
                 stream = this.session.promptStreaming([
                     {
                         role: 'user',
                         content: [
                             {
                                 type: 'text',
-                                value: userInput
+                                value: fullPrompt
                             },
                             {
                                 type: 'image',
@@ -670,8 +913,9 @@ export class PopoverAI {
                     }
                 ]);
             } else {
-                // For text selection, use text prompt
-                const prompt = `Based on this selected text: "${this.selectedText}"\n\nUser question: ${userInput}`;
+                // For text selection, use text prompt with history
+                const baseContext = `Based on this selected text: "${this.selectedText}"`;
+                const prompt = `${baseContext}\n\n${historyContext}User question: ${userInput}`;
                 stream = this.session.promptStreaming(prompt);
             }
 
@@ -680,6 +924,9 @@ export class PopoverAI {
                 this.currentResponse += chunk;
                 this.updateResponse(this.currentResponse);
             }
+
+            // Finalize the AI message in conversation history
+            this.finalizeAiMessage();
 
             this.showActionButtons();
         } catch (error) {
@@ -709,14 +956,17 @@ export class PopoverAI {
                 });
             }
 
+            // Get conversation history context
+            const historyContext = this.getHistoryContext();
+
             // Create writing prompt with context based on selection type
             let prompt;
             if (this.selectionType === 'dragbox') {
                 // For drag box, we have an image
-                prompt = `Based on this selected image, write about: ${userInput}`;
+                prompt = `${historyContext}Based on this selected image, write about: ${userInput}`;
             } else {
                 // For text selection
-                prompt = `Based on this selected text: "${this.selectedText}"\n\nWrite about: ${userInput}`;
+                prompt = `${historyContext}Based on this selected text: "${this.selectedText}"\n\nWrite about: ${userInput}`;
             }
 
             // Show loading
@@ -730,6 +980,9 @@ export class PopoverAI {
                 this.currentResponse += chunk;
                 this.updateResponse(this.currentResponse);
             }
+
+            // Finalize the AI message in conversation history
+            this.finalizeAiMessage();
 
             this.showActionButtons();
         } catch (error) {
@@ -876,24 +1129,27 @@ export class PopoverAI {
 
     displayColors(colors) {
         const colorsHtml = colors.map((color, index) => `
-            <div class="color-item" style="display: flex; flex-direction: column; padding: 12px; background: rgba(0, 0, 0, 0.05); border-radius: 8px; position: relative;">
-                <div class="color-swatch" style="width: 100%; height: 60px; border-radius: 8px; background: ${color.rgb}; margin-bottom: 8px; border: 1px solid rgba(0, 0, 0, 0.1);"></div>
-                <div class="color-info" style="flex: 1;">
-                    <div class="color-hex" style="font-family: monospace; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 2px;">${color.hex}</div>
-                    <div class="color-rgb" style="font-family: monospace; font-size: 10px; color: #6b7280;">${color.rgb}</div>
+            <div class="color-item">
+                <div class="color-swatch" style="background: ${color.rgb};"></div>
+                
+                <div class="color-info-wrapper">
+                    <div class="color-info">
+                        <div class="color-hex">${color.hex}</div>
+                        <div class="color-rgb">${color.rgb}</div>
+                    </div>
+                    <button class="copy-color-btn" data-color="${color.hex}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                        </svg>
+                    </button>
                 </div>
-                <button class="copy-color-btn" data-color="${color.hex}" style="position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; opacity: 0.7;" onmouseover="this.style.opacity='1'; this.style.background='rgba(255, 255, 255, 1)'" onmouseout="this.style.opacity='0.7'; this.style.background='rgba(255, 255, 255, 0.9)'">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-                        <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-                    </svg>
-                </button>
             </div>
         `).join('');
 
         this.currentResponse = `
             <div class="colors-container">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
+                <div class="colors-grid">
                     ${colorsHtml}
                 </div>
             </div>
@@ -924,8 +1180,13 @@ export class PopoverAI {
             return;
         }
 
-        const html = this.parseMarkdownToHTML(text);
-        this.responseContent.innerHTML = html;
+        // For prompt and write actions, show streaming response in conversation history
+        if (this.action === 'prompt' || this.action === 'write') {
+            this.updateStreamingResponse(text);
+        } else {
+            const html = this.parseMarkdownToHTML(text);
+            this.responseContent.innerHTML = html;
+        }
 
         // Use requestAnimationFrame to ensure DOM has updated before scrolling
         requestAnimationFrame(() => {
@@ -936,8 +1197,36 @@ export class PopoverAI {
         });
     }
 
+    updateStreamingResponse(text) {
+        const historyContainer = this.shadowRoot.querySelector('#conversation-history');
+        if (!historyContainer) return;
+
+        // Find or create the current AI message element
+        let currentAiMessage = historyContainer.querySelector('.ai-message.current-streaming');
+        if (!currentAiMessage) {
+            // Create new AI message element for streaming
+            currentAiMessage = document.createElement('div');
+            currentAiMessage.className = 'message ai-message current-streaming';
+            currentAiMessage.innerHTML = '<div class="message-content"></div>';
+            historyContainer.appendChild(currentAiMessage);
+        }
+
+        // Update the content with parsed markdown
+        const messageContent = currentAiMessage.querySelector('.message-content');
+        messageContent.innerHTML = this.parseMarkdownToHTML(text);
+        
+        // Show the conversation history
+        historyContainer.style.display = 'block';
+    }
+
     showLoading() {
-        // Show the response section
+        // For prompt and write actions, don't show the response section
+        // since we're using conversation history for streaming
+        if (this.action === 'prompt' || this.action === 'write') {
+            return;
+        }
+
+        // Show the response section for other actions
         this.responseSection.style.display = 'flex';
 
         this.responseContent.innerHTML = `
@@ -1092,19 +1381,35 @@ export class PopoverAI {
       position: fixed;
       top: 20px;
       right: 20px;
-      background: #10b981;
+      background: #3b82f6;
       color: white;
       padding: 12px 20px;
-      border-radius: 8px;
+      border-radius: 50px;
       z-index: 10002;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      opacity: 0;
+      filter: blur(20px);
+      transition: opacity 0.3s ease-out, filter 0.3s ease-out;
     `;
 
         document.body.appendChild(notification);
 
         setTimeout(() => {
-            notification.remove();
-        }, 3000);
+        // Trigger fade in
+        requestAnimationFrame(() => {
+                notification.style.opacity = '1';
+                notification.style.filter = 'blur(0px)';
+            });
+        }, 100);
+
+        setTimeout(() => {
+            // Fade out before removing
+            notification.style.opacity = '0';
+            notification.style.filter = 'blur(20px)';
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 2700);
     }
 
     // Get position from selection range (fallback method - not used for main positioning)
@@ -1161,6 +1466,82 @@ export class PopoverAI {
         }
     }
 
+    setupDragHandlers() {
+        if (!this.header) return;
+
+        this.header.addEventListener('mousedown', (e) => {
+            // Don't start drag if clicking on close button
+            if (e.target.closest('.close-btn')) return;
+            
+            e.preventDefault();
+            e.stopPropagation();
+            
+            this.startDrag(e);
+        });
+
+        // Add global mouse events for drag handling
+        document.addEventListener('mousemove', (e) => {
+            if (this.isDragging) {
+                this.drag(e);
+            }
+        });
+
+        document.addEventListener('mouseup', (e) => {
+            if (this.isDragging) {
+                this.endDrag(e);
+            }
+        });
+    }
+
+    startDrag(e) {
+        this.isDragging = true;
+        this.header.classList.add('dragging');
+        
+        // Store initial mouse position and popover position
+        this.dragStartX = e.clientX;
+        this.dragStartY = e.clientY;
+        
+        const rect = this.popoverElement.getBoundingClientRect();
+        this.initialX = rect.left;
+        this.initialY = rect.top;
+        
+        // Prevent text selection during drag
+        document.body.style.userSelect = 'none';
+    }
+
+    drag(e) {
+        if (!this.isDragging) return;
+        
+        e.preventDefault();
+        
+        // Calculate new position
+        const deltaX = e.clientX - this.dragStartX;
+        const deltaY = e.clientY - this.dragStartY;
+        
+        const newX = this.initialX + deltaX;
+        const newY = this.initialY + deltaY;
+        
+        // Apply boundary checking
+        const safePosition = this.calculateSafePosition(
+            { x: newX, y: newY }, 
+            { width: 400, height: 300 }
+        );
+        
+        // Update popover position
+        this.popoverElement.style.left = `${safePosition.x}px`;
+        this.popoverElement.style.top = `${safePosition.y}px`;
+    }
+
+    endDrag(e) {
+        if (!this.isDragging) return;
+        
+        this.isDragging = false;
+        this.header.classList.remove('dragging');
+        
+        // Restore text selection
+        document.body.style.userSelect = '';
+    }
+
     close() {
         if (this.popoverElement) {
             // Remove visible class to trigger fade out
@@ -1182,5 +1563,255 @@ export class PopoverAI {
                 }
             }, 300); // Match the CSS transition duration
         }
+    }
+
+    // History management methods
+    generateSessionId() {
+        // Create a more stable session ID based on content and action
+        const contentHash = this.createSimpleHash(this.selectedText.substring(0, 100));
+        return `session_${this.action}_${contentHash}`;
+    }
+
+    createSimpleHash(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32-bit integer
+        }
+        return Math.abs(hash).toString(36);
+    }
+
+    async loadConversationHistory() {
+        try {
+            console.log('Loading conversation history for session:', this.sessionId);
+            const result = await chrome.storage.local.get([this.sessionId]);
+            if (result[this.sessionId]) {
+                this.conversationHistory = result[this.sessionId];
+                this.isHistoryLoaded = true;
+                this.displayConversationHistory();
+                console.log('Loaded conversation history:', this.conversationHistory);
+            } else {
+                console.log('No existing conversation history found for session:', this.sessionId);
+            }
+        } catch (error) {
+            console.error('Failed to load conversation history:', error);
+        }
+    }
+
+    async saveConversationHistory() {
+        try {
+            await chrome.storage.local.set({
+                [this.sessionId]: this.conversationHistory
+            });
+            console.log('Saved conversation history:', this.conversationHistory);
+        } catch (error) {
+            console.error('Failed to save conversation history:', error);
+        }
+    }
+
+    addToHistory(userMessage, aiResponse) {
+        console.log('Adding to conversation history:', { user: userMessage, ai: aiResponse.substring(0, 100) + '...' });
+        this.conversationHistory.push({
+            user: userMessage,
+            ai: aiResponse,
+            timestamp: Date.now()
+        });
+        this.saveConversationHistory();
+        this.displayConversationHistory();
+    }
+
+    displayConversationHistory() {
+        if (!this.isHistoryLoaded || this.conversationHistory.length === 0) {
+            return;
+        }
+
+        const historyContainer = this.shadowRoot.querySelector('#conversation-history');
+        if (!historyContainer) return;
+
+        const historyHtml = this.conversationHistory.map((entry, index) => `
+            <div class="message user-message">
+                <div class="message-content">${this.escapeHtml(entry.user)}</div>
+            </div>
+            <div class="message ai-message">
+                <div class="message-content">${this.isHtmlContent(entry.ai) ? entry.ai : this.parseMarkdownToHTML(entry.ai)}</div>
+                <div class="message-actions">
+                    <button class="message-action-btn" data-action="copy" data-content="${this.escapeHtml(this.stripHtml(entry.ai))}" title="Copy">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                        </svg>
+                    </button>
+                    <button class="message-action-btn" data-action="share" data-content="${this.escapeHtml(this.stripHtml(entry.ai))}" title="Share">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                            <polyline points="16,6 12,2 8,6"/>
+                            <line x1="12" y1="2" x2="12" y2="15"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+
+        historyContainer.innerHTML = historyHtml;
+        historyContainer.style.display = 'block';
+        
+        // Add event handlers for action buttons
+        this.setupHistoryActionButtons();
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    isHtmlContent(content) {
+        // Check if content contains HTML tags
+        return /<[^>]+>/.test(content);
+    }
+
+    stripHtml(html) {
+        // Remove HTML tags and get plain text
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        return div.textContent || div.innerText || '';
+    }
+
+    setupHistoryActionButtons() {
+        const actionButtons = this.shadowRoot.querySelectorAll('.message-action-btn');
+        actionButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const action = btn.getAttribute('data-action');
+                const content = btn.getAttribute('data-content');
+                
+                if (action === 'copy') {
+                    this.copyText(content);
+                } else if (action === 'share') {
+                    this.shareText(content);
+                }
+            });
+        });
+    }
+
+    async copyText(text) {
+        try {
+            await navigator.clipboard.writeText(text);
+            this.showNotification('Copied to clipboard!');
+        } catch (error) {
+            console.error('Failed to copy:', error);
+            this.showNotification('Failed to copy to clipboard');
+        }
+    }
+
+    async shareText(text) {
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'AI Response',
+                    text: text
+                });
+            } catch (error) {
+                console.error('Failed to share:', error);
+                // Fallback to copying
+                this.copyText(text);
+            }
+        } else {
+            // Fallback to copying
+            this.copyText(text);
+        }
+    }
+
+    getHistoryContext() {
+        if (this.conversationHistory.length === 0) {
+            return '';
+        }
+
+        const context = this.conversationHistory.map(entry => 
+            `User: ${entry.user}\nAI: ${entry.ai}`
+        ).join('\n\n');
+
+        return `Previous conversation:\n${context}\n\n`;
+    }
+
+    addUserMessageToHistory(userMessage) {
+        const historyContainer = this.shadowRoot.querySelector('#conversation-history');
+        if (!historyContainer) return;
+
+        // Store the current user message for later use
+        this.currentUserMessage = userMessage;
+
+        // Create user message element
+        const userMessageEl = document.createElement('div');
+        userMessageEl.className = 'message user-message';
+        userMessageEl.innerHTML = `<div class="message-content">${this.escapeHtml(userMessage)}</div>`;
+        
+        // Add to conversation history
+        historyContainer.appendChild(userMessageEl);
+        historyContainer.style.display = 'block';
+
+        // Scroll to bottom
+        requestAnimationFrame(() => {
+            this.content.scrollTo({
+                top: this.content.scrollHeight - 50,
+                behavior: 'smooth'
+            });
+        });
+    }
+
+    finalizeAiMessage() {
+        // Remove the streaming class and add to conversation history
+        const currentAiMessage = this.shadowRoot.querySelector('.ai-message.current-streaming');
+        if (currentAiMessage && this.currentUserMessage) {
+            currentAiMessage.classList.remove('current-streaming');
+            
+            // Get the AI message content
+            const aiMessageEl = currentAiMessage.querySelector('.message-content');
+            if (aiMessageEl) {
+                const aiMessage = aiMessageEl.innerHTML;
+                
+                // Add action buttons to the current AI message
+                this.addActionButtonsToMessage(currentAiMessage, aiMessage);
+                
+                this.conversationHistory.push({
+                    user: this.currentUserMessage,
+                    ai: aiMessage,
+                    timestamp: Date.now()
+                });
+                
+                this.saveConversationHistory();
+                
+                // Clear the current user message
+                this.currentUserMessage = null;
+            }
+        }
+    }
+
+    addActionButtonsToMessage(messageElement, content) {
+        // Create action buttons container
+        const actionsContainer = document.createElement('div');
+        actionsContainer.className = 'message-actions';
+        actionsContainer.innerHTML = `
+            <button class="message-action-btn" data-action="copy" data-content="${this.escapeHtml(this.stripHtml(content))}" title="Copy">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                </svg>
+            </button>
+            <button class="message-action-btn" data-action="share" data-content="${this.escapeHtml(this.stripHtml(content))}" title="Share">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                    <polyline points="16,6 12,2 8,6"/>
+                    <line x1="12" y1="2" x2="12" y2="15"/>
+                </svg>
+            </button>
+        `;
+        
+        // Add the action buttons to the message
+        messageElement.appendChild(actionsContainer);
+        
+        // Add event handlers for the new buttons
+        this.setupHistoryActionButtons();
     }
 }
