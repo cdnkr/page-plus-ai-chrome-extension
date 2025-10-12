@@ -239,7 +239,7 @@ class SelectionAI {
     // window.getSelection().removeAllRanges();
     
     // Don't hide buttons - keep them visible when popover is open
-    // this.hideActionButtons();
+    this.hideActionButtons();
     
     switch (action) {
       case 'prompt':
