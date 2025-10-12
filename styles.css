@@ -1,0 +1,192 @@
+/* Global styles for the Chrome Extension */
+
+/* Selection AI Button Container */
+.selection-ai-buttons {
+  position: fixed;
+  z-index: 10000;
+  background: rgba(255, 255, 255, 1);
+  backdrop-filter: blur(10px);
+  border-radius: 25px;
+  padding: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  filter: blur(20px);
+  transition: opacity 0.3s ease-out, filter 0.3s ease-out;
+}
+
+.selection-ai-buttons-inner {
+  padding: 8px;
+  display: flex;
+  gap: 8px;
+  border-radius: 25px;
+}
+
+.selection-ai-buttons.visible {
+  opacity: 1;
+  filter: blur(0px);
+}
+
+/* Removed old keyframe animations - using CSS transitions instead */
+
+/* Selection AI Buttons */
+.selection-ai-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  color: black;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.selection-ai-button:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* .selection-ai-button:active {
+  transform: scale(0.95);
+} */
+
+.selection-ai-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Popover iframe styles */
+.selection-ai-popover {
+  position: fixed;
+  z-index: 10001;
+  border: none;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  background: white;
+  opacity: 0;
+  filter: blur(20px);
+  transition: opacity 0.3s ease-out, filter 0.3s ease-out;
+}
+
+.selection-ai-popover.visible {
+  opacity: 1;
+  filter: blur(0px);
+}
+
+/* Removed old keyframe animations - using CSS transitions instead */
+
+/* Notification styles */
+.selection-ai-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #10b981;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  z-index: 10002;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Ensure buttons don't interfere with page content */
+.selection-ai-buttons * {
+  pointer-events: auto;
+}
+
+/* Hide buttons when not needed */
+.selection-ai-buttons.hidden {
+  display: none !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .selection-ai-buttons {
+    gap: 6px;
+    padding: 6px;
+  }
+  
+  .selection-ai-button {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .selection-ai-button svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* Dark mode support (if needed) */
+/* @media (prefers-color-scheme: dark) {
+  .selection-ai-buttons {
+    background: rgba(31, 41, 55, 0.95);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .selection-ai-notification {
+    background: #059669;
+  }
+} */
+
+/* Focus styles for accessibility */
+.selection-ai-button:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .selection-ai-button {
+    border: 2px solid #000;
+  }
+  
+  .selection-ai-buttons {
+    border: 2px solid #000;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .selection-ai-buttons,
+  .selection-ai-popover {
+    transition: none;
+  }
+  
+  .selection-ai-button {
+    transition: none;
+  }
+}
+
+/* Selection highlighting styles */
+.selection-ai-highlighted {
+  background-color: #3b82f6 !important;
+  color: white !important;
+}
+
+/* Ensure selection highlighting works across all elements */
+::selection {
+  background-color: #3b82f6 !important;
+  color: white !important;
+}
+
+::-moz-selection {
+  background-color: #3b82f6 !important;
+  color: white !important;
+}
