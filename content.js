@@ -10,6 +10,7 @@ class SelectionAI {
     this.originalSelectionStyle = null;
     this.PopoverAI = null;
     this.buttonTimeout = null;
+    this.position = null;
     
     this.loadPopoverModule();
     this.init();
@@ -39,8 +40,7 @@ class SelectionAI {
     // Listen for escape key to close popover
     document.addEventListener('keydown', this.handleKeydown.bind(this));
     
-    // Listen for scroll and resize to update positions
-    window.addEventListener('scroll', this.updatePositions.bind(this), { passive: true });
+    // Listen for resize to update positions (not scroll - elements should stay anchored)
     window.addEventListener('resize', this.updatePositions.bind(this), { passive: true });
     
     // Listen for popover closed event
@@ -75,42 +75,51 @@ class SelectionAI {
     if (this.buttonContainer || this.popover) {
       return;
     }
+
+    const mousePosition = {
+        x: event.clientX,
+        y: event.clientY
+    };  
     
     const selection = window.getSelection();
     const selectedText = selection.toString().trim();
     
     if (selectedText.length > 0) {
       this.selectedText = selectedText;
-      this.selectionPosition = {
-        x: event.clientX,
-        y: event.clientY
-      };
+      this.position = mousePosition;
+      this.selectionPosition = mousePosition;
       
       // Store the selection range for anchoring
       this.selectionRange = selection.getRangeAt(0).cloneRange();
       
       // Store selected text in extension storage
-      chrome.storage.local.set({ selectedText: this.selectedText });
+      chrome.storage.local.set({ 
+        selectedText: this.selectedText,
+      });
       
       // Show action buttons
-      this.showActionButtons();
+      this.showActionButtons(mousePosition);
     }
   }
 
-  showActionButtons() {
+  showActionButtons(position) {
     // Remove existing buttons
     this.hideActionButtons();
     
-    // Get position from selection range
-    const position = this.getSelectionPosition();
+    // Calculate boundary-aware position
+    const safePosition = this.calculateSafePosition(position, { width: 200, height: 60 });
     
     // Create button container with Shadow DOM for style isolation
     this.buttonContainer = document.createElement('div');
     this.buttonContainer.className = 'selection-ai-buttons';
+    
+    // Calculate absolute position relative to page content (not viewport)
+    const absolutePosition = this.calculateAbsolutePosition(safePosition);
+    
     this.buttonContainer.style.cssText = `
-      position: fixed;
-      left: ${position.x}px;
-      top: ${position.y}px;
+      position: absolute;
+      left: ${absolutePosition.x}px;
+      top: ${absolutePosition.y}px;
     `;
     
     // Create shadow root for complete style isolation
@@ -266,7 +275,7 @@ class SelectionAI {
     this.highlightSelection();
     
     // Get position from selection range
-    const position = this.getSelectionPosition();
+    const position = this.position;
     console.log('Calculated position:', position);
     
     // Wait for PopoverAI to be loaded
@@ -485,17 +494,71 @@ class SelectionAI {
     }
   }
 
-  // Update positions on scroll
-  updatePositions() {
-    if (this.buttonContainer) {
-      const position = this.getSelectionPosition();
-      this.buttonContainer.style.left = `${position.x}px`;
-      this.buttonContainer.style.top = `${position.y}px`;
+  // Calculate safe position that stays within viewport boundaries
+  calculateSafePosition(position, elementSize) {
+    const viewport = {
+      width: window.innerWidth,
+      height: window.innerHeight
+    };
+    
+    const margin = 20; // Minimum margin from viewport edges
+    
+    // Calculate safe horizontal position
+    let x = position.x;
+    if (x + elementSize.width > viewport.width - margin) {
+      x = viewport.width - elementSize.width - margin;
+    }
+    if (x < margin) {
+      x = margin;
     }
     
-    if (this.popover && this.popover.updatePosition) {
-      this.popover.updatePosition();
+    // Calculate safe vertical position
+    let y = position.y;
+    if (y + elementSize.height > viewport.height - margin) {
+      y = viewport.height - elementSize.height - margin;
     }
+    if (y < margin) {
+      y = margin;
+    }
+    
+    return { x, y };
+  }
+
+  // Convert viewport coordinates to absolute page coordinates
+  calculateAbsolutePosition(viewportPosition) {
+    return {
+      x: viewportPosition.x + window.scrollX,
+      y: viewportPosition.y + window.scrollY
+    };
+  }
+
+  // Update positions on window resize only
+  updatePositions() {
+    // Only update positions on window resize to ensure elements stay within viewport
+    // Action buttons and popover should stay anchored to their initial position on scroll
+    if (this.buttonContainer) {
+      // For absolute positioning, we need to recalculate based on current scroll position
+      const currentLeft = parseInt(this.buttonContainer.style.left);
+      const currentTop = parseInt(this.buttonContainer.style.top);
+      
+      // Convert absolute position back to viewport coordinates for boundary checking
+      const viewportPosition = {
+        x: currentLeft - window.scrollX,
+        y: currentTop - window.scrollY
+      };
+      
+      const safePosition = this.calculateSafePosition(viewportPosition, { width: 200, height: 60 });
+      const absolutePosition = this.calculateAbsolutePosition(safePosition);
+      
+      // Only update if position actually changed (due to resize)
+      if (absolutePosition.x !== currentLeft || absolutePosition.y !== currentTop) {
+        this.buttonContainer.style.left = `${absolutePosition.x}px`;
+        this.buttonContainer.style.top = `${absolutePosition.y}px`;
+      }
+    }
+    
+    // Popover should stay anchored to its initial position
+    // No position updates needed on scroll
   }
 
   // Icon getters

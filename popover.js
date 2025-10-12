@@ -1,49 +1,50 @@
 // Popover script for handling AI interactions
 export class PopoverAI {
-  constructor(action, selectedText, position, selectionRange) {
-    try {
-      console.log('PopoverAI constructor called with:', { action, selectedText: selectedText.substring(0, 50) + '...', position });
-      this.action = action;
-      this.selectedText = selectedText;
-      this.position = position;
-      this.selectionRange = selectionRange;
-      this.session = null;
-      this.summarizer = null;
-      this.writer = null;
-      this.currentResponse = '';
-      this.popoverElement = null;
-      
-      this.createPopover();
-      this.init();
-      console.log('PopoverAI constructor completed successfully');
-    } catch (error) {
-      console.error('Error in PopoverAI constructor:', error);
-      throw error;
-    }
-  }
+    constructor(action, selectedText, position, selectionRange) {
+        try {
+            console.log('PopoverAI constructor called with:', { action, selectedText: selectedText.substring(0, 50) + '...', position });
+            this.action = action;
+            this.selectedText = selectedText;
+            this.position = position;
+            this.selectionRange = selectionRange;
+            this.session = null;
+            this.summarizer = null;
+            this.writer = null;
+            this.currentResponse = '';
+            this.popoverElement = null;
 
-  createPopover() {
-    try {
-      console.log('Creating popover element...');
-      // Create popover container with Shadow DOM for style isolation
-      this.popoverElement = document.createElement('div');
-      this.popoverElement.className = 'selection-ai-popover';
-      
-      // Create shadow root for complete style isolation
-      this.shadowRoot = this.popoverElement.attachShadow({ mode: 'open' });
-      
-    // Get current position from selection range
-    const currentPosition = this.getSelectionPosition();
-    
-    this.popoverElement.style.cssText = `
-      position: fixed;
-      left: ${currentPosition.x}px;
-      top: ${currentPosition.y}px;
+            this.createPopover();
+            this.init();
+            console.log('PopoverAI constructor completed successfully');
+        } catch (error) {
+            console.error('Error in PopoverAI constructor:', error);
+            throw error;
+        }
+    }
+
+    createPopover() {
+        try {
+            console.log('Creating popover element...');
+            // Create popover container with Shadow DOM for style isolation
+            this.popoverElement = document.createElement('div');
+            this.popoverElement.className = 'selection-ai-popover';
+
+            // Create shadow root for complete style isolation
+            this.shadowRoot = this.popoverElement.attachShadow({ mode: 'open' });
+
+            // Use mouse position with boundary checking (same as action buttons)
+            const safePosition = this.calculateSafePosition(this.position, { width: 400, height: 300 });
+            const absolutePosition = this.calculateAbsolutePosition(safePosition);
+
+            this.popoverElement.style.cssText = `
+      position: absolute;
+      left: ${absolutePosition.x}px;
+      top: ${absolutePosition.y}px;
     `;
 
-    // Add CSS styles to shadow root for complete isolation
-    const style = document.createElement('style');
-    style.textContent = `
+            // Add CSS styles to shadow root for complete isolation
+            const style = document.createElement('style');
+            style.textContent = `
         :host {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
           background: rgba(255, 255, 255, 1);
@@ -369,8 +370,8 @@ export class PopoverAI {
         }
       `;
 
-    // Create popover HTML structure in shadow root
-    this.shadowRoot.innerHTML = `
+            // Create popover HTML structure in shadow root
+            this.shadowRoot.innerHTML = `
       <div class="popover-container">
         <div class="header">
           <div id="header-title" class="header-title">AI Assistant</div>
@@ -433,418 +434,418 @@ export class PopoverAI {
       </div>
     `;
 
-    this.shadowRoot.appendChild(style);
+            this.shadowRoot.appendChild(style);
 
-    // Add to DOM
-    document.body.appendChild(this.popoverElement);
-    console.log('Popover element added to DOM:', this.popoverElement);
+            // Add to DOM
+            document.body.appendChild(this.popoverElement);
+            console.log('Popover element added to DOM:', this.popoverElement);
 
-    // Stop propagation for all clicks inside the popover
-    this.shadowRoot.addEventListener('click', (e) => {
-      e.stopPropagation();
-    });
+            // Stop propagation for all clicks inside the popover
+            this.shadowRoot.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
 
-    // Trigger fade in animation
-    requestAnimationFrame(() => {
-      this.popoverElement.classList.add('visible');
-      console.log('Visible class added to popover element');
-    });
-    
-    console.log('Popover element created and added to DOM');
-    } catch (error) {
-      console.error('Error in createPopover:', error);
-      throw error;
-    }
-  }
+            // Trigger fade in animation
+            requestAnimationFrame(() => {
+                this.popoverElement.classList.add('visible');
+                console.log('Visible class added to popover element');
+            });
 
-  init() {
-    // Get DOM elements from shadow root
-    this.headerTitle = this.shadowRoot.querySelector('#header-title');
-    this.inputSection = this.shadowRoot.querySelector('#input-section');
-    this.responseSection = this.shadowRoot.querySelector('#response-section');
-    this.userInput = this.shadowRoot.querySelector('#user-input');
-    this.submitBtn = this.shadowRoot.querySelector('#submit-btn');
-    this.responseContent = this.shadowRoot.querySelector('#response-content');
-    this.actionButtons = this.shadowRoot.querySelector('#action-buttons');
-    this.copyBtn = this.shadowRoot.querySelector('#copy-btn');
-    this.shareBtn = this.shadowRoot.querySelector('#share-btn');
-    this.closeBtn = this.shadowRoot.querySelector('#close-btn');
-    this.contextText = this.shadowRoot.querySelector('#context-text');
-    this.content = this.shadowRoot.querySelector('.content');
-    
-    // Ensure context text is populated immediately
-    if (this.contextText) {
-      this.contextText.textContent = this.selectedText.length > 100 ? this.selectedText.slice(0, 100) + '...' : this.selectedText;
+            console.log('Popover element created and added to DOM');
+        } catch (error) {
+            console.error('Error in createPopover:', error);
+            throw error;
+        }
     }
 
-    // Add event listeners
-    this.closeBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.close();
-    });
-    this.submitBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.handleSubmit();
-    });
-    this.userInput.addEventListener('keydown', (e) => {
-      e.stopPropagation();
-      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-        this.handleSubmit();
-      }
-    });
-    this.copyBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.copyResponse();
-    });
-    this.shareBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.shareResponse();
-    });
+    init() {
+        // Get DOM elements from shadow root
+        this.headerTitle = this.shadowRoot.querySelector('#header-title');
+        this.inputSection = this.shadowRoot.querySelector('#input-section');
+        this.responseSection = this.shadowRoot.querySelector('#response-section');
+        this.userInput = this.shadowRoot.querySelector('#user-input');
+        this.submitBtn = this.shadowRoot.querySelector('#submit-btn');
+        this.responseContent = this.shadowRoot.querySelector('#response-content');
+        this.actionButtons = this.shadowRoot.querySelector('#action-buttons');
+        this.copyBtn = this.shadowRoot.querySelector('#copy-btn');
+        this.shareBtn = this.shadowRoot.querySelector('#share-btn');
+        this.closeBtn = this.shadowRoot.querySelector('#close-btn');
+        this.contextText = this.shadowRoot.querySelector('#context-text');
+        this.content = this.shadowRoot.querySelector('.content');
 
-    // Setup for the specific action
-    this.setupForAction();
-  }
+        // Ensure context text is populated immediately
+        if (this.contextText) {
+            this.contextText.textContent = this.selectedText.length > 100 ? this.selectedText.slice(0, 100) + '...' : this.selectedText;
+        }
 
-  setupForAction() {
-    switch (this.action) {
-      case 'prompt':
-        this.headerTitle.innerHTML = '<span>CTX</span><span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-right-icon lucide-move-right"><path d="M18 8L22 12L18 16"/><path d="M2 12H22"/></svg></span><span>Ask</span>';
-        this.userInput.placeholder = 'Ask a question about the selected text...';
-        this.inputSection.classList.remove('hidden');
-        break;
-      case 'summarize':
-        this.headerTitle.innerHTML = '<span>CTX</span><span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-right-icon lucide-move-right"><path d="M18 8L22 12L18 16"/><path d="M2 12H22"/></svg></span><span>Summarize</span>';
-        this.inputSection.classList.add('hidden');
-        this.startSummarization();
-        break;
-      case 'write':
-        this.headerTitle.innerHTML = '<span>CTX</span><span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-right-icon lucide-move-right"><path d="M18 8L22 12L18 16"/><path d="M2 12H22"/></svg></span><span>Write</span>';
-        this.userInput.placeholder = 'What would you like to write about the selected text?';
-        this.inputSection.classList.remove('hidden');
-        break;
+        // Add event listeners
+        this.closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.close();
+        });
+        this.submitBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.handleSubmit();
+        });
+        this.userInput.addEventListener('keydown', (e) => {
+            e.stopPropagation();
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                this.handleSubmit();
+            }
+        });
+        this.copyBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.copyResponse();
+        });
+        this.shareBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.shareResponse();
+        });
+
+        // Setup for the specific action
+        this.setupForAction();
     }
-  }
 
-  async handleSubmit() {
-    const userInput = this.userInput.value.trim();
-    if (!userInput) return;
+    setupForAction() {
+        switch (this.action) {
+            case 'prompt':
+                this.headerTitle.innerHTML = '<span>CTX</span><span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-right-icon lucide-move-right"><path d="M18 8L22 12L18 16"/><path d="M2 12H22"/></svg></span><span>Ask</span>';
+                this.userInput.placeholder = 'Ask a question about the selected text...';
+                this.inputSection.classList.remove('hidden');
+                break;
+            case 'summarize':
+                this.headerTitle.innerHTML = '<span>CTX</span><span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-right-icon lucide-move-right"><path d="M18 8L22 12L18 16"/><path d="M2 12H22"/></svg></span><span>Summarize</span>';
+                this.inputSection.classList.add('hidden');
+                this.startSummarization();
+                break;
+            case 'write':
+                this.headerTitle.innerHTML = '<span>CTX</span><span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-right-icon lucide-move-right"><path d="M18 8L22 12L18 16"/><path d="M2 12H22"/></svg></span><span>Write</span>';
+                this.userInput.placeholder = 'What would you like to write about the selected text?';
+                this.inputSection.classList.remove('hidden');
+                break;
+        }
+    }
 
-    this.submitBtn.disabled = true;
-    this.submitBtn.innerHTML = `
+    async handleSubmit() {
+        const userInput = this.userInput.value.trim();
+        if (!userInput) return;
+
+        this.submitBtn.disabled = true;
+        this.submitBtn.innerHTML = `
     <div class="loading">
         <div class="loading-spinner"></div>
     </div>
     `;
-    this.showLoading();
+        this.showLoading();
 
-    try {
-      switch (this.action) {
-        case 'prompt':
-          await this.handlePrompt(userInput);
-          break;
-        case 'write':
-          await this.handleWrite(userInput);
-          break;
-      }
-    } catch (error) {
-      this.showError('Failed to process request. Please try again.');
-      console.error('Error:', error);
-    } finally {
-      this.submitBtn.disabled = false;
-      this.submitBtn.innerHTML = `
+        try {
+            switch (this.action) {
+                case 'prompt':
+                    await this.handlePrompt(userInput);
+                    break;
+                case 'write':
+                    await this.handleWrite(userInput);
+                    break;
+            }
+        } catch (error) {
+            this.showError('Failed to process request. Please try again.');
+            console.error('Error:', error);
+        } finally {
+            this.submitBtn.disabled = false;
+            this.submitBtn.innerHTML = `
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 4v7a4 4 0 0 1-4 4H4"/>
           <path d="m9 10-5 5 5 5"/>
         </svg>
       `;
+        }
     }
-  }
 
-  async handlePrompt(userInput) {
-    try {
-      // Check if Prompt API is available
-      if (!('LanguageModel' in self)) {
-        throw new Error('Prompt API not available');
-      }
+    async handlePrompt(userInput) {
+        try {
+            // Check if Prompt API is available
+            if (!('LanguageModel' in self)) {
+                throw new Error('Prompt API not available');
+            }
 
-      // Check availability
-      const availability = await LanguageModel.availability();
-      if (availability === 'unavailable') {
-        throw new Error('Language model not available');
-      }
+            // Check availability
+            const availability = await LanguageModel.availability();
+            if (availability === 'unavailable') {
+                throw new Error('Language model not available');
+            }
 
-      // Create session if not exists
-      if (!this.session) {
-        this.session = await LanguageModel.create();
-      }
+            // Create session if not exists
+            if (!this.session) {
+                this.session = await LanguageModel.create();
+            }
 
-      // Create prompt with context
-      const prompt = `Based on this selected text: "${this.selectedText}"\n\nUser question: ${userInput}`;
+            // Create prompt with context
+            const prompt = `Based on this selected text: "${this.selectedText}"\n\nUser question: ${userInput}`;
 
-      // Show loading
-      this.showLoading();
+            // Show loading
+            this.showLoading();
 
-      // Get streaming response
-      const stream = this.session.promptStreaming(prompt);
-      
-      this.currentResponse = '';
-      for await (const chunk of stream) {
-        this.currentResponse += chunk;
-        this.updateResponse(this.currentResponse);
-      }
+            // Get streaming response
+            const stream = this.session.promptStreaming(prompt);
 
-      this.showActionButtons();
-    } catch (error) {
-      this.showError(error.message);
+            this.currentResponse = '';
+            for await (const chunk of stream) {
+                this.currentResponse += chunk;
+                this.updateResponse(this.currentResponse);
+            }
+
+            this.showActionButtons();
+        } catch (error) {
+            this.showError(error.message);
+        }
     }
-  }
 
-  async handleWrite(userInput) {
-    try {
-      // Check if Writer API is available
-      if (!('Writer' in self)) {
-        throw new Error('Writer API not available');
-      }
+    async handleWrite(userInput) {
+        try {
+            // Check if Writer API is available
+            if (!('Writer' in self)) {
+                throw new Error('Writer API not available');
+            }
 
-      // Check availability
-      const availability = await Writer.availability();
-      if (availability === 'unavailable') {
-        throw new Error('Writer not available');
-      }
+            // Check availability
+            const availability = await Writer.availability();
+            if (availability === 'unavailable') {
+                throw new Error('Writer not available');
+            }
 
-      // Create writer if not exists
-      if (!this.writer) {
-        this.writer = await Writer.create({
-          tone: 'neutral',
-          format: 'markdown',
-          length: 'medium'
+            // Create writer if not exists
+            if (!this.writer) {
+                this.writer = await Writer.create({
+                    tone: 'neutral',
+                    format: 'markdown',
+                    length: 'medium'
+                });
+            }
+
+            // Create writing prompt with context
+            const prompt = `Based on this selected text: "${this.selectedText}"\n\nWrite about: ${userInput}`;
+
+            // Show loading
+            this.showLoading();
+
+            // Get streaming response
+            const stream = this.writer.writeStreaming(prompt);
+
+            this.currentResponse = '';
+            for await (const chunk of stream) {
+                this.currentResponse += chunk;
+                this.updateResponse(this.currentResponse);
+            }
+
+            this.showActionButtons();
+        } catch (error) {
+            this.showError(error.message);
+        }
+    }
+
+    async startSummarization() {
+        try {
+            // Check if Summarizer API is available
+            if (!('Summarizer' in self)) {
+                throw new Error('Summarizer API not available');
+            }
+
+            // Check availability
+            const availability = await Summarizer.availability();
+            if (availability === 'unavailable') {
+                throw new Error('Summarizer not available');
+            }
+
+            // Create summarizer if not exists
+            if (!this.summarizer) {
+                this.summarizer = await Summarizer.create({
+                    type: 'key-points',
+                    format: 'markdown',
+                    length: 'medium'
+                });
+            }
+
+            // Show loading
+            this.showLoading();
+
+            // Get streaming summary
+            const stream = this.summarizer.summarizeStreaming(this.selectedText);
+
+            this.currentResponse = '';
+            for await (const chunk of stream) {
+                this.currentResponse += chunk;
+                this.updateResponse(this.currentResponse);
+            }
+
+            this.showActionButtons();
+        } catch (error) {
+            this.showError(error.message);
+        }
+    }
+
+    updateResponse(text) {
+        const html = this.parseMarkdownToHTML(text);
+        this.responseContent.innerHTML = html;
+
+        // Use requestAnimationFrame to ensure DOM has updated before scrolling
+        requestAnimationFrame(() => {
+            this.content.scrollTo({
+                top: this.content.scrollHeight - 50,
+                behavior: 'smooth'
+            });
         });
-      }
-
-      // Create writing prompt with context
-      const prompt = `Based on this selected text: "${this.selectedText}"\n\nWrite about: ${userInput}`;
-
-      // Show loading
-      this.showLoading();
-
-      // Get streaming response
-      const stream = this.writer.writeStreaming(prompt);
-      
-      this.currentResponse = '';
-      for await (const chunk of stream) {
-        this.currentResponse += chunk;
-        this.updateResponse(this.currentResponse);
-      }
-
-      this.showActionButtons();
-    } catch (error) {
-      this.showError(error.message);
     }
-  }
 
-  async startSummarization() {
-    try {
-      // Check if Summarizer API is available
-      if (!('Summarizer' in self)) {
-        throw new Error('Summarizer API not available');
-      }
+    showLoading() {
+        // Show the response section
+        this.responseSection.style.display = 'flex';
 
-      // Check availability
-      const availability = await Summarizer.availability();
-      if (availability === 'unavailable') {
-        throw new Error('Summarizer not available');
-      }
-
-      // Create summarizer if not exists
-      if (!this.summarizer) {
-        this.summarizer = await Summarizer.create({
-          type: 'key-points',
-          format: 'markdown',
-          length: 'medium'
-        });
-      }
-
-      // Show loading
-      this.showLoading();
-
-      // Get streaming summary
-      const stream = this.summarizer.summarizeStreaming(this.selectedText);
-      
-      this.currentResponse = '';
-      for await (const chunk of stream) {
-        this.currentResponse += chunk;
-        this.updateResponse(this.currentResponse);
-      }
-
-      this.showActionButtons();
-    } catch (error) {
-      this.showError(error.message);
-    }
-  }
-
-  updateResponse(text) {
-    const html = this.parseMarkdownToHTML(text);
-    this.responseContent.innerHTML = html;
-    
-    // Use requestAnimationFrame to ensure DOM has updated before scrolling
-    requestAnimationFrame(() => {
-      this.content.scrollTo({
-        top: this.content.scrollHeight - 50,
-        behavior: 'smooth'
-      });
-    });
-  }
-
-  showLoading() {
-    // Show the response section
-    this.responseSection.style.display = 'flex';
-    
-    this.responseContent.innerHTML = `
+        this.responseContent.innerHTML = `
       <div class="loading">
         <div class="loading-spinner"></div>
       </div>
     `;
-  }
+    }
 
-  showError(message) {
-    // Show the response section
-    this.responseSection.style.display = 'flex';
-    
-    this.responseContent.innerHTML = `
+    showError(message) {
+        // Show the response section
+        this.responseSection.style.display = 'flex';
+
+        this.responseContent.innerHTML = `
       <div style="color: #dc2626; text-align: center; padding: 20px;">
         ${message}
       </div>
     `;
-  }
+    }
 
-  showActionButtons() {
-    this.actionButtons.style.display = 'flex';
-  }
+    showActionButtons() {
+        this.actionButtons.style.display = 'flex';
+    }
 
-  parseMarkdownToHTML(markdown) {
-    let html = markdown
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
+    parseMarkdownToHTML(markdown) {
+        let html = markdown
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
 
-    // Headings
-    html = html.replace(/^\*\*(.*?)\*\*:/gm, "<h3>$1:</h3>");
-    
-    // Markdown headers (# ## ###)
-    html = html.replace(/^### (.*)$/gm, "<h3>$1</h3>");
-    html = html.replace(/^## (.*)$/gm, "<h2>$1</h2>");
-    html = html.replace(/^# (.*)$/gm, "<h1>$1</h1>");
+        // Headings
+        html = html.replace(/^\*\*(.*?)\*\*:/gm, "<h3>$1:</h3>");
 
-    // Blockquotes
-    html = html.replace(/^&gt;\s?(.*)$/gm, "<blockquote>$1</blockquote>");
+        // Markdown headers (# ## ###)
+        html = html.replace(/^### (.*)$/gm, "<h3>$1</h3>");
+        html = html.replace(/^## (.*)$/gm, "<h2>$1</h2>");
+        html = html.replace(/^# (.*)$/gm, "<h1>$1</h1>");
 
-    // Links [text](url)
-    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+        // Blockquotes
+        html = html.replace(/^&gt;\s?(.*)$/gm, "<blockquote>$1</blockquote>");
 
-    // Bold
-    html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+        // Links [text](url)
+        html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
 
-    // Italic
-    html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
+        // Bold
+        html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
 
-    // Lists
-    html = html.replace(/(?:^|\n)\* (.*?)(?=\n|$)/g, "<li>$1</li>");
-    html = html.replace(/(<li>.*<\/li>)/gs, "<ul>$1</ul>");
+        // Italic
+        html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
 
-    // Tables - process line by line to find complete table blocks
-    const lines = html.split('\n');
-    const result = [];
-    let i = 0;
+        // Lists
+        html = html.replace(/(?:^|\n)\* (.*?)(?=\n|$)/g, "<li>$1</li>");
+        html = html.replace(/(<li>.*<\/li>)/gs, "<ul>$1</ul>");
 
-    while (i < lines.length) {
-        const line = lines[i];
+        // Tables - process line by line to find complete table blocks
+        const lines = html.split('\n');
+        const result = [];
+        let i = 0;
 
-        // Check if this line starts a table
-        if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
-            const tableLines = [line];
-            i++;
+        while (i < lines.length) {
+            const line = lines[i];
 
-            // Collect all consecutive table lines
-            while (i < lines.length && lines[i].trim().startsWith('|')) {
-                tableLines.push(lines[i]);
+            // Check if this line starts a table
+            if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
+                const tableLines = [line];
+                i++;
+
+                // Collect all consecutive table lines
+                while (i < lines.length && lines[i].trim().startsWith('|')) {
+                    tableLines.push(lines[i]);
+                    i++;
+                }
+
+                // Check if we have a valid table (at least header + separator + one data row)
+                if (tableLines.length >= 3) {
+                    const separatorLine = tableLines[1];
+                    if (/^\|[\s\-:]+\|/.test(separatorLine.trim())) {
+                        // Parse the table
+                        const headerRow = tableLines[0];
+                        const dataRows = tableLines.slice(2);
+
+                        // Parse header
+                        const headerCells = headerRow.split('|').slice(1, -1).map(cell => cell.trim());
+                        const headerHtml = headerCells.map(cell => `<th>${cell}</th>`).join('');
+
+                        // Parse data rows
+                        const rowsHtml = dataRows.map(row => {
+                            const cells = row.split('|').slice(1, -1).map(cell => cell.trim());
+                            const cellsHtml = cells.map(cell => `<td>${cell}</td>`).join('');
+                            return `<tr>${cellsHtml}</tr>`;
+                        }).join('');
+
+                        result.push(`<table><thead><tr>${headerHtml}</tr></thead><tbody>${rowsHtml}</tbody></table>`);
+                        continue;
+                    }
+                }
+
+                // If not a valid table, add the lines back as-is
+                result.push(...tableLines);
+            } else {
+                result.push(line);
                 i++;
             }
+        }
 
-            // Check if we have a valid table (at least header + separator + one data row)
-            if (tableLines.length >= 3) {
-                const separatorLine = tableLines[1];
-                if (/^\|[\s\-:]+\|/.test(separatorLine.trim())) {
-                    // Parse the table
-                    const headerRow = tableLines[0];
-                    const dataRows = tableLines.slice(2);
+        html = result.join('\n');
 
-                    // Parse header
-                    const headerCells = headerRow.split('|').slice(1, -1).map(cell => cell.trim());
-                    const headerHtml = headerCells.map(cell => `<th>${cell}</th>`).join('');
+        // Paragraphs
+        html = html
+            .split(/\n{2,}/)
+            .map(block => {
+                if (/^<\/?(h\d|ul|li|blockquote|table)/.test(block.trim())) return block;
+                return `<p>${block.trim().replace(/\n/g, "<br>")}</p>`;
+            })
+            .join("\n");
 
-                    // Parse data rows
-                    const rowsHtml = dataRows.map(row => {
-                        const cells = row.split('|').slice(1, -1).map(cell => cell.trim());
-                        const cellsHtml = cells.map(cell => `<td>${cell}</td>`).join('');
-                        return `<tr>${cellsHtml}</tr>`;
-                    }).join('');
+        return html.trim();
+    }
 
-                    result.push(`<table><thead><tr>${headerHtml}</tr></thead><tbody>${rowsHtml}</tbody></table>`);
-                    continue;
-                }
-            }
-
-            // If not a valid table, add the lines back as-is
-            result.push(...tableLines);
-        } else {
-            result.push(line);
-            i++;
+    async copyResponse() {
+        try {
+            await navigator.clipboard.writeText(this.currentResponse);
+            this.showNotification('Copied to clipboard!');
+        } catch (error) {
+            console.error('Failed to copy:', error);
         }
     }
 
-    html = result.join('\n');
-
-    // Paragraphs
-    html = html
-        .split(/\n{2,}/)
-        .map(block => {
-            if (/^<\/?(h\d|ul|li|blockquote|table)/.test(block.trim())) return block;
-            return `<p>${block.trim().replace(/\n/g, "<br>")}</p>`;
-        })
-        .join("\n");
-
-    return html.trim();
-  }
-
-  async copyResponse() {
-    try {
-      await navigator.clipboard.writeText(this.currentResponse);
-      this.showNotification('Copied to clipboard!');
-    } catch (error) {
-      console.error('Failed to copy:', error);
+    async shareResponse() {
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'AI Generated Content',
+                    text: this.currentResponse
+                });
+            } catch (error) {
+                console.error('Failed to share:', error);
+            }
+        } else {
+            // Fallback to copying
+            this.copyResponse();
+        }
     }
-  }
 
-  async shareResponse() {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'AI Generated Content',
-          text: this.currentResponse
-        });
-      } catch (error) {
-        console.error('Failed to share:', error);
-      }
-    } else {
-      // Fallback to copying
-      this.copyResponse();
-    }
-  }
-
-  showNotification(message) {
-    const notification = document.createElement('div');
-    notification.textContent = message;
-    notification.style.cssText = `
+    showNotification(message) {
+        const notification = document.createElement('div');
+        notification.textContent = message;
+        notification.style.cssText = `
       position: fixed;
       top: 20px;
       right: 20px;
@@ -855,90 +856,88 @@ export class PopoverAI {
       z-index: 10002;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     `;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-      notification.remove();
-    }, 3000);
-  }
 
-  // Get position from selection range (anchored to text)
-  getSelectionPosition() {
-    if (!this.selectionRange) {
-      return this.position || { x: 0, y: 0 };
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
     }
-    
-    try {
-      const rect = this.selectionRange.getBoundingClientRect();
-      const viewport = {
-        width: window.innerWidth,
-        height: window.innerHeight
-      };
-      
-      // Calculate smart positioning
-      const popoverWidth = 400; // Fixed width from CSS
-      const popoverHeight = 300; // Estimated height
-      const margin = 20; // Margin from viewport edges
-      
-      // Horizontal positioning - center on selection but keep within viewport
-      let x = rect.left + (rect.width / 2) - (popoverWidth / 2);
-      x = Math.max(margin, Math.min(x, viewport.width - popoverWidth - margin));
-      
-      // Vertical positioning - smart placement based on available space
-      let y;
-      const spaceBelow = viewport.height - rect.bottom - margin;
-      const spaceAbove = rect.top - margin;
-      
-      // If there's more space below and it's sufficient, place below
-      if (spaceBelow >= popoverHeight || spaceBelow > spaceAbove) {
-        y = rect.bottom + 10;
-      } else {
-        y = rect.bottom - popoverHeight - 10;
 
-        // Place above the selection
-        // y = rect.top - popoverHeight - 10;
-      }
-      
-      // Ensure popover doesn't go above viewport
-      y = Math.max(margin, y);
-      
-      return { x, y };
-    } catch (error) {
-      console.warn('Could not get selection position:', error);
-      return this.position || { x: 0, y: 0 };
+    // Get position from selection range (fallback method - not used for main positioning)
+    getSelectionPosition() {
+        // This method is kept for compatibility but we now use mouse position directly
+        return this.calculateSafePosition(this.position || { x: 0, y: 0 }, { width: 400, height: 300 });
     }
-  }
 
-  // Update popover position
-  updatePosition() {
-    if (this.popoverElement) {
-      const position = this.getSelectionPosition();
-      this.popoverElement.style.left = `${position.x}px`;
-      this.popoverElement.style.top = `${position.y}px`;
-    }
-  }
-
-  close() {
-    if (this.popoverElement) {
-      // Remove visible class to trigger fade out
-      this.popoverElement.classList.remove('visible');
-      
-      // Clear text selection to prevent weird state issues
-      if (window.getSelection) {
-        window.getSelection().removeAllRanges();
-      }
-      
-      // Notify content script to hide action buttons
-      window.dispatchEvent(new CustomEvent('popoverClosed'));
-      
-      // Wait for transition to complete before removing from DOM
-      setTimeout(() => {
-        if (this.popoverElement) {
-          this.popoverElement.remove();
-          this.popoverElement = null;
+    // Calculate safe position that stays within viewport boundaries
+    calculateSafePosition(position, elementSize) {
+        const viewport = {
+            width: window.innerWidth,
+            height: window.innerHeight
+        };
+        
+        const margin = 20; // Minimum margin from viewport edges
+        
+        // Calculate safe horizontal position
+        let x = position.x;
+        if (x + elementSize.width > viewport.width - margin) {
+            x = viewport.width - elementSize.width - margin;
         }
-      }, 300); // Match the CSS transition duration
+        if (x < margin) {
+            x = margin;
+        }
+        
+        // Calculate safe vertical position
+        let y = position.y;
+        if (y + elementSize.height > viewport.height - margin) {
+            y = viewport.height - elementSize.height - margin;
+        }
+        if (y < margin) {
+            y = margin;
+        }
+        
+        return { x, y };
     }
-  }
+
+    // Convert viewport coordinates to absolute page coordinates
+    calculateAbsolutePosition(viewportPosition) {
+        return {
+            x: viewportPosition.x + window.scrollX,
+            y: viewportPosition.y + window.scrollY
+        };
+    }
+
+    // Update popover position
+    updatePosition() {
+        if (this.popoverElement) {
+            const safePosition = this.calculateSafePosition(this.position, { width: 400, height: 300 });
+            const absolutePosition = this.calculateAbsolutePosition(safePosition);
+            this.popoverElement.style.left = `${absolutePosition.x}px`;
+            this.popoverElement.style.top = `${absolutePosition.y}px`;
+        }
+    }
+
+    close() {
+        if (this.popoverElement) {
+            // Remove visible class to trigger fade out
+            this.popoverElement.classList.remove('visible');
+
+            // Clear text selection to prevent weird state issues
+            if (window.getSelection) {
+                window.getSelection().removeAllRanges();
+            }
+
+            // Notify content script to hide action buttons
+            window.dispatchEvent(new CustomEvent('popoverClosed'));
+
+            // Wait for transition to complete before removing from DOM
+            setTimeout(() => {
+                if (this.popoverElement) {
+                    this.popoverElement.remove();
+                    this.popoverElement = null;
+                }
+            }, 300); // Match the CSS transition duration
+        }
+    }
 }
