@@ -104,7 +104,7 @@ class SelectionAI {
     // Get position from selection range
     const position = this.getSelectionPosition();
     
-    // Create button container
+    // Create button container with Shadow DOM for style isolation
     this.buttonContainer = document.createElement('div');
     this.buttonContainer.className = 'selection-ai-buttons';
     this.buttonContainer.style.cssText = `
@@ -112,6 +112,62 @@ class SelectionAI {
       left: ${position.x}px;
       top: ${position.y}px;
     `;
+    
+    // Create shadow root for complete style isolation
+    this.buttonShadowRoot = this.buttonContainer.attachShadow({ mode: 'open' });
+    
+    // Add CSS styles to shadow root for complete isolation
+    const style = document.createElement('style');
+    style.textContent = `
+      .selection-ai-buttons {
+        background: rgba(255, 255, 255, 1);
+        backdrop-filter: blur(10px);
+        border-radius: 25px;
+        padding: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        opacity: 0;
+        filter: blur(20px);
+        transition: opacity 0.3s ease-out, filter 0.3s ease-out;
+      }
+      
+      .selection-ai-buttons.visible {
+        opacity: 1;
+        filter: blur(0px);
+      }
+      
+      .selection-ai-buttons-inner {
+        padding: 8px;
+        display: flex;
+        gap: 8px;
+        border-radius: 25px;
+      }
+      
+      .selection-ai-button {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: none;
+        color: black;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        position: relative;
+        background: transparent;
+      }
+      
+      .selection-ai-button:hover {
+        background: rgba(0, 0, 0, 0.1);
+      }
+      
+      .selection-ai-button svg {
+        width: 20px;
+        height: 20px;
+      }
+    `;
+    this.buttonShadowRoot.appendChild(style);
     
     // Create inner container for glass effect
     const innerContainer = document.createElement('div');
@@ -145,8 +201,8 @@ class SelectionAI {
       innerContainer.appendChild(buttonEl);
     });
     
-    // Append inner container to outer container
-    this.buttonContainer.appendChild(innerContainer);
+    // Append inner container to shadow root
+    this.buttonShadowRoot.appendChild(innerContainer);
     
     // Clear any existing timeout
     if (this.buttonTimeout) {
@@ -202,11 +258,16 @@ class SelectionAI {
   }
 
   async showPopover(action) {
+    console.log('showPopover called with action:', action);
+    console.log('Selected text:', this.selectedText);
+    console.log('Selection range:', this.selectionRange);
+    
     // Apply selection highlighting
     this.highlightSelection();
     
     // Get position from selection range
     const position = this.getSelectionPosition();
+    console.log('Calculated position:', position);
     
     // Wait for PopoverAI to be loaded
     if (!this.PopoverAI) {
@@ -222,9 +283,14 @@ class SelectionAI {
     // Create popover using the PopoverAI class
     if (this.PopoverAI) {
       console.log('Creating popover with PopoverAI class');
-      this.popover = new this.PopoverAI(action, this.selectedText, position, this.selectionRange);
-      console.log('Popover created:', this.popover);
-      console.log('Popover element:', this.popover?.popoverElement);
+      try {
+        this.popover = new this.PopoverAI(action, this.selectedText, position, this.selectionRange);
+        console.log('Popover created:', this.popover);
+        console.log('Popover element:', this.popover?.popoverElement);
+        console.log('Shadow root:', this.popover?.shadowRoot);
+      } catch (error) {
+        console.error('Error creating popover:', error);
+      }
     } else {
       console.error('PopoverAI not loaded after waiting. Attempting to load again...');
       // Try to load the module again

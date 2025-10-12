@@ -25,9 +25,13 @@ export class PopoverAI {
   createPopover() {
     try {
       console.log('Creating popover element...');
-      // Create popover container
+      // Create popover container with Shadow DOM for style isolation
       this.popoverElement = document.createElement('div');
       this.popoverElement.className = 'selection-ai-popover';
+      
+      // Create shadow root for complete style isolation
+      this.shadowRoot = this.popoverElement.attachShadow({ mode: 'open' });
+      
     // Get current position from selection range
     const currentPosition = this.getSelectionPosition();
     
@@ -37,12 +41,10 @@ export class PopoverAI {
       top: ${currentPosition.y}px;
     `;
 
-    // Add CSS styles
-    if (!document.getElementById('popover-styles')) {
-      const style = document.createElement('style');
-      style.id = 'popover-styles';
-      style.textContent = `
-        .selection-ai-popover {
+    // Add CSS styles to shadow root for complete isolation
+    const style = document.createElement('style');
+    style.textContent = `
+        :host {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
           background: rgba(255, 255, 255, 1);
           backdrop-filter: blur(10px);
@@ -55,14 +57,15 @@ export class PopoverAI {
           width: 400px;
           border: none;
           z-index: 10001;
+          display: block;
         }
         
-        .selection-ai-popover.visible {
+        :host(.visible) {
           opacity: 1;
           filter: blur(0px);
         }
         
-        .selection-ai-popover .header {
+        .header {
           padding: 18px 20px 0 20px;
           display: flex;
           align-items: center;
@@ -70,7 +73,7 @@ export class PopoverAI {
           position: relative;
         }
 
-        .selection-ai-popover .header::after {
+        .header::after {
             content: '';
             position: absolute;
             top: 50px;
@@ -82,7 +85,7 @@ export class PopoverAI {
             z-index: 1;
         }
 
-        .selection-ai-popover .header-title {
+        .header-title {
             display: flex;
             align-items: center;
             gap: 8px;
@@ -91,7 +94,7 @@ export class PopoverAI {
             margin: 0;
         }
         
-        .selection-ai-popover .close-btn {
+        .close-btn {
           width: 32px;
           height: 32px;
           border-radius: 50%;
@@ -102,38 +105,56 @@ export class PopoverAI {
           align-items: center;
           justify-content: center;
           transition: all 0.2s ease;
+          background: white;
         }
         
-        .selection-ai-popover .close-btn:hover {
+        .close-btn:hover {
           background: rgba(0, 0, 0, 0.1);
         }
         
-        .selection-ai-popover .content {
+        .content {
           display: flex;
           flex-direction: column;
           padding: 20px;
-          max-height: 89vh;
+          max-height: 40vh;
           overflow: auto;
         }
+
+        .input-section-wrapper {
+            padding: 20px 20px 20px 20px;
+            position: relative;
+        }
+
+        .input-section-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -40px;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: linear-gradient(to top, rgba(255, 255, 255, 1) 0%, transparent 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
         
-        .selection-ai-popover .input-section {
+        .input-section {
           padding: 16px 12px 12px 18px;
           background: rgba(0, 0, 0, 0.1);
           border-radius: 30px;
           box-sizing: border-box;
         }
 
-        .selection-ai-popover .input-section-footer {
+        .input-section-footer {
           display: flex;
           justify-content: flex-end;
           margin-top: 6px;
         }
         
-        .selection-ai-popover .input-section.hidden {
+        .input-section.hidden {
           display: none;
         }
         
-        .selection-ai-popover .input-label {
+        .input-label {
           display: block;
           font-size: 14px;
           font-weight: 500;
@@ -148,13 +169,16 @@ export class PopoverAI {
           outline: none !important;
           box-sizing: border-box !important;
           background: transparent !important;
+          border: none !important;
+          font-family: sans-serif !important;
+          color: #374151 !important;
         }
 
         .input-field::placeholder {
-          color: rgba(0, 0, 0, 0.7);
+          color: rgba(0, 0, 0, 0.6);
         }
         
-        .selection-ai-popover .submit-btn {
+        .submit-btn {
           width: 44px;
           height: 44px;
           padding: 8px;
@@ -173,36 +197,37 @@ export class PopoverAI {
           margin-top: 12px;
         }
         
-        .selection-ai-popover .submit-btn:hover:not(:disabled) {
-          background: rgba(0, 0, 0, 0.2);
+        .submit-btn:hover:not(:disabled) {
+          background: #3b82f6;
           transform: translateY(-1px);
         }
         
-        .selection-ai-popover .submit-btn:disabled {
+        .submit-btn:disabled {
           background: rgba(0, 0, 0, 0.1);
           cursor: not-allowed;
           transform: none;
         }
         
-        .selection-ai-popover .response-section {
+        .response-section {
           display: flex;
           flex-direction: column;
           margin-bottom: 20px;
         }
         
-        .selection-ai-popover .selected-text-context {
+        .selected-text-context {
           font-size: 13px;
           margin-bottom: 12px;
         }
         
-        .selection-ai-popover .context-text {
+        .context-text {
             overflow-y: auto;
             padding: 4px 0;
             display: inline;
             font-style: italic;
+            color: #374151;
         }
         
-        .selection-ai-popover .response-content {
+        .response-content {
           padding: 0;
           border-radius: 12px;
           font-size: 14px;
@@ -210,34 +235,34 @@ export class PopoverAI {
           color: #374151;
         }
         
-        .selection-ai-popover .response-content h1, 
-        .selection-ai-popover .response-content h2, 
-        .selection-ai-popover .response-content h3 {
+        .response-content h1, 
+        .response-content h2, 
+        .response-content h3 {
           color: #1f2937;
           margin: 16px 0 8px 0;
         }
         
-        .selection-ai-popover .response-content h1:first-child,
-        .selection-ai-popover .response-content h2:first-child,
-        .selection-ai-popover .response-content h3:first-child {
+        .response-content h1:first-child,
+        .response-content h2:first-child,
+        .response-content h3:first-child {
           margin-top: 0;
         }
         
-        .selection-ai-popover .response-content p {
+        .response-content p {
           margin: 8px 0;
         }
         
-        .selection-ai-popover .response-content ul, 
-        .selection-ai-popover .response-content ol {
+        .response-content ul, 
+        .response-content ol {
           margin: 8px 0;
           padding-left: 20px;
         }
         
-        .selection-ai-popover .response-content li {
+        .response-content li {
           margin: 4px 0;
         }
         
-        .selection-ai-popover .response-content blockquote {
+        .response-content blockquote {
           border-left: 4px solid #3b82f6;
           padding-left: 16px;
           margin: 16px 0;
@@ -245,42 +270,42 @@ export class PopoverAI {
           font-style: italic;
         }
         
-        .selection-ai-popover .response-content table {
+        .response-content table {
           width: 100%;
           border-collapse: collapse;
           margin: 16px 0;
         }
         
-        .selection-ai-popover .response-content th,
-        .selection-ai-popover .response-content td {
+        .response-content th,
+        .response-content td {
           border: 1px solid #d1d5db;
           padding: 8px 12px;
           text-align: left;
         }
         
-        .selection-ai-popover .response-content th {
+        .response-content th {
           background: #f3f4f6;
           font-weight: 600;
         }
         
-        .selection-ai-popover .response-content a {
+        .response-content a {
           color: #3b82f6;
           text-decoration: none;
         }
         
-        .selection-ai-popover .response-content a:hover {
+        .response-content a:hover {
           text-decoration: underline;
         }
         
-        .selection-ai-popover .response-content strong {
+        .response-content strong {
           font-weight: 600;
         }
         
-        .selection-ai-popover .response-content em {
+        .response-content em {
           font-style: italic;
         }
         
-        .selection-ai-popover .loading {
+        .loading {
           display: flex;
           align-items: center;
           justify-content: center;
@@ -288,11 +313,11 @@ export class PopoverAI {
           color: #6b7280;
         }
         
-        .selection-ai-popover .loading-spinner {
+        .loading-spinner {
           width: 20px;
           height: 20px;
           border: 2px solid #e5e7eb;
-          border-top: 2px solid #3b82f6;
+          border-top: 2px solid rgb(135, 137, 138);
           border-radius: 50%;
           animation: spin 1s linear infinite;
           margin-right: 12px;
@@ -303,12 +328,12 @@ export class PopoverAI {
           100% { transform: rotate(360deg); }
         }
         
-        .selection-ai-popover .action-buttons {
+        .action-buttons {
           display: flex;
           gap: 2px;
         }
         
-        .selection-ai-popover .action-btn {
+        .action-btn {
           padding: 10px;
           border-radius: 50%;
           color: #374151;
@@ -320,104 +345,109 @@ export class PopoverAI {
           justify-content: center;
           gap: 8px;
           transition: all 0.2s ease;
+          background: transparent !important;
+          border: none !important;
         }
         
-        .selection-ai-popover .action-btn:hover {
-          background: rgba(0, 0, 0, 0.1);
+        .action-btn:hover {
+          background: rgba(0, 0, 0, 0.1) !important;
         }
         
-        .selection-ai-popover .action-btn.primary {
+        .action-btn.primary {
           background: #3b82f6;
           color: white;
           border-color: #3b82f6;
         }
         
-        .selection-ai-popover .action-btn.primary:hover {
+        .action-btn.primary:hover {
           background: #2563eb;
           border-color: #2563eb;
         }
         
-        .selection-ai-popover .hidden {
+        .hidden {
           display: none !important;
         }
       `;
-      document.head.appendChild(style);
-    }
 
-    // Create popover HTML structure
-    this.popoverElement.innerHTML = `
-      <div class="header">
-        <div id="header-title" class="header-title">AI Assistant</div>
-        <button class="close-btn" id="close-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 6 6 18"/>
-            <path d="m6 6 12 12"/>
-          </svg>
-        </button>
-      </div>
-
-      <div class="content">
-        <div class="selected-text-context" id="selected-text-context">
-          <div class="context-text" id="context-text">${this.selectedText?.length > 100 ? this.selectedText?.slice(0, 100) + '...' : this.selectedText}</div>
+    // Create popover HTML structure in shadow root
+    this.shadowRoot.innerHTML = `
+      <div class="popover-container">
+        <div class="header">
+          <div id="header-title" class="header-title">AI Assistant</div>
+          <button class="close-btn" id="close-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 6 6 18"/>
+              <path d="m6 6 12 12"/>
+            </svg>
+          </button>
         </div>
-        
-        <div class="response-section" id="response-section" style="display: none;">
-          <div class="response-content" id="response-content">
-            <div class="loading">
-              <div class="loading-spinner"></div>
-              Processing your request...
+
+        <div class="content">
+          <div class="selected-text-context" id="selected-text-context">
+            <div class="context-text" id="context-text">${this.selectedText?.length > 100 ? this.selectedText?.slice(0, 100) + '...' : this.selectedText}</div>
+          </div>
+          
+          <div class="response-section" id="response-section" style="display: none;">
+            <div class="response-content" id="response-content">
+              <div class="loading">
+                <div class="loading-spinner"></div>
+              </div>
+            </div>
+
+            <div class="action-buttons" id="action-buttons" style="display: none;">
+              <button class="action-btn" id="copy-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                  <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                </svg>
+              </button>
+              <button class="action-btn" id="share-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                  <polyline points="16,6 12,2 8,6"/>
+                  <line x1="12" y1="2" x2="12" y2="15"/>
+                </svg>
+              </button>
             </div>
           </div>
-
-          <div class="action-buttons" id="action-buttons" style="display: none;">
-            <button class="action-btn" id="copy-btn">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-              </svg>
-            </button>
-            <button class="action-btn" id="share-btn">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                <polyline points="16,6 12,2 8,6"/>
-                <line x1="12" y1="2" x2="12" y2="15"/>
-              </svg>
-            </button>
-          </div>
         </div>
+        <div class="input-section-wrapper">
+            <div class="input-section" id="input-section">
+                <textarea 
+                class="input-field" 
+                id="user-input" 
+                placeholder="Enter your question or request..."
+                rows="3"
+                ></textarea>
 
-        <div class="input-section" id="input-section">
-          <textarea 
-            class="input-field" 
-            id="user-input" 
-            placeholder="Enter your question or request..."
-            rows="3"
-          ></textarea>
-
-          <div class="input-section-footer">
-            <button class="submit-btn" id="submit-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 4v7a4 4 0 0 1-4 4H4"/>
-                <path d="m9 10-5 5 5 5"/>
-                </svg>
-            </button>
+                <div class="input-section-footer">
+                <button class="submit-btn" id="submit-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 4v7a4 4 0 0 1-4 4H4"/>
+                    <path d="m9 10-5 5 5 5"/>
+                    </svg>
+                </button>
+                </div>
+            </div>
           </div>
-        </div>
       </div>
     `;
 
+    this.shadowRoot.appendChild(style);
+
     // Add to DOM
     document.body.appendChild(this.popoverElement);
+    console.log('Popover element added to DOM:', this.popoverElement);
 
     // Stop propagation for all clicks inside the popover
-    this.popoverElement.addEventListener('click', (e) => {
+    this.shadowRoot.addEventListener('click', (e) => {
       e.stopPropagation();
     });
 
     // Trigger fade in animation
     requestAnimationFrame(() => {
       this.popoverElement.classList.add('visible');
-      console.log('Visible class added to popover');
+      console.log('Visible class added to popover element');
     });
     
     console.log('Popover element created and added to DOM');
@@ -428,18 +458,19 @@ export class PopoverAI {
   }
 
   init() {
-    // Get DOM elements from popover
-    this.headerTitle = this.popoverElement.querySelector('#header-title');
-    this.inputSection = this.popoverElement.querySelector('#input-section');
-    this.responseSection = this.popoverElement.querySelector('#response-section');
-    this.userInput = this.popoverElement.querySelector('#user-input');
-    this.submitBtn = this.popoverElement.querySelector('#submit-btn');
-    this.responseContent = this.popoverElement.querySelector('#response-content');
-    this.actionButtons = this.popoverElement.querySelector('#action-buttons');
-    this.copyBtn = this.popoverElement.querySelector('#copy-btn');
-    this.shareBtn = this.popoverElement.querySelector('#share-btn');
-    this.closeBtn = this.popoverElement.querySelector('#close-btn');
-    this.contextText = this.popoverElement.querySelector('#context-text');
+    // Get DOM elements from shadow root
+    this.headerTitle = this.shadowRoot.querySelector('#header-title');
+    this.inputSection = this.shadowRoot.querySelector('#input-section');
+    this.responseSection = this.shadowRoot.querySelector('#response-section');
+    this.userInput = this.shadowRoot.querySelector('#user-input');
+    this.submitBtn = this.shadowRoot.querySelector('#submit-btn');
+    this.responseContent = this.shadowRoot.querySelector('#response-content');
+    this.actionButtons = this.shadowRoot.querySelector('#action-buttons');
+    this.copyBtn = this.shadowRoot.querySelector('#copy-btn');
+    this.shareBtn = this.shadowRoot.querySelector('#share-btn');
+    this.closeBtn = this.shadowRoot.querySelector('#close-btn');
+    this.contextText = this.shadowRoot.querySelector('#context-text');
+    this.content = this.shadowRoot.querySelector('.content');
     
     // Ensure context text is populated immediately
     if (this.contextText) {
@@ -499,7 +530,11 @@ export class PopoverAI {
     if (!userInput) return;
 
     this.submitBtn.disabled = true;
-    this.submitBtn.textContent = 'Processing...';
+    this.submitBtn.innerHTML = `
+    <div class="loading">
+        <div class="loading-spinner"></div>
+    </div>
+    `;
     this.showLoading();
 
     try {
@@ -650,6 +685,14 @@ export class PopoverAI {
   updateResponse(text) {
     const html = this.parseMarkdownToHTML(text);
     this.responseContent.innerHTML = html;
+    
+    // Use requestAnimationFrame to ensure DOM has updated before scrolling
+    requestAnimationFrame(() => {
+      this.content.scrollTo({
+        top: this.content.scrollHeight - 50,
+        behavior: 'smooth'
+      });
+    });
   }
 
   showLoading() {
@@ -659,7 +702,6 @@ export class PopoverAI {
     this.responseContent.innerHTML = `
       <div class="loading">
         <div class="loading-spinner"></div>
-        Processing your request...
       </div>
     `;
   }
@@ -687,6 +729,11 @@ export class PopoverAI {
 
     // Headings
     html = html.replace(/^\*\*(.*?)\*\*:/gm, "<h3>$1:</h3>");
+    
+    // Markdown headers (# ## ###)
+    html = html.replace(/^### (.*)$/gm, "<h3>$1</h3>");
+    html = html.replace(/^## (.*)$/gm, "<h2>$1</h2>");
+    html = html.replace(/^# (.*)$/gm, "<h1>$1</h1>");
 
     // Blockquotes
     html = html.replace(/^&gt;\s?(.*)$/gm, "<blockquote>$1</blockquote>");
