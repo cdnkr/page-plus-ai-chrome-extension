@@ -5,8 +5,12 @@
   "description": "AI-powered text selection tool using Google's in-browser AI APIs",
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "tabs"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],

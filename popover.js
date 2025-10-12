@@ -1,12 +1,13 @@
 // Popover script for handling AI interactions
 export class PopoverAI {
-    constructor(action, selectedText, position, selectionRange) {
+    constructor(action, selectedText, position, selectionRange, selectionType = 'text') {
         try {
-            console.log('PopoverAI constructor called with:', { action, selectedText: selectedText.substring(0, 50) + '...', position });
+            console.log('PopoverAI constructor called with:', { action, selectedText: selectedText.substring(0, 50) + '...', position, selectionType });
             this.action = action;
             this.selectedText = selectedText;
             this.position = position;
             this.selectionRange = selectionRange;
+            this.selectionType = selectionType; // 'text' or 'dragbox'
             this.session = null;
             this.summarizer = null;
             this.writer = null;
@@ -59,11 +60,22 @@ export class PopoverAI {
           border: none;
           z-index: 10001;
           display: block;
+          cursor: default !important;
         }
         
         :host(.visible) {
           opacity: 1;
           filter: blur(0px);
+        }
+        
+        /* Override cursor for all popover content */
+        * {
+          cursor: default !important;
+        }
+        
+        /* But allow pointer cursor for interactive elements */
+        button, .action-btn, .copy-color-btn {
+          cursor: pointer !important;
         }
         
         .header {
@@ -108,6 +120,10 @@ export class PopoverAI {
           transition: all 0.2s ease;
           background: white;
         }
+
+        .close-btn, .close-btn svg, .close-btn path {
+          cursor: pointer !important;
+        }
         
         .close-btn:hover {
           background: rgba(0, 0, 0, 0.1);
@@ -148,7 +164,6 @@ export class PopoverAI {
         .input-section-footer {
           display: flex;
           justify-content: flex-end;
-          margin-top: 6px;
         }
         
         .input-section.hidden {
@@ -173,6 +188,7 @@ export class PopoverAI {
           border: none !important;
           font-family: sans-serif !important;
           color: #374151 !important;
+          cursor: text !important;
         }
 
         .input-field::placeholder {
@@ -195,7 +211,10 @@ export class PopoverAI {
           justify-content: center;
           gap: 8px;
           transition: all 0.2s ease;
-          margin-top: 12px;
+        }
+
+        .submit-btn, .submit-btn svg, .submit-btn path {
+          cursor: pointer !important;
         }
         
         .submit-btn:hover:not(:disabled) {
@@ -385,7 +404,14 @@ export class PopoverAI {
 
         <div class="content">
           <div class="selected-text-context" id="selected-text-context">
-            <div class="context-text" id="context-text">${this.selectedText?.length > 100 ? this.selectedText?.slice(0, 100) + '...' : this.selectedText}</div>
+            <div class="context-text" id="context-text">
+              ${this.selectionType === 'dragbox' 
+                ? `<div style="margin-bottom: 12px;">
+                     <img src="${this.selectedText}" style="width: 100%; height: auto; border-radius: 8px; border: 1px solid rgba(0, 0, 0, 0.1);" alt="Selected area screenshot" />
+                   </div>`
+                : (this.selectedText?.length > 100 ? this.selectedText?.slice(0, 100) + '...' : this.selectedText)
+              }
+            </div>
           </div>
           
           <div class="response-section" id="response-section" style="display: none;">
@@ -471,11 +497,18 @@ export class PopoverAI {
         this.shareBtn = this.shadowRoot.querySelector('#share-btn');
         this.closeBtn = this.shadowRoot.querySelector('#close-btn');
         this.contextText = this.shadowRoot.querySelector('#context-text');
+        this.selectedTextContext = this.shadowRoot.querySelector('#selected-text-context');
         this.content = this.shadowRoot.querySelector('.content');
 
         // Ensure context text is populated immediately
         if (this.contextText) {
-            this.contextText.textContent = this.selectedText.length > 100 ? this.selectedText.slice(0, 100) + '...' : this.selectedText;
+            if (this.selectionType === 'dragbox') {
+                this.contextText.innerHTML = `<div style="margin-bottom: 12px;">
+                  <img src="${this.selectedText}" style="width: 100%; height: auto; border-radius: 8px; border: 1px solid rgba(0, 0, 0, 0.1);" alt="Selected area screenshot" />
+                </div>`;
+            } else {
+                this.contextText.textContent = this.selectedText.length > 100 ? this.selectedText.slice(0, 100) + '...' : this.selectedText;
+            }
         }
 
         // Add event listeners
@@ -507,21 +540,48 @@ export class PopoverAI {
     }
 
     setupForAction() {
+        // Show context section for all actions except colors
+        if (this.action !== 'colors') {
+            this.selectedTextContext.style.display = 'block';
+        } else {
+            this.selectedTextContext.style.display = 'none';
+        }
+
+        // Hide action buttons for colors action
+        if (this.action === 'colors') {
+            this.actionButtons.style.display = 'none';
+        }
+
         switch (this.action) {
             case 'prompt':
-                this.headerTitle.innerHTML = '<span>CTX</span><span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-right-icon lucide-move-right"><path d="M18 8L22 12L18 16"/><path d="M2 12H22"/></svg></span><span>Ask</span>';
-                this.userInput.placeholder = 'Ask a question about the selected text...';
+                if (this.selectionType === 'dragbox') {
+                    this.headerTitle.innerHTML = '<span>Image</span><span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-right-icon lucide-move-right"><path d="M18 8L22 12L18 16"/><path d="M2 12H22"/></svg></span><span>Ask</span>';
+                    this.userInput.placeholder = 'Ask a question about the selected image...';
+                } else {
+                    this.headerTitle.innerHTML = '<span>Text</span><span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-right-icon lucide-move-right"><path d="M18 8L22 12L18 16"/><path d="M2 12H22"/></svg></span><span>Ask</span>';
+                    this.userInput.placeholder = 'Ask a question about the selected text...';
+                }
                 this.inputSection.classList.remove('hidden');
                 break;
             case 'summarize':
-                this.headerTitle.innerHTML = '<span>CTX</span><span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-right-icon lucide-move-right"><path d="M18 8L22 12L18 16"/><path d="M2 12H22"/></svg></span><span>Summarize</span>';
+                this.headerTitle.innerHTML = '<span>Text</span><span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-right-icon lucide-move-right"><path d="M18 8L22 12L18 16"/><path d="M2 12H22"/></svg></span><span>Summarize</span>';
                 this.inputSection.classList.add('hidden');
                 this.startSummarization();
                 break;
             case 'write':
-                this.headerTitle.innerHTML = '<span>CTX</span><span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-right-icon lucide-move-right"><path d="M18 8L22 12L18 16"/><path d="M2 12H22"/></svg></span><span>Write</span>';
-                this.userInput.placeholder = 'What would you like to write about the selected text?';
+                if (this.selectionType === 'dragbox') {
+                    this.headerTitle.innerHTML = '<span>Image</span><span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-right-icon lucide-move-right"><path d="M18 8L22 12L18 16"/><path d="M2 12H22"/></svg></span><span>Write</span>';
+                    this.userInput.placeholder = 'What would you like to write about the selected image?';
+                } else {
+                    this.headerTitle.innerHTML = '<span>Text</span><span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-right-icon lucide-move-right"><path d="M18 8L22 12L18 16"/><path d="M2 12H22"/></svg></span><span>Write</span>';
+                    this.userInput.placeholder = 'What would you like to write about the selected text?';
+                }
                 this.inputSection.classList.remove('hidden');
+                break;
+            case 'colors':
+                this.headerTitle.innerHTML = '<span>Image</span><span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-right-icon lucide-move-right"><path d="M18 8L22 12L18 16"/><path d="M2 12H22"/></svg></span><span>Colors</span>';
+                this.inputSection.classList.add('hidden');
+                this.startColorAnalysis();
                 break;
         }
     }
@@ -576,17 +636,44 @@ export class PopoverAI {
 
             // Create session if not exists
             if (!this.session) {
-                this.session = await LanguageModel.create();
+                if (this.selectionType === 'dragbox') {
+                    // Create session with image input support
+                    this.session = await LanguageModel.create({
+                        expectedInputs: [{ type: 'image' }]
+                    });
+                } else {
+                    // Create regular session for text
+                    this.session = await LanguageModel.create();
+                }
             }
-
-            // Create prompt with context
-            const prompt = `Based on this selected text: "${this.selectedText}"\n\nUser question: ${userInput}`;
 
             // Show loading
             this.showLoading();
 
-            // Get streaming response
-            const stream = this.session.promptStreaming(prompt);
+            let stream;
+            if (this.selectionType === 'dragbox') {
+                // For drag box, send image with text prompt
+                const imageFile = await this.dataURLtoFile(this.selectedText, 'screenshot.png');
+                stream = this.session.promptStreaming([
+                    {
+                        role: 'user',
+                        content: [
+                            {
+                                type: 'text',
+                                value: userInput
+                            },
+                            {
+                                type: 'image',
+                                value: imageFile
+                            }
+                        ]
+                    }
+                ]);
+            } else {
+                // For text selection, use text prompt
+                const prompt = `Based on this selected text: "${this.selectedText}"\n\nUser question: ${userInput}`;
+                stream = this.session.promptStreaming(prompt);
+            }
 
             this.currentResponse = '';
             for await (const chunk of stream) {
@@ -622,8 +709,15 @@ export class PopoverAI {
                 });
             }
 
-            // Create writing prompt with context
-            const prompt = `Based on this selected text: "${this.selectedText}"\n\nWrite about: ${userInput}`;
+            // Create writing prompt with context based on selection type
+            let prompt;
+            if (this.selectionType === 'dragbox') {
+                // For drag box, we have an image
+                prompt = `Based on this selected image, write about: ${userInput}`;
+            } else {
+                // For text selection
+                prompt = `Based on this selected text: "${this.selectedText}"\n\nWrite about: ${userInput}`;
+            }
 
             // Show loading
             this.showLoading();
@@ -683,7 +777,153 @@ export class PopoverAI {
         }
     }
 
+    async startColorAnalysis() {
+        try {
+            // Show loading
+            this.showLoading();
+
+            // Analyze colors from the image
+            const colors = await this.analyzeImageColors(this.selectedText);
+            
+            if (colors && colors.length > 0) {
+                this.displayColors(colors);
+                this.showActionButtons();
+            } else {
+                this.showError('Could not analyze colors from the image');
+            }
+        } catch (error) {
+            this.showError(error.message);
+        }
+    }
+
+    async analyzeImageColors(imageDataUrl) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            
+            img.onload = () => {
+                try {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    
+                    ctx.drawImage(img, 0, 0);
+                    
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const pixels = imageData.data;
+                    
+                    // Sample pixels and count color frequencies
+                    const colorCounts = new Map();
+                    const sampleRate = Math.max(1, Math.floor(pixels.length / 4 / 1000)); // Sample every nth pixel
+                    
+                    for (let i = 0; i < pixels.length; i += 4 * sampleRate) {
+                        const r = pixels[i];
+                        const g = pixels[i + 1];
+                        const b = pixels[i + 2];
+                        const a = pixels[i + 3];
+                        
+                        // Skip transparent pixels
+                        if (a < 128) continue;
+                        
+                        // Quantize colors to reduce noise
+                        const quantizedR = Math.round(r / 32) * 32;
+                        const quantizedG = Math.round(g / 32) * 32;
+                        const quantizedB = Math.round(b / 32) * 32;
+                        
+                        const colorKey = `${quantizedR},${quantizedG},${quantizedB}`;
+                        colorCounts.set(colorKey, (colorCounts.get(colorKey) || 0) + 1);
+                    }
+                    
+                    // Sort by frequency and get top 6 colors
+                    const sortedColors = Array.from(colorCounts.entries())
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 6)
+                        .map(([colorKey]) => {
+                            const [r, g, b] = colorKey.split(',').map(Number);
+                            return {
+                                rgb: `rgb(${r}, ${g}, ${b})`,
+                                hex: this.rgbToHex(r, g, b)
+                            };
+                        });
+                    
+                    resolve(sortedColors);
+                } catch (error) {
+                    console.error('Error analyzing colors:', error);
+                    resolve([]);
+                }
+            };
+            
+            img.onerror = () => {
+                console.error('Error loading image for color analysis');
+                resolve([]);
+            };
+            
+            img.src = imageDataUrl;
+        });
+    }
+
+    rgbToHex(r, g, b) {
+        return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    }
+
+    async dataURLtoFile(dataUrl, filename) {
+        const response = await fetch(dataUrl);
+        const blob = await response.blob();
+        return new File([blob], filename, { type: blob.type });
+    }
+
+    displayColors(colors) {
+        const colorsHtml = colors.map((color, index) => `
+            <div class="color-item" style="display: flex; flex-direction: column; padding: 12px; background: rgba(0, 0, 0, 0.05); border-radius: 8px; position: relative;">
+                <div class="color-swatch" style="width: 100%; height: 60px; border-radius: 8px; background: ${color.rgb}; margin-bottom: 8px; border: 1px solid rgba(0, 0, 0, 0.1);"></div>
+                <div class="color-info" style="flex: 1;">
+                    <div class="color-hex" style="font-family: monospace; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 2px;">${color.hex}</div>
+                    <div class="color-rgb" style="font-family: monospace; font-size: 10px; color: #6b7280;">${color.rgb}</div>
+                </div>
+                <button class="copy-color-btn" data-color="${color.hex}" style="position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; opacity: 0.7;" onmouseover="this.style.opacity='1'; this.style.background='rgba(255, 255, 255, 1)'" onmouseout="this.style.opacity='0.7'; this.style.background='rgba(255, 255, 255, 0.9)'">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                        <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                    </svg>
+                </button>
+            </div>
+        `).join('');
+
+        this.currentResponse = `
+            <div class="colors-container">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
+                    ${colorsHtml}
+                </div>
+            </div>
+        `;
+
+        this.updateResponse(this.currentResponse);
+
+        // Add click handlers for copy buttons
+        setTimeout(() => {
+            const copyButtons = this.shadowRoot.querySelectorAll('.copy-color-btn');
+            copyButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const color = btn.getAttribute('data-color');
+                    navigator.clipboard.writeText(color).then(() => {
+                        this.showNotification(`Copied ${color} to clipboard!`);
+                    }).catch(err => {
+                        console.error('Failed to copy color:', err);
+                    });
+                });
+            });
+        }, 100);
+    }
+
     updateResponse(text) {
+        if (this.action === 'colors') {
+            this.responseContent.innerHTML = text;
+            return;
+        }
+
         const html = this.parseMarkdownToHTML(text);
         this.responseContent.innerHTML = html;
 
@@ -719,7 +959,10 @@ export class PopoverAI {
     }
 
     showActionButtons() {
-        this.actionButtons.style.display = 'flex';
+        // Don't show action buttons for colors action
+        if (this.action !== 'colors') {
+            this.actionButtons.style.display = 'flex';
+        }
     }
 
     parseMarkdownToHTML(markdown) {
