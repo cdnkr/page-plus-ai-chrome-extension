@@ -215,9 +215,11 @@ button, .action-btn, .copy-color-btn {
 .context-text {
     overflow-y: auto;
     padding: 4px 0;
-    display: inline;
     font-style: italic;
     color: #374151;
+    padding-left: 1rem;
+    display: block;
+    border-left: 2px solid #3b82f6;
 }
 
 .response-content {
@@ -711,10 +713,7 @@ function parseMarkdownToHTML(markdown) {
 
 // HTML
 
-function getShadowRootHTML({
-    selectionType,
-    selectedText,
-}) {
+function getShadowRootHTML() {
     return `
 <div class="popover-container">
     <div class="header">
@@ -730,12 +729,7 @@ function getShadowRootHTML({
     <div class="content">
         <div class="selected-text-context" id="selected-text-context">
         <div class="context-text" id="context-text">
-            ${selectionType === 'dragbox'
-            ? `<div style="margin-bottom: 12px;">
-                    <img src="${selectedText}" style="width: 100%; height: auto; border-radius: 20px;" alt="Selected area screenshot" />
-                </div>`
-            : (selectedText?.length > 100 ? selectedText?.slice(0, 100) + '...' : (selectedText))
-        }
+        
         </div>
         </div>
         
@@ -953,6 +947,7 @@ function getConversationHistoryHTML({
     conversationHistory,
     escapeHtml,
     isHtmlContent,
+    stripHtml
 }) {
     return conversationHistory.map((entry, index) => `
 <div class="message user-message">
@@ -1070,11 +1065,9 @@ export class PopoverAI {
             style.textContent = shadowRootCSS;
 
             // Create popover HTML structure in shadow root
-            this.shadowRoot.innerHTML = getShadowRootHTML({
-                selectionType: this.selectionType,
-                selectedText: this.selectedText,
-            });
+            this.shadowRoot.innerHTML = getShadowRootHTML();
 
+            // Append style after HTML
             this.shadowRoot.appendChild(style);
 
             // Add to DOM
@@ -1153,6 +1146,8 @@ export class PopoverAI {
                 this.contextText.innerHTML = getContextHTML({
                     selectedText: this.selectedText
                 });
+            } else if (this.selectionType === 'page') {
+                this.contextText.innerHTML = window.location.href?.replace('https://', '')?.replace('http://', '') || 'Current Page';
             } else {
                 this.contextText.textContent = this.selectedText.length > 100 ? this.selectedText.slice(0, 100) + '...' : this.selectedText;
             }
@@ -2358,7 +2353,8 @@ export class PopoverAI {
             conversationHistory: this.conversationHistory,
             escapeHtml: this.escapeHtml,
             isHtmlContent: this.isHtmlContent,
-            setupHistoryActionButtons: this.setupHistoryActionButtons
+            setupHistoryActionButtons: this.setupHistoryActionButtons,
+            stripHtml: this.stripHtml
         });
 
         historyContainer.innerHTML = conversationHistoryHtml;
