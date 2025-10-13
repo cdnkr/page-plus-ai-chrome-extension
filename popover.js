@@ -184,7 +184,8 @@ export class PopoverAI {
 
         .input-section-footer {
           display: flex;
-          justify-content: flex-end;
+          justify-content: space-between;
+          align-items: center;
         }
         
         .input-section.hidden {
@@ -423,6 +424,23 @@ export class PopoverAI {
 
         .ghost-btn:hover {
           background: rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* Voice ghost button */
+        .ghost-btn.circle {
+          width: 44px;
+          height: 44px;
+          border-radius: 50% !important;
+          padding: 0 !important;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .ghost-btn.circle .loading-spinner {
+          width: 18px;
+          height: 18px;
+          border-width: 2px;
         }
         
         .hidden {
@@ -692,6 +710,16 @@ export class PopoverAI {
                 ></textarea>
 
                 <div class="input-section-footer">
+            <button class="ghost-btn circle" id="voice-btn" title="Voice input">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 10v3"/>
+                    <path d="M6 6v11"/>
+                    <path d="M10 3v18"/>
+                    <path d="M14 8v7"/>
+                    <path d="M18 5v13"/>
+                    <path d="M22 10v3"/>
+                </svg>
+            </button>
                 <button class="submit-btn" id="submit-btn">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M20 4v7a4 4 0 0 1-4 4H4"/>
@@ -769,6 +797,7 @@ export class PopoverAI {
         this.actionButtons = this.shadowRoot.querySelector('#action-buttons');
         this.copyBtn = this.shadowRoot.querySelector('#copy-btn');
         this.shareBtn = this.shadowRoot.querySelector('#share-btn');
+        this.voiceBtn = this.shadowRoot.querySelector('#voice-btn');
         this.closeBtn = this.shadowRoot.querySelector('#close-btn');
         this.contextText = this.shadowRoot.querySelector('#context-text');
         this.selectedTextContext = this.shadowRoot.querySelector('#selected-text-context');
@@ -809,6 +838,13 @@ export class PopoverAI {
             e.stopPropagation();
             this.shareResponse();
         });
+
+        if (this.voiceBtn) {
+            this.voiceBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.startVoiceInput();
+            });
+        }
 
         // Ensure i18n is ready before configuring action-specific UI
         await this.loadI18nOnce();
@@ -1748,6 +1784,112 @@ export class PopoverAI {
                 notification.remove();
             }, 300);
         }, 2700);
+    }
+
+    startVoiceInput() {
+        if (!this.voiceBtn) return;
+
+        const original = this.voiceBtn.innerHTML;
+        this.voiceBtn.dataset.original = original;
+        this.voiceBtn.innerHTML = `
+            <div class="loading">
+                <div class="loading-spinner"></div>
+            </div>
+        `;
+        this.voiceBtn.disabled = true;
+
+        const finish = () => {
+            if (!this.voiceBtn) return;
+            this.voiceBtn.disabled = false;
+            if (this.voiceBtn.dataset.original) {
+                this.voiceBtn.innerHTML = this.voiceBtn.dataset.original;
+            }
+        };
+
+        try {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                this.showNotification('Microphone not supported in this browser.');
+                finish();
+                return;
+            }
+
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then((stream) => {
+                    try {
+                        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                        if (!SpeechRecognition) {
+                            this.showNotification('Speech Recognition not supported.');
+                            try { stream.getTracks().forEach(t => t.stop()); } catch (_) {}
+                            finish();
+                            return;
+                        }
+
+                        let locale = 'en-US';
+                        try {
+                            const base = this.getPreferredBaseLanguage ? this.getPreferredBaseLanguage() : 'en';
+                            if (base === 'es') locale = 'es-ES';
+                            else if (base === 'ja') locale = 'ja-JP';
+                        } catch (_) {}
+
+                        const rec = new SpeechRecognition();
+                        rec.lang = locale;
+                        rec.interimResults = false;
+                        rec.maxAlternatives = 1;
+
+                        rec.onresult = (event) => {
+                            try {
+                                const transcript = event.results && event.results[0] && event.results[0][0]
+                                    ? event.results[0][0].transcript
+                                    : '';
+                                if (transcript && this.userInput) {
+                                    if (this.userInput.value && !this.userInput.value.endsWith(' ')) {
+                                        this.userInput.value = `${this.userInput.value} ${transcript}`;
+                                    } else if (this.userInput.value) {
+                                        this.userInput.value = `${this.userInput.value}${transcript}`;
+                                    } else {
+                                        this.userInput.value = transcript;
+                                    }
+                                }
+                            } catch (e) {
+                                console.warn('Failed to read recognition result', e);
+                            } finally {
+                                try { rec.stop(); } catch (_) {}
+                                try { stream.getTracks().forEach(t => t.stop()); } catch (_) {}
+                                finish();
+                            }
+                        };
+
+                        rec.onerror = (e) => {
+                            console.warn('Speech recognition error', e);
+                            this.showNotification('Voice capture failed. Please try again.');
+                            try { rec.stop(); } catch (_) {}
+                            try { stream.getTracks().forEach(t => t.stop()); } catch (_) {}
+                            finish();
+                        };
+
+                        rec.onend = () => {
+                            try { stream.getTracks().forEach(t => t.stop()); } catch (_) {}
+                            finish();
+                        };
+
+                        rec.start();
+                    } catch (err) {
+                        console.error('Speech setup failed', err);
+                        try { stream.getTracks().forEach(t => t.stop()); } catch (_) {}
+                        finish();
+                    }
+                })
+                .catch((err) => {
+                    console.warn('Microphone permission denied or unavailable', err);
+                    this.showNotification('Microphone permission denied.');
+                    finish();
+                });
+
+        } catch (error) {
+            console.error('startVoiceInput unexpected error', error);
+            this.showNotification('Voice capture failed.');
+            finish();
+        }
     }
 
     // Get position from selection range (fallback method - not used for main positioning)
