@@ -50,10 +50,11 @@ export class PopoverAI {
 
             // Use mouse position with boundary checking (same as action buttons)
             const safePosition = this.calculateSafePosition(this.position, { width: 400, height: 360 });
-            const absolutePosition = this.calculateAbsolutePosition(safePosition);
+            const isPageMode = this.selectionType === 'page';
+            const absolutePosition = isPageMode ? safePosition : this.calculateAbsolutePosition(safePosition);
 
             this.popoverElement.style.cssText = `
-      position: absolute;
+      position: ${isPageMode ? 'fixed' : 'absolute'};
       left: ${absolutePosition.x}px;
       top: ${absolutePosition.y}px;
     `;
@@ -880,6 +881,9 @@ export class PopoverAI {
                 if (this.selectionType === 'dragbox') {
                     this.headerTitle.innerHTML = `<span>${t('header_image_ask')}</span>`;
                     this.userInput.placeholder = t('placeholder_ask_image');
+                } else if (this.selectionType === 'page') {
+                    this.headerTitle.innerHTML = `<span>${t('header_page_ask')}</span>`;
+                    this.userInput.placeholder = t('placeholder_ask_text');
                 } else {
                     this.headerTitle.innerHTML = `<span>${t('header_text_ask')}</span>`;
                     this.userInput.placeholder = t('placeholder_ask_text');
@@ -1940,7 +1944,8 @@ export class PopoverAI {
     updatePosition() {
         if (this.popoverElement) {
             const safePosition = this.calculateSafePosition(this.position, { width: 400, height: 300 });
-            const absolutePosition = this.calculateAbsolutePosition(safePosition);
+            const isPageMode = this.selectionType === 'page';
+            const absolutePosition = isPageMode ? safePosition : this.calculateAbsolutePosition(safePosition);
             this.popoverElement.style.left = `${absolutePosition.x}px`;
             this.popoverElement.style.top = `${absolutePosition.y}px`;
         }

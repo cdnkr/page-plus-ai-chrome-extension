@@ -346,7 +346,7 @@ class SelectionAI {
     }
   }
 
-  async showPopover(action) {
+  async showPopover(action, selectionType) {
     console.log('showPopover called with action:', action);
     console.log('Selected text:', this.selectedText);
     console.log('Selection range:', this.selectionRange);
@@ -378,7 +378,7 @@ class SelectionAI {
         const payload = action === 'settings' 
           ? JSON.stringify({ availability: this.apiAvailability, locale: this.locale })
           : this.selectedText;
-        this.popover = new this.PopoverAI(action, payload, position, this.selectionRange);
+        this.popover = new this.PopoverAI(action, payload, position, this.selectionRange, selectionType || 'text');
         console.log('Popover created:', this.popover);
         console.log('Popover element:', this.popover?.popoverElement);
         console.log('Shadow root:', this.popover?.shadowRoot);
@@ -396,7 +396,7 @@ class SelectionAI {
           const payload = action === 'settings' 
             ? JSON.stringify({ availability: this.apiAvailability, locale: this.locale })
             : this.selectedText;
-          this.popover = new this.PopoverAI(action, payload, position);
+          this.popover = new this.PopoverAI(action, payload, position, this.selectionRange, selectionType || 'text');
         } else {
           console.error('PopoverAI still not available after retry');
         }
@@ -769,6 +769,36 @@ class SelectionAI {
     dragBtn.title = t('mode_drag');
     dragBtn.addEventListener('click', () => this.toggleMode('drag'));
 
+    const currentPageBtn = document.createElement('button');
+    currentPageBtn.className = 'mode-btn';
+    currentPageBtn.setAttribute('id', 'selection-ai-current-page-btn');
+    currentPageBtn.innerHTML = this.getCurrentPageIcon();
+    currentPageBtn.title = t('mode_current_page');
+    currentPageBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      try {
+        const rect = this.modeSwitcher.getBoundingClientRect();
+        const popoverWidth = 400;
+        const popoverHeight = 360;
+        const margin = 12;
+        const modeSwitcherHeight = 58;
+        const offset = 60;
+        const pos = {
+          x: rect.left + (rect.width / 2) - (popoverWidth / 2),
+          y: rect.top - popoverHeight - margin - modeSwitcherHeight - offset
+        };
+        this.position = pos;
+        // Build current page context
+        const segments = this.extractStructuredTextWithLinks(document.body.innerHTML);
+        const markdown = this.segmentsToMarkdown(segments);
+        this.selectedText = markdown;
+        this.selectionRange = null;
+        this.showPopover('prompt', 'page').catch(console.error);
+      } catch (err) {
+        console.error('Failed to open current page prompt', err);
+      }
+    });
+
     const settingsBtn = document.createElement('button');
     settingsBtn.className = 'mode-btn';
     settingsBtn.setAttribute('id', 'selection-ai-settings-btn');
@@ -793,6 +823,7 @@ class SelectionAI {
     
     innerContainer.appendChild(textBtn);
     innerContainer.appendChild(dragBtn);
+    innerContainer.appendChild(currentPageBtn);
     innerContainer.appendChild(settingsBtn);
     this.modeSwitcherShadowRoot.appendChild(innerContainer);
     
@@ -813,6 +844,8 @@ class SelectionAI {
         const buttons = this.modeSwitcherShadowRoot.querySelectorAll('.mode-btn');
         if (buttons[0]) buttons[0].title = t('mode_text');
         if (buttons[1]) buttons[1].title = t('mode_drag');
+        const currentBtn = this.modeSwitcherShadowRoot.querySelector('#selection-ai-current-page-btn');
+        if (currentBtn) currentBtn.title = t('mode_current_page');
         const settingsBtn = this.modeSwitcherShadowRoot.querySelector('#selection-ai-settings-btn');
         if (settingsBtn) settingsBtn.title = t('button_settings');
       } catch (e) {
@@ -1418,6 +1451,59 @@ class SelectionAI {
     if (!needsBadge) return settingsSvg;
     const badgeSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="red" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="position:absolute; right:-12px; top:-12px; border-radius:50%; background:red;height:18px;width:18px;"><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`;
     return `<div style="position:relative; width:20px; height:20px;">${settingsSvg}${badgeSvg}</div>`;
+  }
+
+  getCurrentPageIcon() {
+    // Sticky note icon from spec
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-icon lucide-file"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>`;
+  }
+
+  extractStructuredTextWithLinks(html) {
+    const container = document.createElement('div');
+    container.innerHTML = html;
+    const origin = window.location.origin;
+    function traverse(node) {
+      const segments = [];
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent?.trim();
+        if (text) segments.push({ type: 'text', content: text });
+        return segments;
+      }
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const el = node;
+        const tagName = el.tagName.toLowerCase();
+        if (tagName === 'style' || tagName === 'script' || tagName === 'noscript' || tagName === 'meta' || tagName === 'link') {
+          return segments;
+        }
+        if (tagName === 'a') {
+          const hrefAttr = el.getAttribute('href') || '';
+          const href = hrefAttr.startsWith('/') ? origin + hrefAttr : hrefAttr;
+          const text = el.textContent?.trim() || '';
+          segments.push({ type: 'link', text, href });
+          return segments;
+        }
+        for (const child of Array.from(el.childNodes)) {
+          segments.push(...traverse(child));
+        }
+      }
+      return segments;
+    }
+    return traverse(container);
+  }
+
+  segmentsToMarkdown(segments) {
+    // Simple joiner: links -> [text](href), text -> content; keep spacing
+    const parts = [];
+    for (const seg of segments) {
+      if (seg.type === 'link') {
+        if (seg.text) parts.push(`[${seg.text}](${seg.href})`);
+        else parts.push(seg.href);
+      } else if (seg.type === 'text') {
+        parts.push(seg.content);
+      }
+    }
+    // Collapse excessive whitespace while preserving basic sentence spacing
+    return parts.join(' ').replace(/\s{2,}/g, ' ').trim();
   }
 }
 
