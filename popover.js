@@ -49,7 +49,7 @@ button, .action-btn, .copy-color-btn {
     align-items: center;
     justify-content: space-between;
     position: relative;
-    cursor: move;
+    cursor: move !important;
     user-select: none;
 }
 
@@ -2221,9 +2221,10 @@ export class PopoverAI {
         this.dragStartX = e.clientX;
         this.dragStartY = e.clientY;
 
-        const rect = this.popoverElement.getBoundingClientRect();
-        this.initialX = rect.left;
-        this.initialY = rect.top;
+        // Get current position from computed style to match the positioning mode (fixed vs absolute)
+        const computedStyle = window.getComputedStyle(this.popoverElement);
+        this.initialX = parseInt(computedStyle.left, 10) || 0;
+        this.initialY = parseInt(computedStyle.top, 10) || 0;
 
         // Prevent text selection during drag
         document.body.style.userSelect = 'none';
@@ -2241,15 +2242,9 @@ export class PopoverAI {
         const newX = this.initialX + deltaX;
         const newY = this.initialY + deltaY;
 
-        // Apply boundary checking
-        const safePosition = this.calculateSafePosition(
-            { x: newX, y: newY },
-            { width: 400, height: 300 }
-        );
-
         // Update popover position
-        this.popoverElement.style.left = `${safePosition.x}px`;
-        this.popoverElement.style.top = `${safePosition.y}px`;
+        this.popoverElement.style.left = `${newX}px`;
+        this.popoverElement.style.top = `${newY}px`;
     }
 
     endDrag(e) {
