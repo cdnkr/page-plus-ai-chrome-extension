@@ -95,10 +95,10 @@ const modeSwitcherRootCSS = `
   .mode-switcher {
     display: flex;
     gap: 8px;
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 1);
     backdrop-filter: blur(10px);
     border-radius: 25px;
-    padding: 8px;
+    padding: 16px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     border: 1px solid rgba(0, 0, 0, 0.1);
   }
@@ -114,7 +114,7 @@ const modeSwitcherRootCSS = `
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
-    color: #6b7280;
+    color: black;
   }
 
   .mode-btn, .mode-btn svg, .mode-btn path {
