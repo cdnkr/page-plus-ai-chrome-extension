@@ -312,7 +312,7 @@ button, .action-btn, .copy-color-btn {
     width: 20px;
     height: 20px;
     border: 2px solid #e5e7eb;
-    border-top: 2px solid rgb(135, 137, 138);
+    border-top: 2px solid #3b82f6;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
