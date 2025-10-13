@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Selection AI Chrome Extension",
+  "name": "Select, Prompt",
   "version": "1.0.0",
   "description": "AI-powered text selection tool using Google's in-browser AI APIs",
   "permissions": [

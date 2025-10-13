@@ -1,4 +1,1008 @@
+// Styles 
+
+function getPopoverElementCSS({ absolutePosition, isPageMode }) {
+    return `
+    position: ${isPageMode ? 'fixed' : 'absolute'};
+    left: ${absolutePosition.x}px;
+    top: ${absolutePosition.y}px;
+`;
+}
+
+const shadowRootCSS = `
+:host {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: rgba(255, 255, 255, 1);
+    backdrop-filter: blur(10px);
+    border-radius: 30px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    opacity: 0;
+    filter: blur(20px);
+    transition: opacity 0.3s ease-out, filter 0.3s ease-out;
+    width: 400px;
+    border: none;
+    z-index: 10001;
+    display: block;
+    cursor: default !important;
+}
+
+:host(.visible) {
+    opacity: 1;
+    filter: blur(0px);
+}
+
+/* Override cursor for all popover content */
+* {
+    cursor: default !important;
+}
+
+/* But allow pointer cursor for interactive elements */
+button, .action-btn, .copy-color-btn {
+    cursor: pointer !important;
+}
+
+.header {
+    padding: 18px 20px 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    cursor: move;
+    user-select: none;
+}
+
+.header.dragging {
+    cursor: grabbing;
+}
+
+.header::after {
+    content: '';
+    position: absolute;
+    top: 50px;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 1) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.header-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    color: #1f2937;
+    margin: 0;
+}
+
+.close-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    color: black;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.close-btn, .close-btn svg, .close-btn path {
+    cursor: pointer !important;
+}
+
+.close-btn:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    max-height: 40vh;
+    overflow: auto;
+}
+
+.input-section-wrapper {
+    padding: 20px 20px 20px 20px;
+    position: relative;
+}
+
+.input-section-wrapper::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: linear-gradient(to top, rgba(255, 255, 255, 1) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.input-section {
+    padding: 16px 12px 12px 18px;
+    background: rgba(0, 0, 0, 0.07);
+    border-radius: 30px;
+    box-sizing: border-box;
+}
+
+.input-section-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.input-section.hidden {
+    display: none;
+}
+
+.input-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 8px;
+}
+
+.input-field {
+    width: 100% !important;
+    font-size: 14px !important;
+    resize: none !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+    background: transparent !important;
+    border: none !important;
+    font-family: sans-serif !important;
+    color: #374151 !important;
+    cursor: text !important;
+}
+
+.input-field::placeholder {
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.submit-btn {
+    width: 44px;
+    height: 44px;
+    padding: 8px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.submit-btn, .submit-btn svg, .submit-btn path {
+    cursor: pointer !important;
+}
+
+.submit-btn:hover:not(:disabled) {
+    background: #3b82f6;
+    transform: translateY(-1px);
+}
+
+.submit-btn:disabled {
+    background: rgba(0, 0, 0, 0.1);
+    cursor: not-allowed;
+    transform: none;
+}
+
+.response-section {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.selected-text-context {
+    font-size: 13px;
+    margin-bottom: 20px;
+    margin-top: 6px;
+}
+
+.context-text {
+    overflow-y: auto;
+    padding: 4px 0;
+    display: inline;
+    font-style: italic;
+    color: #374151;
+}
+
+.response-content {
+    padding: 0;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #374151;
+}
+
+.response-content h1, 
+.response-content h2, 
+.response-content h3 {
+    color: #1f2937;
+    margin: 16px 0 8px 0;
+}
+
+.response-content h1:first-child,
+.response-content h2:first-child,
+.response-content h3:first-child {
+    margin-top: 0;
+}
+
+.response-content p {
+    margin: 8px 0;
+}
+
+.response-content ul, 
+.response-content ol {
+    margin: 8px 0;
+    padding-left: 20px;
+}
+
+.response-content li {
+    margin: 4px 0;
+}
+
+.response-content blockquote {
+    border-left: 4px solid #3b82f6;
+    padding-left: 16px;
+    margin: 16px 0;
+    color: #6b7280;
+    font-style: italic;
+}
+
+.response-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+}
+
+.response-content th,
+.response-content td {
+    border: 1px solid #d1d5db;
+    padding: 8px 12px;
+    text-align: left;
+}
+
+.response-content th {
+    background: #f3f4f6;
+    font-weight: 600;
+}
+
+.response-content a {
+    color: #3b82f6;
+    text-decoration: none;
+}
+
+.response-content a:hover {
+    text-decoration: underline;
+}
+
+.response-content strong {
+    font-weight: 600;
+}
+
+.response-content em {
+    font-style: italic;
+}
+
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: #6b7280;
+}
+
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e5e7eb;
+    border-top: 2px solid rgb(135, 137, 138);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.action-buttons {
+    display: flex;
+    gap: 2px;
+}
+
+.action-btn {
+    padding: 10px;
+    border-radius: 50%;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    background: transparent !important;
+    border: none !important;
+}
+
+.action-btn:hover {
+    background: rgba(0, 0, 0, 0.1) !important;
+}
+
+.action-btn.primary {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+}
+
+.action-btn.primary:hover {
+    background: #2563eb;
+    border-color: #2563eb;
+}
+
+.ghost-btn {
+    background: transparent !important;
+    border: none !important;
+    cursor: pointer !important;
+    padding: 8px 12px !important;
+    color: #374151 !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    border-radius: 16px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.ghost-btn:hover {
+    background: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Voice ghost button */
+.ghost-btn.circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50% !important;
+    padding: 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ghost-btn.circle .loading-spinner {
+    width: 18px;
+    height: 18px;
+    border-width: 2px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.message {
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+.message:last-child {
+    margin-bottom: 0;
+}
+
+.user-message {
+    align-self: flex-end;
+    margin-left: auto;
+    max-width: 80%;
+}
+
+.user-message .message-content {
+    background: #3b82f6;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 18px 18px 4px 18px;
+    font-size: 14px;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.ai-message {
+    align-self: flex-start;
+    max-width: 100%;
+}
+
+.ai-message .message-content {
+    color: #374151;
+    font-size: 14px;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.ai-message .message-actions {
+    display: flex;
+    gap: 4px;
+    margin-top: 8px;
+    opacity: 1;
+}
+
+.message-action-btn {
+    padding: 8px;
+    border-radius: 50%;
+    color: black;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: transparent;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.message-action-btn, .message-action-btn svg, .message-action-btn path {
+    cursor: pointer !important;
+}
+
+.message-action-btn:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: #374151;
+}
+
+.message-content h1, 
+.message-content h2, 
+.message-content h3 {
+    color: inherit;
+    margin: 8px 0 4px 0;
+}
+
+.message-content h1:first-child,
+.message-content h2:first-child,
+.message-content h3:first-child {
+    margin-top: 0;
+}
+
+.message-content p {
+    margin: 4px 0;
+}
+
+.message-content ul, 
+.message-content ol {
+    margin: 4px 0;
+    padding-left: 20px;
+}
+
+.message-content li {
+    margin: 2px 0;
+}
+
+.message-content blockquote {
+    border-left: 3px solid currentColor;
+    padding-left: 12px;
+    margin: 8px 0;
+    opacity: 0.8;
+}
+
+.message-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0;
+    font-size: 13px;
+}
+
+.message-content th,
+.message-content td {
+    border: 1px solid currentColor;
+    padding: 6px 8px;
+    text-align: left;
+}
+
+.message-content th {
+    background: rgba(0, 0, 0, 0.1);
+    font-weight: 600;
+}
+
+.message-content a {
+    color: inherit;
+    text-decoration: underline;
+}
+
+.message-content strong {
+    font-weight: 600;
+}
+
+.message-content em {
+    font-style: italic;
+}
+
+.color-info-wrapper {
+    display: flex;
+    justify-content: space-between;
+}
+
+.color-item {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.color-swatch {
+    width: 100%;
+    height: 60px;
+    border-radius: 14px;
+    margin-bottom: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.color-info {
+    flex: 1;
+}
+
+.color-hex {
+    font-family: monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 2px;
+}
+
+.color-rgb {
+    font-family: monospace;
+    font-size: 10px;
+    color: #6b7280;
+}
+
+.copy-color-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+}
+
+.copy-color-btn svg, .copy-color-btn path {
+    cursor: pointer;
+}
+
+.copy-color-btn:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.colors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+}
+`;
+
+const notificationCSS = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #3b82f6;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 50px;
+    z-index: 10002;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    opacity: 0;
+    filter: blur(20px);
+    transition: opacity 0.3s ease-out, filter 0.3s ease-out;
+`;
+
+// Utils
+
+function parseMarkdownToHTML(markdown) {
+    let html = markdown
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+    // Headings
+    html = html.replace(/^\*\*(.*?)\*\*:/gm, "<h3>$1:</h3>");
+
+    // Markdown headers (# ## ###)
+    html = html.replace(/^### (.*)$/gm, "<h3>$1</h3>");
+    html = html.replace(/^## (.*)$/gm, "<h2>$1</h2>");
+    html = html.replace(/^# (.*)$/gm, "<h1>$1</h1>");
+
+    // Blockquotes
+    html = html.replace(/^&gt;\s?(.*)$/gm, "<blockquote>$1</blockquote>");
+
+    // Links [text](url)
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+
+    // Bold
+    html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+
+    // Italic
+    html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
+
+    // Lists
+    html = html.replace(/(?:^|\n)\* (.*?)(?=\n|$)/g, "<li>$1</li>");
+    html = html.replace(/(<li>.*<\/li>)/gs, "<ul>$1</ul>");
+
+    // Tables - process line by line to find complete table blocks
+    const lines = html.split('\n');
+    const result = [];
+    let i = 0;
+
+    while (i < lines.length) {
+        const line = lines[i];
+
+        // Check if this line starts a table
+        if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
+            const tableLines = [line];
+            i++;
+
+            // Collect all consecutive table lines
+            while (i < lines.length && lines[i].trim().startsWith('|')) {
+                tableLines.push(lines[i]);
+                i++;
+            }
+
+            // Check if we have a valid table (at least header + separator + one data row)
+            if (tableLines.length >= 3) {
+                const separatorLine = tableLines[1];
+                if (/^\|[\s\-:]+\|/.test(separatorLine.trim())) {
+                    // Parse the table
+                    const headerRow = tableLines[0];
+                    const dataRows = tableLines.slice(2);
+
+                    // Parse header
+                    const headerCells = headerRow.split('|').slice(1, -1).map(cell => cell.trim());
+                    const headerHtml = headerCells.map(cell => `<th>${cell}</th>`).join('');
+
+                    // Parse data rows
+                    const rowsHtml = dataRows.map(row => {
+                        const cells = row.split('|').slice(1, -1).map(cell => cell.trim());
+                        const cellsHtml = cells.map(cell => `<td>${cell}</td>`).join('');
+                        return `<tr>${cellsHtml}</tr>`;
+                    }).join('');
+
+                    result.push(`<table><thead><tr>${headerHtml}</tr></thead><tbody>${rowsHtml}</tbody></table>`);
+                    continue;
+                }
+            }
+
+            // If not a valid table, add the lines back as-is
+            result.push(...tableLines);
+        } else {
+            result.push(line);
+            i++;
+        }
+    }
+
+    html = result.join('\n');
+
+    // Paragraphs
+    html = html
+        .split(/\n{2,}/)
+        .map(block => {
+            if (/^<\/?(h\d|ul|li|blockquote|table)/.test(block.trim())) return block;
+            return `<p>${block.trim().replace(/\n/g, "<br>")}</p>`;
+        })
+        .join("\n");
+
+    return html.trim();
+}
+
+// HTML
+
+function getShadowRootHTML({
+    selectionType,
+    selectedText,
+}) {
+    return `
+<div class="popover-container">
+    <div class="header">
+        <div id="header-title" class="header-title">AI Assistant</div>
+        <button class="close-btn" id="close-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18"/>
+            <path d="m6 6 12 12"/>
+        </svg>
+        </button>
+    </div>
+
+    <div class="content">
+        <div class="selected-text-context" id="selected-text-context">
+        <div class="context-text" id="context-text">
+            ${selectionType === 'dragbox'
+            ? `<div style="margin-bottom: 12px;">
+                    <img src="${selectedText}" style="width: 100%; height: auto; border-radius: 20px;" alt="Selected area screenshot" />
+                </div>`
+            : (selectedText?.length > 100 ? selectedText?.slice(0, 100) + '...' : (selectedText))
+        }
+        </div>
+        </div>
+        
+        <div class="conversation-history" id="conversation-history" style="display: none;">
+        <!-- Conversation history will be populated here -->
+        </div>
+        
+        <div class="response-section" id="response-section" style="display: none;">
+        <div class="response-content" id="response-content">
+            <div class="loading">
+            <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <div class="action-buttons" id="action-buttons" style="display: none;">
+            <button class="action-btn" id="copy-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+            </svg>
+            </button>
+            <button class="action-btn" id="share-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                <polyline points="16,6 12,2 8,6"/>
+                <line x1="12" y1="2" x2="12" y2="15"/>
+            </svg>
+            </button>
+        </div>
+        </div>
+    </div>
+    <div class="input-section-wrapper">
+        <div class="input-section" id="input-section">
+            <textarea 
+            class="input-field" 
+            id="user-input" 
+            placeholder="Enter your question or request..."
+            rows="3"
+            ></textarea>
+
+            <div class="input-section-footer">
+        <button class="ghost-btn circle" id="voice-btn" title="Voice input">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 10v3"/>
+                <path d="M6 6v11"/>
+                <path d="M10 3v18"/>
+                <path d="M14 8v7"/>
+                <path d="M18 5v13"/>
+                <path d="M22 10v3"/>
+            </svg>
+        </button>
+            <button class="submit-btn" id="submit-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 4v7a4 4 0 0 1-4 4H4"/>
+                <path d="m9 10-5 5 5 5"/>
+                </svg>
+            </button>
+            </div>
+        </div>
+    </div>
+</div>`;
+}
+
+function getContextHTML({
+    selectedText,
+}) {
+    return `<div style="margin-bottom: 12px;">
+    <img src="${selectedText}" style="width: 100%; height: auto; border-radius: 20px;" alt="Selected area screenshot" />
+</div>`;
+}
+
+function getModelDownloadButtonHTML({
+    dataKey,
+}) {
+    return `<button class="action-btn" data-action="download" data-key="${dataKey}"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg></button>`;
+}
+
+function getCircularDownloadProgressHTML({
+    size,
+    stroke,
+    r,
+    c,
+    pct,
+    offset
+}) {
+    return `
+<div style="position:relative; width:${size}px; height:${size}px; display:inline-flex; align-items:center; justify-content:center;">
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <circle cx="${size / 2}" cy="${size / 2}" r="${r}" stroke="#e5e7eb" stroke-width="${stroke}" fill="none" />
+    <circle cx="${size / 2}" cy="${size / 2}" r="${r}" stroke="#3b82f6" stroke-width="${stroke}" fill="none" stroke-linecap="round"
+        stroke-dasharray="${c.toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}" transform="rotate(-90 ${size / 2} ${size / 2})" />
+    </svg>
+    <div style="position:absolute; font-size:8px; color:#111827; font-weight:600;">${pct}%</div>
+</div>`;
+}
+
+function getDebugSelectHTML({
+    key,
+    state,
+}) {
+    return `
+    <select class="debug-state" data-key="${key}" style="padding:4px 6px; border-radius:8px; border:1px solid #d1d5db; background:white; font-size:12px;">
+        ${['default', 'available', 'downloadable', 'downloading', 'unavailable'].map(v => `<option value="${v}" ${((state || 'default') === v) ? 'selected' : ''}>${v}</option>`).join('')}
+    </select>
+`;
+}
+
+function getSettingsAPIRowHTML({
+    icon,
+    label,
+    actionHTML,
+    debugSelectHTML,
+    statusBadgeHTML,
+}) {
+    return `<div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0; gap:8px;">
+    <div style="display:flex; align-items:center; gap:8px; min-width:160px;">${icon}<span>${label}</span></div>
+    <div style="display:flex; align-items:center; gap:8px;">${statusBadgeHTML} ${actionHTML}</div>
+    <div style="display:flex; align-items:center; gap:8px;">${debugSelectHTML}</div>
+</div>`;
+}
+
+function getSettingsViewHTML({
+    apiRowsHTML,
+    languageOptions,
+    t,
+}) {
+    return `
+<div style="display:flex; flex-direction:column; gap:16px;">
+    <div>
+        <div style="font-weight:600; color:#374151; margin-bottom:8px;">${t('settings_api_availability')}</div>
+        ${apiRowsHTML}
+        <div style="margin-top:8px; font-size:12px; color:#6b7280;">${t('settings_debug_help')}</div>
+        <div style="display:flex; gap:8px; margin-top:8px;">
+            <button class="ghost-btn" id="open-flags">
+                ${t('settings_open_flags')}
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-up-right-icon lucide-move-up-right"><path d="M13 5H19V11"/><path d="M19 5L5 19"/></svg>
+            </button>
+            <button class="ghost-btn" id="open-internals">
+                ${t('settings_open_internals')}
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-up-right-icon lucide-move-up-right"><path d="M13 5H19V11"/><path d="M19 5L5 19"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <div>
+        <div style="font-weight:600; color:#374151; margin-bottom:8px;">${t('settings_language')}</div>
+        <select id="language-select" style="padding:8px 10px; border-radius:10px; border:1px solid #d1d5db; background:white; font-size:13px;">
+            ${languageOptions}
+        </select>
+    </div>
+
+    <div style="border-top:1px solid #e5e7eb; padding-top:12px;">
+        <div style="font-weight:600; color:#374151; margin-bottom:8px;">${t('settings_debug')}</div>
+        <div style="font-size:12px; color:#6b7280; margin-bottom:8px;">${t('settings_debug_help')}</div>
+        <div style="display:flex; gap:8px;">
+            <button class="action-btn" id="clear-debug">${t('settings_clear_overrides')}</button>
+        </div>
+    </div>
+</div>`;
+}
+
+const loadingSpinnerHTML = `
+<div class="loading">
+    <div class="loading-spinner"></div>
+</div>`;
+
+const submitBtnHTML = `
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 4v7a4 4 0 0 1-4 4H4"/>
+    <path d="m9 10-5 5 5 5"/>
+</svg>`;
+
+function getColorsGridHTML({
+    colors,
+}) {
+    const colorsHtml = colors.map((color, index) => `
+        <div class="color-item">
+            <div class="color-swatch" style="background: ${color.rgb};"></div>
+            
+            <div class="color-info-wrapper">
+                <div class="color-info">
+                    <div class="color-hex">${color.hex}</div>
+                    <div class="color-rgb">${color.rgb}</div>
+                </div>
+                <button class="copy-color-btn" data-color="${color.hex}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                        <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    `).join('');
+
+    return `
+        <div class="colors-container">
+            <div class="colors-grid">
+                ${colorsHtml}
+            </div>
+        </div>
+    `;
+}
+
+function getErrorMessageHTML({
+    message,
+}) {
+    return `
+<div style="color: #dc2626; text-align: center; padding: 20px;">
+    ${message}
+</div>`;
+}
+
+function getConversationHistoryHTML({
+    conversationHistory,
+    escapeHtml,
+    isHtmlContent,
+}) {
+    return conversationHistory.map((entry, index) => `
+<div class="message user-message">
+    <div class="message-content">${escapeHtml(entry.user)}</div>
+</div>
+<div class="message ai-message">
+    <div class="message-content">${isHtmlContent(entry.ai) ? entry.ai : parseMarkdownToHTML(entry.ai)}</div>
+    <div class="message-actions">
+        <button class="message-action-btn" data-action="copy" data-content="${escapeHtml(stripHtml(entry.ai))}" title="Copy">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+            </svg>
+        </button>
+        <button class="message-action-btn" data-action="share" data-content="${escapeHtml(stripHtml(entry.ai))}" title="Share">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                <polyline points="16,6 12,2 8,6"/>
+                <line x1="12" y1="2" x2="12" y2="15"/>
+            </svg>
+        </button>
+    </div>
+</div>
+`).join('');
+}
+
+function getMessageActionButtonsHTML({
+    content,
+}) {
+    return `
+<button class="message-action-btn" data-action="copy" data-content="${content}" title="Copy">
+    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+        <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+    </svg>
+</button>
+<button class="message-action-btn" data-action="share" data-content="${content}" title="Share">
+    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+        <polyline points="16,6 12,2 8,6"/>
+        <line x1="12" y1="2" x2="12" y2="15"/>
+    </svg>
+</button>`;
+}
+
+function getMessageContentHTML({
+    content,
+}) {
+    return `<div class="message-content">${content}</div>`;
+}
+
 // Popover script for handling AI interactions
+
 export class PopoverAI {
     constructor(action, selectedText, position, selectionRange, selectionType = 'text') {
         try {
@@ -13,13 +1017,13 @@ export class PopoverAI {
             this.writer = null;
             this.currentResponse = '';
             this.popoverElement = null;
-            
+
             // History management
             this.sessionId = this.generateSessionId();
             this.conversationHistory = [];
             this.isHistoryLoaded = false;
             this.currentUserMessage = null;
-            
+
             // Drag functionality
             this.isDragging = false;
             this.dragStartX = 0;
@@ -34,13 +1038,13 @@ export class PopoverAI {
             console.error('Error in PopoverAI constructor:', error);
             throw error;
         }
-        }
+    }
 
     createPopover() {
         try {
             console.log('Creating popover element...');
-      // Load i18n lazily
-      this.loadI18nOnce();
+            // Load i18n lazily
+            this.loadI18nOnce();
             // Create popover container with Shadow DOM for style isolation
             this.popoverElement = document.createElement('div');
             this.popoverElement.className = 'selection-ai-popover';
@@ -53,685 +1057,20 @@ export class PopoverAI {
             const isPageMode = this.selectionType === 'page';
             const absolutePosition = isPageMode ? safePosition : this.calculateAbsolutePosition(safePosition);
 
-            this.popoverElement.style.cssText = `
-      position: ${isPageMode ? 'fixed' : 'absolute'};
-      left: ${absolutePosition.x}px;
-      top: ${absolutePosition.y}px;
-    `;
+            this.popoverElement.style.cssText = getPopoverElementCSS({
+                absolutePosition,
+                isPageMode,
+            });
 
             // Add CSS styles to shadow root for complete isolation
             const style = document.createElement('style');
-            style.textContent = `
-        :host {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          background: rgba(255, 255, 255, 1);
-          backdrop-filter: blur(10px);
-          border-radius: 30px;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-          overflow: hidden;
-          opacity: 0;
-          filter: blur(20px);
-          transition: opacity 0.3s ease-out, filter 0.3s ease-out;
-          width: 400px;
-          border: none;
-          z-index: 10001;
-          display: block;
-          cursor: default !important;
-        }
-        
-        :host(.visible) {
-          opacity: 1;
-          filter: blur(0px);
-        }
-        
-        /* Override cursor for all popover content */
-        * {
-          cursor: default !important;
-        }
-        
-        /* But allow pointer cursor for interactive elements */
-        button, .action-btn, .copy-color-btn {
-          cursor: pointer !important;
-        }
-        
-        .header {
-          padding: 18px 20px 0 20px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          position: relative;
-          cursor: move;
-          user-select: none;
-        }
-        
-        .header.dragging {
-          cursor: grabbing;
-        }
-
-        .header::after {
-            content: '';
-            position: absolute;
-            top: 50px;
-            left: 0;
-            right: 0;
-            height: 40px;
-            background: linear-gradient(to bottom, rgba(255, 255, 255, 1) 0%, transparent 100%);
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        .header-title {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 16px;
-            color: #1f2937;
-            margin: 0;
-        }
-        
-        .close-btn {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          border: none;
-          color: black;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.2s ease;
-          background: white;
-        }
-
-        .close-btn, .close-btn svg, .close-btn path {
-          cursor: pointer !important;
-        }
-        
-        .close-btn:hover {
-          background: rgba(0, 0, 0, 0.1);
-        }
-        
-        .content {
-          display: flex;
-          flex-direction: column;
-          padding: 20px;
-          max-height: 40vh;
-          overflow: auto;
-        }
-
-        .input-section-wrapper {
-            padding: 20px 20px 20px 20px;
-            position: relative;
-        }
-
-        .input-section-wrapper::before {
-            content: '';
-            position: absolute;
-            top: -40px;
-            left: 0;
-            right: 0;
-            height: 40px;
-            background: linear-gradient(to top, rgba(255, 255, 255, 1) 0%, transparent 100%);
-            pointer-events: none;
-            z-index: 1;
-        }
-        
-        .input-section {
-          padding: 16px 12px 12px 18px;
-          background: rgba(0, 0, 0, 0.07);
-          border-radius: 30px;
-          box-sizing: border-box;
-        }
-
-        .input-section-footer {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-        
-        .input-section.hidden {
-          display: none;
-        }
-        
-        .input-label {
-          display: block;
-          font-size: 14px;
-          font-weight: 500;
-          color: #374151;
-          margin-bottom: 8px;
-        }
-        
-        .input-field {
-          width: 100% !important;
-          font-size: 14px !important;
-          resize: none !important;
-          outline: none !important;
-          box-sizing: border-box !important;
-          background: transparent !important;
-          border: none !important;
-          font-family: sans-serif !important;
-          color: #374151 !important;
-          cursor: text !important;
-        }
-
-        .input-field::placeholder {
-          color: rgba(0, 0, 0, 0.6);
-        }
-        
-        .submit-btn {
-          width: 44px;
-          height: 44px;
-          padding: 8px;
-          background: #3b82f6;
-          color: white;
-          border: none;
-          border-radius: 50%;
-          font-size: 14px;
-          font-weight: 500;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          transition: all 0.2s ease;
-        }
-
-        .submit-btn, .submit-btn svg, .submit-btn path {
-          cursor: pointer !important;
-        }
-        
-        .submit-btn:hover:not(:disabled) {
-          background: #3b82f6;
-          transform: translateY(-1px);
-        }
-        
-        .submit-btn:disabled {
-          background: rgba(0, 0, 0, 0.1);
-          cursor: not-allowed;
-          transform: none;
-        }
-        
-        .response-section {
-          display: flex;
-          flex-direction: column;
-          margin-bottom: 20px;
-        }
-        
-        .selected-text-context {
-          font-size: 13px;
-          margin-bottom: 20px;
-          margin-top: 6px;
-        }
-        
-        .context-text {
-            overflow-y: auto;
-            padding: 4px 0;
-            display: inline;
-            font-style: italic;
-            color: #374151;
-        }
-        
-        .response-content {
-          padding: 0;
-          border-radius: 12px;
-          font-size: 14px;
-          line-height: 1.6;
-          color: #374151;
-        }
-        
-        .response-content h1, 
-        .response-content h2, 
-        .response-content h3 {
-          color: #1f2937;
-          margin: 16px 0 8px 0;
-        }
-        
-        .response-content h1:first-child,
-        .response-content h2:first-child,
-        .response-content h3:first-child {
-          margin-top: 0;
-        }
-        
-        .response-content p {
-          margin: 8px 0;
-        }
-        
-        .response-content ul, 
-        .response-content ol {
-          margin: 8px 0;
-          padding-left: 20px;
-        }
-        
-        .response-content li {
-          margin: 4px 0;
-        }
-        
-        .response-content blockquote {
-          border-left: 4px solid #3b82f6;
-          padding-left: 16px;
-          margin: 16px 0;
-          color: #6b7280;
-          font-style: italic;
-        }
-        
-        .response-content table {
-          width: 100%;
-          border-collapse: collapse;
-          margin: 16px 0;
-        }
-        
-        .response-content th,
-        .response-content td {
-          border: 1px solid #d1d5db;
-          padding: 8px 12px;
-          text-align: left;
-        }
-        
-        .response-content th {
-          background: #f3f4f6;
-          font-weight: 600;
-        }
-        
-        .response-content a {
-          color: #3b82f6;
-          text-decoration: none;
-        }
-        
-        .response-content a:hover {
-          text-decoration: underline;
-        }
-        
-        .response-content strong {
-          font-weight: 600;
-        }
-        
-        .response-content em {
-          font-style: italic;
-        }
-        
-        .loading {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 40px;
-          color: #6b7280;
-        }
-        
-        .loading-spinner {
-          width: 20px;
-          height: 20px;
-          border: 2px solid #e5e7eb;
-          border-top: 2px solid rgb(135, 137, 138);
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-        
-        .action-buttons {
-          display: flex;
-          gap: 2px;
-        }
-        
-        .action-btn {
-          padding: 10px;
-          border-radius: 50%;
-          color: #374151;
-          font-size: 14px;
-          font-weight: 500;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          transition: all 0.2s ease;
-          background: transparent !important;
-          border: none !important;
-        }
-        
-        .action-btn:hover {
-          background: rgba(0, 0, 0, 0.1) !important;
-        }
-        
-        .action-btn.primary {
-          background: #3b82f6;
-          color: white;
-          border-color: #3b82f6;
-        }
-        
-        .action-btn.primary:hover {
-          background: #2563eb;
-          border-color: #2563eb;
-        }
-
-        .ghost-btn {
-          background: transparent !important;
-          border: none !important;
-          cursor: pointer !important;
-          padding: 8px 12px !important;
-          color: #374151 !important;
-          font-size: 14px !important;
-          font-weight: 500 !important;
-          border-radius: 16px !important;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          transition: all 0.2s ease;
-        }
-
-        .ghost-btn:hover {
-          background: rgba(0, 0, 0, 0.1) !important;
-        }
-
-        /* Voice ghost button */
-        .ghost-btn.circle {
-          width: 44px;
-          height: 44px;
-          border-radius: 50% !important;
-          padding: 0 !important;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .ghost-btn.circle .loading-spinner {
-          width: 18px;
-          height: 18px;
-          border-width: 2px;
-        }
-        
-        .hidden {
-          display: none !important;
-        }
-        
-        .message {
-          margin-bottom: 12px;
-          display: flex;
-          flex-direction: column;
-        }
-        
-        .message:last-child {
-          margin-bottom: 0;
-        }
-        
-        .user-message {
-          align-self: flex-end;
-          margin-left: auto;
-          max-width: 80%;
-        }
-        
-        .user-message .message-content {
-          background: #3b82f6;
-          color: white;
-          padding: 12px 16px;
-          border-radius: 18px 18px 4px 18px;
-          font-size: 14px;
-          line-height: 1.4;
-          word-wrap: break-word;
-        }
-        
-        .ai-message {
-          align-self: flex-start;
-          max-width: 100%;
-        }
-        
-        .ai-message .message-content {
-          color: #374151;
-          font-size: 14px;
-          line-height: 1.4;
-          word-wrap: break-word;
-        }
-        
-        .ai-message .message-actions {
-          display: flex;
-          gap: 4px;
-          margin-top: 8px;
-          opacity: 1;
-        }
-        
-        .message-action-btn {
-          padding: 8px;
-          border-radius: 50%;
-          color: black;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          background: transparent;
-          border: none;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .message-action-btn, .message-action-btn svg, .message-action-btn path {
-            cursor: pointer !important;
-        }
-        
-        .message-action-btn:hover {
-          background: rgba(0, 0, 0, 0.1);
-          color: #374151;
-        }
-        
-        .message-content h1, 
-        .message-content h2, 
-        .message-content h3 {
-          color: inherit;
-          margin: 8px 0 4px 0;
-        }
-        
-        .message-content h1:first-child,
-        .message-content h2:first-child,
-        .message-content h3:first-child {
-          margin-top: 0;
-        }
-        
-        .message-content p {
-          margin: 4px 0;
-        }
-        
-        .message-content ul, 
-        .message-content ol {
-          margin: 4px 0;
-          padding-left: 20px;
-        }
-        
-        .message-content li {
-          margin: 2px 0;
-        }
-        
-        .message-content blockquote {
-          border-left: 3px solid currentColor;
-          padding-left: 12px;
-          margin: 8px 0;
-          opacity: 0.8;
-        }
-        
-        .message-content table {
-          width: 100%;
-          border-collapse: collapse;
-          margin: 8px 0;
-          font-size: 13px;
-        }
-        
-        .message-content th,
-        .message-content td {
-          border: 1px solid currentColor;
-          padding: 6px 8px;
-          text-align: left;
-        }
-        
-        .message-content th {
-          background: rgba(0, 0, 0, 0.1);
-          font-weight: 600;
-        }
-        
-        .message-content a {
-          color: inherit;
-          text-decoration: underline;
-        }
-        
-        .message-content strong {
-          font-weight: 600;
-        }
-        
-        .message-content em {
-          font-style: italic;
-        }
-
-        .color-info-wrapper {
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .color-item {
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
-        .color-swatch {
-            width: 100%;
-            height: 60px;
-            border-radius: 14px;
-            margin-bottom: 8px;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        .color-info {
-            flex: 1;
-        }
-
-        .color-hex {
-            font-family: monospace;
-            font-size: 12px;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 2px;
-        }
-
-        .color-rgb {
-            font-family: monospace;
-            font-size: 10px;
-            color: #6b7280;
-        }
-
-        .copy-color-btn {
-            width: 28px;
-            height: 28px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0.7;
-            background: rgba(255, 255, 255, 0.9);
-            border: none;
-        }
-
-        .copy-color-btn svg, .copy-color-btn path {
-            cursor: pointer;
-        }
-
-        .copy-color-btn:hover {
-            opacity: 1;
-            background: rgba(0, 0, 0, 0.1);
-        }
-
-        .colors-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 12px;
-        }
-      `;
+            style.textContent = shadowRootCSS;
 
             // Create popover HTML structure in shadow root
-            this.shadowRoot.innerHTML = `
-      <div class="popover-container">
-        <div class="header">
-          <div id="header-title" class="header-title">AI Assistant</div>
-          <button class="close-btn" id="close-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M18 6 6 18"/>
-              <path d="m6 6 12 12"/>
-            </svg>
-          </button>
-        </div>
-
-        <div class="content">
-          <div class="selected-text-context" id="selected-text-context">
-            <div class="context-text" id="context-text">
-              ${this.selectionType === 'dragbox' 
-                ? `<div style="margin-bottom: 12px;">
-                     <img src="${this.selectedText}" style="width: 100%; height: auto; border-radius: 20px;" alt="Selected area screenshot" />
-                   </div>`
-                : (this.selectedText?.length > 100 ? this.selectedText?.slice(0, 100) + '...' : this.selectedText)
-              }
-            </div>
-          </div>
-          
-          <div class="conversation-history" id="conversation-history" style="display: none;">
-            <!-- Conversation history will be populated here -->
-          </div>
-          
-          <div class="response-section" id="response-section" style="display: none;">
-            <div class="response-content" id="response-content">
-              <div class="loading">
-                <div class="loading-spinner"></div>
-              </div>
-            </div>
-
-            <div class="action-buttons" id="action-buttons" style="display: none;">
-              <button class="action-btn" id="copy-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-                  <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-                </svg>
-              </button>
-              <button class="action-btn" id="share-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                  <polyline points="16,6 12,2 8,6"/>
-                  <line x1="12" y1="2" x2="12" y2="15"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="input-section-wrapper">
-            <div class="input-section" id="input-section">
-                <textarea 
-                class="input-field" 
-                id="user-input" 
-                placeholder="Enter your question or request..."
-                rows="3"
-                ></textarea>
-
-                <div class="input-section-footer">
-            <button class="ghost-btn circle" id="voice-btn" title="Voice input">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M2 10v3"/>
-                    <path d="M6 6v11"/>
-                    <path d="M10 3v18"/>
-                    <path d="M14 8v7"/>
-                    <path d="M18 5v13"/>
-                    <path d="M22 10v3"/>
-                </svg>
-            </button>
-                <button class="submit-btn" id="submit-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20 4v7a4 4 0 0 1-4 4H4"/>
-                    <path d="m9 10-5 5 5 5"/>
-                    </svg>
-                </button>
-                </div>
-            </div>
-          </div>
-      </div>
-    `;
+            this.shadowRoot.innerHTML = getShadowRootHTML({
+                selectionType: this.selectionType,
+                selectedText: this.selectedText,
+            });
 
             this.shadowRoot.appendChild(style);
 
@@ -769,9 +1108,9 @@ export class PopoverAI {
             }
         } catch (e) {
             console.warn('i18n load failed, falling back to defaults', e);
-            this.t = (k)=>k;
-            this.getBaseLanguage = ()=>'en';
-            this.getUiLocaleOptions = ()=>['en-US','es-ES','ja-JP'];
+            this.t = (k) => k;
+            this.getBaseLanguage = () => 'en';
+            this.getUiLocaleOptions = () => ['en-US', 'es-ES', 'ja-JP'];
             this.i18nLoaded = true;
         }
     }
@@ -780,7 +1119,7 @@ export class PopoverAI {
         try {
             const stored = window.__selection_ai_cached_locale;
             if (stored) lang = String(stored).toLowerCase();
-        } catch (_) {}
+        } catch (_) { }
         const baseLang = (lang.split('-')[0] || 'en').toLowerCase();
         const supported = ['en', 'es', 'ja'];
         return supported.includes(baseLang) ? baseLang : 'en';
@@ -808,9 +1147,9 @@ export class PopoverAI {
         // Ensure context text is populated immediately
         if (this.contextText) {
             if (this.selectionType === 'dragbox') {
-                this.contextText.innerHTML = `<div style="margin-bottom: 12px;">
-                  <img src="${this.selectedText}" style="width: 100%; height: auto; border-radius: 20px;" alt="Selected area screenshot" />
-                </div>`;
+                this.contextText.innerHTML = getContextHTML({
+                    selectedText: this.selectedText
+                });
             } else {
                 this.contextText.textContent = this.selectedText.length > 100 ? this.selectedText.slice(0, 100) + '...' : this.selectedText;
             }
@@ -855,7 +1194,7 @@ export class PopoverAI {
 
         // Setup for the specific action
         this.setupForAction();
-        
+
         // Load conversation history for prompt and write actions
         if (this.action === 'prompt' || this.action === 'write') {
             this.loadConversationHistory();
@@ -875,7 +1214,7 @@ export class PopoverAI {
             this.actionButtons.style.display = 'none';
         }
 
-        const t = this.t || ((k)=>k);
+        const t = this.t || ((k) => k);
         switch (this.action) {
             case 'prompt':
                 if (this.selectionType === 'dragbox') {
@@ -883,7 +1222,7 @@ export class PopoverAI {
                     this.userInput.placeholder = t('placeholder_ask_image');
                 } else if (this.selectionType === 'page') {
                     this.headerTitle.innerHTML = `<span>${t('header_page_ask')}</span>`;
-                    this.userInput.placeholder = t('placeholder_ask_text');
+                    this.userInput.placeholder = t('placeholder_ask_page');
                 } else {
                     this.headerTitle.innerHTML = `<span>${t('header_text_ask')}</span>`;
                     this.userInput.placeholder = t('placeholder_ask_text');
@@ -924,11 +1263,11 @@ export class PopoverAI {
         try {
             await this.loadI18nOnce();
             let payload = {};
-            try { payload = JSON.parse(this.selectedText || '{}'); } catch (_) {}
+            try { payload = JSON.parse(this.selectedText || '{}'); } catch (_) { }
             const availability = payload.availability || {};
             const locale = payload.locale || (navigator.language || 'en-US');
 
-            const t = this.t || ((k)=>k);
+            const t = this.t || ((k) => k);
             const apiRows = [
                 { key: 'prompt', label: t('api_prompt'), icon: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-more-icon lucide-message-circle-more"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>` },
                 { key: 'summarizer', label: t('api_summarizer'), icon: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-text-icon lucide-book-text"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/><path d="M8 11h8"/><path d="M8 7h6"/></svg>` },
@@ -940,8 +1279,6 @@ export class PopoverAI {
 
                 const map = {
                     available: { text: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-icon lucide-check"><path d="M20 6 9 17l-5-5"/></svg>', color: '#10b981' },
-                    // downloadable: { text: 'downloadable', color: '#2563eb' },
-                    // downloading: { text: 'downloading', color: '#2563eb' },
                     unavailable: { text: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-alert-icon lucide-circle-alert"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>', color: '#ef4444' },
                     unknown: { text: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-question-mark-icon lucide-shield-question-mark"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M9.1 9a3 3 0 0 1 5.82 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>', color: '#6b7280' }
                 };
@@ -959,13 +1296,15 @@ export class PopoverAI {
                     }
                 });
 
-                const rowsHtml = apiRows.map(r => {
+                const apiRowsHTML = apiRows.map(r => {
                     const o = overrides[r.key] || {};
                     const status = (effective[r.key] || 'unknown');
                     const progress = o.progress;
-                    const actionHtml = status === 'downloadable' 
-                        ? `<button class="action-btn" data-action="download" data-key="${r.key}"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg></button>`
-                        : status === 'downloading' 
+                    const actionHtml = status === 'downloadable'
+                        ? getModelDownloadButtonHTML({
+                            dataKey: r.key
+                        })
+                        : status === 'downloading'
                             ? (() => {
                                 const size = 28; // px
                                 const stroke = 3;
@@ -973,70 +1312,38 @@ export class PopoverAI {
                                 const c = 2 * Math.PI * r;
                                 const pct = Math.max(0, Math.min(100, Number(progress ?? 0)));
                                 const offset = c * (1 - pct / 100);
-                                return `
-                                <div style="position:relative; width:${size}px; height:${size}px; display:inline-flex; align-items:center; justify-content:center;">
-                                  <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-                                    <circle cx="${size/2}" cy="${size/2}" r="${r}" stroke="#e5e7eb" stroke-width="${stroke}" fill="none" />
-                                    <circle cx="${size/2}" cy="${size/2}" r="${r}" stroke="#3b82f6" stroke-width="${stroke}" fill="none" stroke-linecap="round"
-                                      stroke-dasharray="${c.toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}" transform="rotate(-90 ${size/2} ${size/2})" />
-                                  </svg>
-                                  <div style="position:absolute; font-size:8px; color:#111827; font-weight:600;">${pct}%</div>
-                                </div>`;
+                                return getCircularDownloadProgressHTML({
+                                    size,
+                                    stroke,
+                                    r,
+                                    c,
+                                    pct,
+                                    offset
+                                });
                             })()
                             : '';
                     // Debug controls
-                    const debugSelect = `
-                        <select class="debug-state" data-key="${r.key}" style="padding:4px 6px; border-radius:8px; border:1px solid #d1d5db; background:white; font-size:12px;">
-                            ${['default','available','downloadable','downloading','unavailable'].map(v => `<option value="${v}" ${((o.state||'default')===v)?'selected':''}>${v}</option>`).join('')}
-                        </select>
-                    `;
-                    const progressCtrl = `
-                        <input class="debug-progress" data-key="${r.key}" type="range" min="0" max="100" value="${typeof o.progress==='number'?o.progress:0}" style="width:80px; ${((o.state||'default')==='downloading')?'':'display:none;'}"/>
-                    `;
-                    return `<div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0; gap:8px;">
-                        <div style="display:flex; align-items:center; gap:8px; min-width:160px;">${r.icon}<span>${r.label}</span></div>
-                        <div style="display:flex; align-items:center; gap:8px;">${statusBadge(status, progress)} ${actionHtml}</div>
-                        <!-- <div style="display:flex; align-items:center; gap:8px;">${debugSelect}${progressCtrl}</div> -->
-                    </div>`;
+                    const debugSelect = getDebugSelectHTML({
+                        key: r.key,
+                        state: o.state
+                    });
+                    return getSettingsAPIRowHTML({
+                        icon: r.icon,
+                        label: r.label,
+                        status: status,
+                        progress: progress,
+                        actionHTML: actionHtml,
+                        debugSelectHTML: debugSelect,
+                        statusBadgeHTML: statusBadge(status, progress)
+                    })
                 }).join('');
 
-                const html = `
-                <div style="display:flex; flex-direction:column; gap:16px;">
-                    <div>
-                        <div style="font-weight:600; color:#374151; margin-bottom:8px;">${t('settings_api_availability')}</div>
-                        ${rowsHtml}
-                        <div style="margin-top:8px; font-size:12px; color:#6b7280;">${t('settings_debug_help')}</div>
-                        <div style="display:flex; gap:8px; margin-top:8px;">
-                            <button class="ghost-btn" id="open-flags">
-                                ${t('settings_open_flags')}
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-up-right-icon lucide-move-up-right"><path d="M13 5H19V11"/><path d="M19 5L5 19"/></svg>
-                            </button>
-                            <button class="ghost-btn" id="open-internals">
-                                ${t('settings_open_internals')}
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-up-right-icon lucide-move-up-right"><path d="M13 5H19V11"/><path d="M19 5L5 19"/></svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div style="font-weight:600; color:#374151; margin-bottom:8px;">${t('settings_language')}</div>
-                        <select id="language-select" style="padding:8px 10px; border-radius:10px; border:1px solid #d1d5db; background:white; font-size:13px;">
-                            ${this.languageOptions(locale)}
-                        </select>
-                    </div>
-
-                    <div style="border-top:1px solid #e5e7eb; padding-top:12px;">
-                        <div style="font-weight:600; color:#374151; margin-bottom:8px;">${t('settings_debug')}</div>
-                        <div style="font-size:12px; color:#6b7280; margin-bottom:8px;">${t('settings_debug_help')}</div>
-                        <div style="display:flex; gap:8px;">
-                            <button class="action-btn" id="clear-debug">${t('settings_clear_overrides')}</button>
-                        </div>
-                    </div>
-                </div>
-                `;
-
                 this.responseSection.style.display = 'flex';
-                this.responseContent.innerHTML = html;
+                this.responseContent.innerHTML = getSettingsViewHTML({
+                    apiRowsHTML: apiRowsHTML,
+                    languageOptions: this.languageOptions(locale),
+                    t: t
+                });
 
                 // Wire actions
                 const flagsBtn = this.shadowRoot.querySelector('#open-flags');
@@ -1119,6 +1426,19 @@ export class PopoverAI {
 
             // Initial render
             render();
+
+            // Listen for availability override updates to re-render
+            const handleOverrideUpdate = () => {
+                render();
+            };
+            window.addEventListener('selectionAiAvailabilityOverride', handleOverrideUpdate);
+
+            // Clean up listener when popover closes
+            const originalClose = this.close.bind(this);
+            this.close = () => {
+                window.removeEventListener('selectionAiAvailabilityOverride', handleOverrideUpdate);
+                originalClose();
+            };
         } catch (e) {
             console.error('Failed to render settings view', e);
             this.showError('Failed to load settings');
@@ -1127,9 +1447,9 @@ export class PopoverAI {
 
     languageOptions(current) {
         const options = [
-            'en-US','es-ES','ja-JP'
+            'en-US', 'es-ES', 'ja-JP'
         ];
-        return options.map(code => `<option value="${code}" ${code===current?'selected':''}>${code}</option>`).join('');
+        return options.map(code => `<option value="${code}" ${code === current ? 'selected' : ''}>${code}</option>`).join('');
     }
 
     async openUrl(url) {
@@ -1142,19 +1462,85 @@ export class PopoverAI {
 
     async triggerModelDownload(key) {
         try {
-            // If the API exposes request for download via availability(), call it.
-            // Some implementations may start download on create(). We'll attempt a benign call.
-            if (key === 'prompt' && 'LanguageModel' in self) {
-                await LanguageModel.create();
-            } else if (key === 'summarizer' && 'Summarizer' in self) {
-                await Summarizer.create();
-            } else if (key === 'writer' && 'Writer' in self) {
-                await Writer.create();
+            // Debug flag to enable mock download simulation
+            const DEBUG_SIMULATE_DOWNLOAD = true;
+
+            if (DEBUG_SIMULATE_DOWNLOAD) {
+                // Mock download simulation for testing UI
+                const overridesObj = await chrome.storage.local.get(['selection_ai_debug_overrides']);
+                const overrides = overridesObj.selection_ai_debug_overrides || {};
+
+                // Set state to downloading with 0 progress
+                const next = { ...overrides };
+                next[key] = { state: 'downloading', progress: 0 };
+
+                await chrome.storage.local.set({ selection_ai_debug_overrides: next });
+                window.dispatchEvent(new CustomEvent('selectionAiAvailabilityOverride', { detail: next }));
+
+                this.showNotification('Model download started (simulated)');
+
+                // Simulate download progress
+                this.simulateDownloadProgress(key);
+            } else {
+                // Real API call for actual download
+                // If the API exposes request for download via availability(), call it.
+                // Some implementations may start download on create(). We'll attempt a benign call.
+                if (key === 'prompt' && 'LanguageModel' in self) {
+                    await LanguageModel.create();
+                } else if (key === 'summarizer' && 'Summarizer' in self) {
+                    await Summarizer.create();
+                } else if (key === 'writer' && 'Writer' in self) {
+                    await Writer.create();
+                }
+                this.showNotification('Model download requested');
             }
-            this.showNotification('Model download requested');
         } catch (e) {
             console.error('Failed to request model download', e);
             this.showNotification('Failed to request download');
+        }
+    }
+
+    async simulateDownloadProgress(key) {
+        try {
+            // Simulate download over 5 seconds
+            const duration = 5000;
+            const steps = 20;
+            const stepDuration = duration / steps;
+
+            for (let i = 1; i <= steps; i++) {
+                await new Promise(resolve => setTimeout(resolve, stepDuration));
+
+                const progress = Math.round((i / steps) * 100);
+
+                // Get current overrides
+                const overridesObj = await chrome.storage.local.get(['selection_ai_debug_overrides']);
+                const overrides = overridesObj.selection_ai_debug_overrides || {};
+
+                // Update progress
+                const next = { ...overrides };
+                if (next[key] && next[key].state === 'downloading') {
+                    next[key].progress = progress;
+
+                    await chrome.storage.local.set({ selection_ai_debug_overrides: next });
+                    window.dispatchEvent(new CustomEvent('selectionAiAvailabilityOverride', { detail: next }));
+                } else {
+                    // Download was cancelled
+                    return;
+                }
+            }
+
+            // Mark as available after download completes
+            const overridesObj = await chrome.storage.local.get(['selection_ai_debug_overrides']);
+            const overrides = overridesObj.selection_ai_debug_overrides || {};
+            const next = { ...overrides };
+            next[key] = { state: 'available', progress: 100 };
+
+            await chrome.storage.local.set({ selection_ai_debug_overrides: next });
+            window.dispatchEvent(new CustomEvent('selectionAiAvailabilityOverride', { detail: next }));
+
+            this.showNotification('Model download completed');
+        } catch (e) {
+            console.error('Failed to simulate download progress', e);
         }
     }
 
@@ -1171,11 +1557,7 @@ export class PopoverAI {
         this.userInput.value = '';
 
         this.submitBtn.disabled = true;
-        this.submitBtn.innerHTML = `
-    <div class="loading">
-        <div class="loading-spinner"></div>
-    </div>
-    `;
+        this.submitBtn.innerHTML = loadingSpinnerHTML;
         this.showLoading();
 
         try {
@@ -1192,12 +1574,7 @@ export class PopoverAI {
             console.error('Error:', error);
         } finally {
             this.submitBtn.disabled = false;
-            this.submitBtn.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 4v7a4 4 0 0 1-4 4H4"/>
-          <path d="m9 10-5 5 5 5"/>
-        </svg>
-      `;
+            this.submitBtn.innerHTML = submitBtnHTML;
         }
     }
 
@@ -1208,7 +1585,7 @@ export class PopoverAI {
             try {
                 const { selection_ai_locale } = await chrome.storage.local.get(['selection_ai_locale']);
                 if (selection_ai_locale) window.__selection_ai_cached_locale = selection_ai_locale;
-            } catch (_) {}
+            } catch (_) { }
             const baseLang = this.getPreferredBaseLanguage();
 
             // Build Prompt API options with languages per docs
@@ -1221,7 +1598,7 @@ export class PopoverAI {
                     expectedOutputs: [
                         { type: 'text', languages: [baseLang] }
                     ]
-                  }
+                }
                 : {
                     expectedInputs: [
                         { type: 'text', languages: [baseLang] }
@@ -1229,7 +1606,7 @@ export class PopoverAI {
                     expectedOutputs: [
                         { type: 'text', languages: [baseLang] }
                     ]
-                  };
+                };
 
             // Check if Prompt API is available
             if (!('LanguageModel' in self)) {
@@ -1252,13 +1629,13 @@ export class PopoverAI {
 
             // Get conversation history context
             const historyContext = this.getHistoryContext();
-            
+
             let stream;
             if (this.selectionType === 'dragbox') {
                 // For drag box, send image with text prompt and history
                 const imageFile = await this.dataURLtoFile(this.selectedText, 'screenshot.png');
                 const fullPrompt = historyContext + userInput;
-                
+
                 stream = this.session.promptStreaming([
                     {
                         role: 'user',
@@ -1302,7 +1679,7 @@ export class PopoverAI {
             try {
                 const { selection_ai_locale } = await chrome.storage.local.get(['selection_ai_locale']);
                 if (selection_ai_locale) window.__selection_ai_cached_locale = selection_ai_locale;
-            } catch (_) {}
+            } catch (_) { }
             const baseLang = this.getPreferredBaseLanguage();
 
             // Check if Writer API is available
@@ -1366,7 +1743,7 @@ export class PopoverAI {
             try {
                 const { selection_ai_locale } = await chrome.storage.local.get(['selection_ai_locale']);
                 if (selection_ai_locale) window.__selection_ai_cached_locale = selection_ai_locale;
-            } catch (_) {}
+            } catch (_) { }
             const baseLang = this.getPreferredBaseLanguage();
 
             // Check if Summarizer API is available
@@ -1415,7 +1792,7 @@ export class PopoverAI {
 
             // Analyze colors from the image
             const colors = await this.analyzeImageColors(this.selectedText);
-            
+
             if (colors && colors.length > 0) {
                 this.displayColors(colors);
                 this.showActionButtons();
@@ -1431,42 +1808,42 @@ export class PopoverAI {
         return new Promise((resolve) => {
             const img = new Image();
             img.crossOrigin = 'anonymous';
-            
+
             img.onload = () => {
                 try {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-                    
+
                     canvas.width = img.width;
                     canvas.height = img.height;
-                    
+
                     ctx.drawImage(img, 0, 0);
-                    
+
                     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                     const pixels = imageData.data;
-                    
+
                     // Sample pixels and count color frequencies
                     const colorCounts = new Map();
                     const sampleRate = Math.max(1, Math.floor(pixels.length / 4 / 1000)); // Sample every nth pixel
-                    
+
                     for (let i = 0; i < pixels.length; i += 4 * sampleRate) {
                         const r = pixels[i];
                         const g = pixels[i + 1];
                         const b = pixels[i + 2];
                         const a = pixels[i + 3];
-                        
+
                         // Skip transparent pixels
                         if (a < 128) continue;
-                        
+
                         // Quantize colors to reduce noise
                         const quantizedR = Math.round(r / 32) * 32;
                         const quantizedG = Math.round(g / 32) * 32;
                         const quantizedB = Math.round(b / 32) * 32;
-                        
+
                         const colorKey = `${quantizedR},${quantizedG},${quantizedB}`;
                         colorCounts.set(colorKey, (colorCounts.get(colorKey) || 0) + 1);
                     }
-                    
+
                     // Sort by frequency and get top 6 colors
                     const sortedColors = Array.from(colorCounts.entries())
                         .sort((a, b) => b[1] - a[1])
@@ -1478,19 +1855,19 @@ export class PopoverAI {
                                 hex: this.rgbToHex(r, g, b)
                             };
                         });
-                    
+
                     resolve(sortedColors);
                 } catch (error) {
                     console.error('Error analyzing colors:', error);
                     resolve([]);
                 }
             };
-            
+
             img.onerror = () => {
                 console.error('Error loading image for color analysis');
                 resolve([]);
             };
-            
+
             img.src = imageDataUrl;
         });
     }
@@ -1506,32 +1883,9 @@ export class PopoverAI {
     }
 
     displayColors(colors) {
-        const colorsHtml = colors.map((color, index) => `
-            <div class="color-item">
-                <div class="color-swatch" style="background: ${color.rgb};"></div>
-                
-                <div class="color-info-wrapper">
-                    <div class="color-info">
-                        <div class="color-hex">${color.hex}</div>
-                        <div class="color-rgb">${color.rgb}</div>
-                    </div>
-                    <button class="copy-color-btn" data-color="${color.hex}">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-                            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        `).join('');
-
-        this.currentResponse = `
-            <div class="colors-container">
-                <div class="colors-grid">
-                    ${colorsHtml}
-                </div>
-            </div>
-        `;
+        this.currentResponse = getColorsGridHTML({
+            colors
+        });
 
         this.updateResponse(this.currentResponse);
 
@@ -1562,7 +1916,7 @@ export class PopoverAI {
         if (this.action === 'prompt' || this.action === 'write') {
             this.updateStreamingResponse(text);
         } else {
-            const html = this.parseMarkdownToHTML(text);
+            const html = parseMarkdownToHTML(text);
             this.responseContent.innerHTML = html;
         }
 
@@ -1591,8 +1945,8 @@ export class PopoverAI {
 
         // Update the content with parsed markdown
         const messageContent = currentAiMessage.querySelector('.message-content');
-        messageContent.innerHTML = this.parseMarkdownToHTML(text);
-        
+        messageContent.innerHTML = parseMarkdownToHTML(text);
+
         // Show the conversation history
         historyContainer.style.display = 'block';
     }
@@ -1607,22 +1961,16 @@ export class PopoverAI {
         // Show the response section for other actions
         this.responseSection.style.display = 'flex';
 
-        this.responseContent.innerHTML = `
-      <div class="loading">
-        <div class="loading-spinner"></div>
-      </div>
-    `;
+        this.responseContent.innerHTML = loadingSpinnerHTML;
     }
 
     showError(message) {
         // Show the response section
         this.responseSection.style.display = 'flex';
 
-        this.responseContent.innerHTML = `
-      <div style="color: #dc2626; text-align: center; padding: 20px;">
-        ${message}
-      </div>
-    `;
+        this.responseContent.innerHTML = getErrorMessageHTML({
+            message
+        });
     }
 
     showActionButtons() {
@@ -1630,101 +1978,6 @@ export class PopoverAI {
         if (this.action !== 'colors') {
             this.actionButtons.style.display = 'flex';
         }
-    }
-
-    parseMarkdownToHTML(markdown) {
-        let html = markdown
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
-
-        // Headings
-        html = html.replace(/^\*\*(.*?)\*\*:/gm, "<h3>$1:</h3>");
-
-        // Markdown headers (# ## ###)
-        html = html.replace(/^### (.*)$/gm, "<h3>$1</h3>");
-        html = html.replace(/^## (.*)$/gm, "<h2>$1</h2>");
-        html = html.replace(/^# (.*)$/gm, "<h1>$1</h1>");
-
-        // Blockquotes
-        html = html.replace(/^&gt;\s?(.*)$/gm, "<blockquote>$1</blockquote>");
-
-        // Links [text](url)
-        html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-
-        // Bold
-        html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-
-        // Italic
-        html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
-
-        // Lists
-        html = html.replace(/(?:^|\n)\* (.*?)(?=\n|$)/g, "<li>$1</li>");
-        html = html.replace(/(<li>.*<\/li>)/gs, "<ul>$1</ul>");
-
-        // Tables - process line by line to find complete table blocks
-        const lines = html.split('\n');
-        const result = [];
-        let i = 0;
-
-        while (i < lines.length) {
-            const line = lines[i];
-
-            // Check if this line starts a table
-            if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
-                const tableLines = [line];
-                i++;
-
-                // Collect all consecutive table lines
-                while (i < lines.length && lines[i].trim().startsWith('|')) {
-                    tableLines.push(lines[i]);
-                    i++;
-                }
-
-                // Check if we have a valid table (at least header + separator + one data row)
-                if (tableLines.length >= 3) {
-                    const separatorLine = tableLines[1];
-                    if (/^\|[\s\-:]+\|/.test(separatorLine.trim())) {
-                        // Parse the table
-                        const headerRow = tableLines[0];
-                        const dataRows = tableLines.slice(2);
-
-                        // Parse header
-                        const headerCells = headerRow.split('|').slice(1, -1).map(cell => cell.trim());
-                        const headerHtml = headerCells.map(cell => `<th>${cell}</th>`).join('');
-
-                        // Parse data rows
-                        const rowsHtml = dataRows.map(row => {
-                            const cells = row.split('|').slice(1, -1).map(cell => cell.trim());
-                            const cellsHtml = cells.map(cell => `<td>${cell}</td>`).join('');
-                            return `<tr>${cellsHtml}</tr>`;
-                        }).join('');
-
-                        result.push(`<table><thead><tr>${headerHtml}</tr></thead><tbody>${rowsHtml}</tbody></table>`);
-                        continue;
-                    }
-                }
-
-                // If not a valid table, add the lines back as-is
-                result.push(...tableLines);
-            } else {
-                result.push(line);
-                i++;
-            }
-        }
-
-        html = result.join('\n');
-
-        // Paragraphs
-        html = html
-            .split(/\n{2,}/)
-            .map(block => {
-                if (/^<\/?(h\d|ul|li|blockquote|table)/.test(block.trim())) return block;
-                return `<p>${block.trim().replace(/\n/g, "<br>")}</p>`;
-            })
-            .join("\n");
-
-        return html.trim();
     }
 
     async copyResponse() {
@@ -1755,26 +2008,13 @@ export class PopoverAI {
     showNotification(message) {
         const notification = document.createElement('div');
         notification.textContent = message;
-        notification.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #3b82f6;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 50px;
-      z-index: 10002;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      opacity: 0;
-      filter: blur(20px);
-      transition: opacity 0.3s ease-out, filter 0.3s ease-out;
-    `;
+        notification.style.cssText = notificationCSS;
 
         document.body.appendChild(notification);
 
         setTimeout(() => {
-        // Trigger fade in
-        requestAnimationFrame(() => {
+            // Trigger fade in
+            requestAnimationFrame(() => {
                 notification.style.opacity = '1';
                 notification.style.filter = 'blur(0px)';
             });
@@ -1795,11 +2035,7 @@ export class PopoverAI {
 
         const original = this.voiceBtn.innerHTML;
         this.voiceBtn.dataset.original = original;
-        this.voiceBtn.innerHTML = `
-            <div class="loading">
-                <div class="loading-spinner"></div>
-            </div>
-        `;
+        this.voiceBtn.innerHTML = loadingSpinnerHTML;
         this.voiceBtn.disabled = true;
 
         const finish = () => {
@@ -1823,7 +2059,7 @@ export class PopoverAI {
                         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                         if (!SpeechRecognition) {
                             this.showNotification('Speech Recognition not supported.');
-                            try { stream.getTracks().forEach(t => t.stop()); } catch (_) {}
+                            try { stream.getTracks().forEach(t => t.stop()); } catch (_) { }
                             finish();
                             return;
                         }
@@ -1833,7 +2069,7 @@ export class PopoverAI {
                             const base = this.getPreferredBaseLanguage ? this.getPreferredBaseLanguage() : 'en';
                             if (base === 'es') locale = 'es-ES';
                             else if (base === 'ja') locale = 'ja-JP';
-                        } catch (_) {}
+                        } catch (_) { }
 
                         const rec = new SpeechRecognition();
                         rec.lang = locale;
@@ -1857,8 +2093,8 @@ export class PopoverAI {
                             } catch (e) {
                                 console.warn('Failed to read recognition result', e);
                             } finally {
-                                try { rec.stop(); } catch (_) {}
-                                try { stream.getTracks().forEach(t => t.stop()); } catch (_) {}
+                                try { rec.stop(); } catch (_) { }
+                                try { stream.getTracks().forEach(t => t.stop()); } catch (_) { }
                                 finish();
                             }
                         };
@@ -1866,20 +2102,20 @@ export class PopoverAI {
                         rec.onerror = (e) => {
                             console.warn('Speech recognition error', e);
                             this.showNotification('Voice capture failed. Please try again.');
-                            try { rec.stop(); } catch (_) {}
-                            try { stream.getTracks().forEach(t => t.stop()); } catch (_) {}
+                            try { rec.stop(); } catch (_) { }
+                            try { stream.getTracks().forEach(t => t.stop()); } catch (_) { }
                             finish();
                         };
 
                         rec.onend = () => {
-                            try { stream.getTracks().forEach(t => t.stop()); } catch (_) {}
+                            try { stream.getTracks().forEach(t => t.stop()); } catch (_) { }
                             finish();
                         };
 
                         rec.start();
                     } catch (err) {
                         console.error('Speech setup failed', err);
-                        try { stream.getTracks().forEach(t => t.stop()); } catch (_) {}
+                        try { stream.getTracks().forEach(t => t.stop()); } catch (_) { }
                         finish();
                     }
                 })
@@ -1908,9 +2144,9 @@ export class PopoverAI {
             width: window.innerWidth,
             height: window.innerHeight
         };
-        
+
         const margin = 20; // Minimum margin from viewport edges
-        
+
         // Calculate safe horizontal position
         let x = position.x;
         if (x + elementSize.width > viewport.width - margin) {
@@ -1919,7 +2155,7 @@ export class PopoverAI {
         if (x < margin) {
             x = margin;
         }
-        
+
         // Calculate safe vertical position
         let y = position.y;
         if (y + elementSize.height > viewport.height - margin) {
@@ -1928,7 +2164,7 @@ export class PopoverAI {
         if (y < margin) {
             y = margin;
         }
-        
+
         return { x, y };
     }
 
@@ -1957,10 +2193,10 @@ export class PopoverAI {
         this.header.addEventListener('mousedown', (e) => {
             // Don't start drag if clicking on close button
             if (e.target.closest('.close-btn')) return;
-            
+
             e.preventDefault();
             e.stopPropagation();
-            
+
             this.startDrag(e);
         });
 
@@ -1981,37 +2217,37 @@ export class PopoverAI {
     startDrag(e) {
         this.isDragging = true;
         this.header.classList.add('dragging');
-        
+
         // Store initial mouse position and popover position
         this.dragStartX = e.clientX;
         this.dragStartY = e.clientY;
-        
+
         const rect = this.popoverElement.getBoundingClientRect();
         this.initialX = rect.left;
         this.initialY = rect.top;
-        
+
         // Prevent text selection during drag
         document.body.style.userSelect = 'none';
     }
 
     drag(e) {
         if (!this.isDragging) return;
-        
+
         e.preventDefault();
-        
+
         // Calculate new position
         const deltaX = e.clientX - this.dragStartX;
         const deltaY = e.clientY - this.dragStartY;
-        
+
         const newX = this.initialX + deltaX;
         const newY = this.initialY + deltaY;
-        
+
         // Apply boundary checking
         const safePosition = this.calculateSafePosition(
-            { x: newX, y: newY }, 
+            { x: newX, y: newY },
             { width: 400, height: 300 }
         );
-        
+
         // Update popover position
         this.popoverElement.style.left = `${safePosition.x}px`;
         this.popoverElement.style.top = `${safePosition.y}px`;
@@ -2019,10 +2255,10 @@ export class PopoverAI {
 
     endDrag(e) {
         if (!this.isDragging) return;
-        
+
         this.isDragging = false;
         this.header.classList.remove('dragging');
-        
+
         // Restore text selection
         document.body.style.userSelect = '';
     }
@@ -2114,33 +2350,16 @@ export class PopoverAI {
         const historyContainer = this.shadowRoot.querySelector('#conversation-history');
         if (!historyContainer) return;
 
-        const historyHtml = this.conversationHistory.map((entry, index) => `
-            <div class="message user-message">
-                <div class="message-content">${this.escapeHtml(entry.user)}</div>
-            </div>
-            <div class="message ai-message">
-                <div class="message-content">${this.isHtmlContent(entry.ai) ? entry.ai : this.parseMarkdownToHTML(entry.ai)}</div>
-                <div class="message-actions">
-                    <button class="message-action-btn" data-action="copy" data-content="${this.escapeHtml(this.stripHtml(entry.ai))}" title="Copy">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-                            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-                        </svg>
-                    </button>
-                    <button class="message-action-btn" data-action="share" data-content="${this.escapeHtml(this.stripHtml(entry.ai))}" title="Share">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                            <polyline points="16,6 12,2 8,6"/>
-                            <line x1="12" y1="2" x2="12" y2="15"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        `).join('');
+        const conversationHistoryHtml = getConversationHistoryHTML({
+            conversationHistory: this.conversationHistory,
+            escapeHtml: this.escapeHtml,
+            isHtmlContent: this.isHtmlContent,
+            setupHistoryActionButtons: this.setupHistoryActionButtons
+        });
 
-        historyContainer.innerHTML = historyHtml;
+        historyContainer.innerHTML = conversationHistoryHtml;
         historyContainer.style.display = 'block';
-        
+
         // Add event handlers for action buttons
         this.setupHistoryActionButtons();
     }
@@ -2170,7 +2389,7 @@ export class PopoverAI {
                 e.stopPropagation();
                 const action = btn.getAttribute('data-action');
                 const content = btn.getAttribute('data-content');
-                
+
                 if (action === 'copy') {
                     this.copyText(content);
                 } else if (action === 'share') {
@@ -2213,7 +2432,7 @@ export class PopoverAI {
             return '';
         }
 
-        const context = this.conversationHistory.map(entry => 
+        const context = this.conversationHistory.map(entry =>
             `User: ${entry.user}\nAI: ${entry.ai}`
         ).join('\n\n');
 
@@ -2230,8 +2449,10 @@ export class PopoverAI {
         // Create user message element
         const userMessageEl = document.createElement('div');
         userMessageEl.className = 'message user-message';
-        userMessageEl.innerHTML = `<div class="message-content">${this.escapeHtml(userMessage)}</div>`;
-        
+        userMessageEl.innerHTML = getMessageContentHTML({
+            content: this.escapeHtml(userMessage)
+        });
+
         // Add to conversation history
         historyContainer.appendChild(userMessageEl);
         historyContainer.style.display = 'block';
@@ -2250,23 +2471,23 @@ export class PopoverAI {
         const currentAiMessage = this.shadowRoot.querySelector('.ai-message.current-streaming');
         if (currentAiMessage && this.currentUserMessage) {
             currentAiMessage.classList.remove('current-streaming');
-            
+
             // Get the AI message content
             const aiMessageEl = currentAiMessage.querySelector('.message-content');
             if (aiMessageEl) {
                 const aiMessage = aiMessageEl.innerHTML;
-                
+
                 // Add action buttons to the current AI message
                 this.addActionButtonsToMessage(currentAiMessage, aiMessage);
-                
+
                 this.conversationHistory.push({
                     user: this.currentUserMessage,
                     ai: aiMessage,
                     timestamp: Date.now()
                 });
-                
+
                 this.saveConversationHistory();
-                
+
                 // Clear the current user message
                 this.currentUserMessage = null;
             }
@@ -2277,25 +2498,13 @@ export class PopoverAI {
         // Create action buttons container
         const actionsContainer = document.createElement('div');
         actionsContainer.className = 'message-actions';
-        actionsContainer.innerHTML = `
-            <button class="message-action-btn" data-action="copy" data-content="${this.escapeHtml(this.stripHtml(content))}" title="Copy">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-                    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-                </svg>
-            </button>
-            <button class="message-action-btn" data-action="share" data-content="${this.escapeHtml(this.stripHtml(content))}" title="Share">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                    <polyline points="16,6 12,2 8,6"/>
-                    <line x1="12" y1="2" x2="12" y2="15"/>
-                </svg>
-            </button>
-        `;
-        
+        actionsContainer.innerHTML = getMessageActionButtonsHTML({
+            content: this.escapeHtml(this.stripHtml(content))
+        });
+
         // Add the action buttons to the message
         messageElement.appendChild(actionsContainer);
-        
+
         // Add event handlers for the new buttons
         this.setupHistoryActionButtons();
     }

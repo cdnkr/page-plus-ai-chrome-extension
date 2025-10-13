@@ -1,4 +1,278 @@
-// Content script for handling text selection and AI interactions
+// Styles
+
+const selectionActionButtonsCSS = `
+  .selection-ai-buttons {
+    background: rgba(255, 255, 255, 1);
+    backdrop-filter: blur(10px);
+    border-radius: 25px;
+    padding: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    filter: blur(20px);
+    transition: opacity 0.3s ease-out, filter 0.3s ease-out;
+  }
+  
+  .selection-ai-buttons.visible {
+    opacity: 1;
+    filter: blur(0px);
+  }
+  
+  .selection-ai-buttons-inner {
+    padding: 8px;
+    display: flex;
+    gap: 8px;
+    border-radius: 25px;
+  }
+  
+  .selection-ai-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    color: black;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    position: relative;
+    background: transparent;
+  }
+  
+  .selection-ai-button:hover {
+    background: rgba(0, 0, 0, 0.1);
+  }
+  
+  .selection-ai-button svg {
+    width: 20px;
+    height: 20px;
+  }
+`;
+
+function getButtonContainerCSS(position) {
+  return `
+    position: absolute;
+    left: ${position.x}px;
+    top: ${position.y}px;
+  `;
+}
+
+const notificationCSS = `
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #3b82f6;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 50px;
+  z-index: 10002;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  opacity: 0;
+  filter: blur(20px);
+  transition: opacity 0.3s ease-out, filter 0.3s ease-out;
+`;
+
+const selectionHighlightCSS = `
+  ::selection {
+    background-color: #3b82f6 !important;
+    color: white !important;
+  }
+  ::-moz-selection {
+    background-color: #3b82f6 !important;
+    color: white !important;
+  }
+`;
+
+const modeSwitcherCSS = `
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  z-index: 10000;
+`;
+
+const modeSwitcherRootCSS = `
+  .mode-switcher {
+    display: flex;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 25px;
+    padding: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  
+  .mode-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    color: #6b7280;
+  }
+
+  .mode-btn, .mode-btn svg, .mode-btn path {
+    cursor: pointer !important;
+  }
+  
+  .mode-btn.active {
+    background: #3b82f6;
+    color: white;
+  }
+  
+  .mode-btn:hover:not(.active) {
+    background: rgba(0, 0, 0, 0.1);
+  }
+  
+  .mode-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+  
+  /* Override cursor for mode switcher */
+  .mode-switcher {
+    cursor: default !important;
+  }
+  
+  .mode-switcher * {
+    cursor: default !important;
+  }
+  
+  .mode-btn {
+    cursor: pointer !important;
+  }
+`;
+
+const cursorCSS = `
+  body.text-mode-active {
+    cursor: text !important;
+  }
+  
+  body.drag-mode-active {
+    cursor: crosshair !important;
+  }
+  
+  body.drag-mode-active * {
+    cursor: crosshair !important;
+  }
+  
+  /* Override cursor for extension UI elements - more specific selectors */
+  .selection-ai-popover,
+  .selection-ai-popover *,
+  .selection-ai-buttons,
+  .selection-ai-buttons *,
+  .selection-ai-mode-switcher,
+  .selection-ai-mode-switcher *,
+  .selection-ai-drag-box-container,
+  .selection-ai-drag-box-container * {
+    cursor: default !important;
+  }
+  
+  /* Additional overrides for shadow DOM elements */
+  [class*="selection-ai"] {
+    cursor: default !important;
+  }
+  
+  [class*="selection-ai"] * {
+    cursor: default !important;
+  }
+`;
+
+const dragBoxContainerCSS = `
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  pointer-events: none;
+  z-index: 10000;
+`;
+
+const dragBoxCSS = `
+  .drag-box {
+    position: absolute;
+    border: 2px dashed #3b82f6;
+    pointer-events: none;
+  }
+`;
+
+function getDragBoxCSS({ x, y, width, height }) {
+  return `
+  left: ${x}px;
+  top: ${y}px;
+  width: ${width}px;
+  height: ${height}px;
+`;
+}
+
+// Icons
+
+const ICONS = {
+  text: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-text-cursor-icon lucide-text-cursor"><path d="M17 22h-1a4 4 0 0 1-4-4V6a4 4 0 0 1 4-4h1"/><path d="M7 22h1a4 4 0 0 0 4-4v-1"/><path d="M7 2h1a4 4 0 0 1 4 4v1"/></svg>`,
+  settings: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-icon lucide-settings"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg>`,
+  warning: `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="red" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="position:absolute; right:-12px; top:-12px; border-radius:50%; background:red;height:18px;width:18px;"><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`,
+  dashedBox: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-dashed-icon lucide-square-dashed"><path d="M5 3a2 2 0 0 0-2 2"/><path d="M19 3a2 2 0 0 1 2 2"/><path d="M21 19a2 2 0 0 1-2 2"/><path d="M5 21a2 2 0 0 1-2-2"/><path d="M9 3h1"/><path d="M9 21h1"/><path d="M14 3h1"/><path d="M14 21h1"/><path d="M3 9v1"/><path d="M21 9v1"/><path d="M3 14v1"/><path d="M21 14v1"/></svg>`,
+  colors: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`,
+  prompt: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg>`,
+  summarize: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/><path d="M8 11h8"/><path d="M8 7h6"/></svg>`,
+  write: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 21h8"/><path d="m15 5 4 4"/><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>`,
+  page: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-icon lucide-file"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>`
+}
+
+// Utils
+
+function extractStructuredTextWithLinks(html) {
+  const container = document.createElement('div');
+  container.innerHTML = html;
+  const origin = window.location.origin;
+  function traverse(node) {
+    const segments = [];
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = node.textContent?.trim();
+      if (text) segments.push({ type: 'text', content: text });
+      return segments;
+    }
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const el = node;
+      const tagName = el.tagName.toLowerCase();
+      if (tagName === 'style' || tagName === 'script' || tagName === 'noscript' || tagName === 'meta' || tagName === 'link') {
+        return segments;
+      }
+      if (tagName === 'a') {
+        const hrefAttr = el.getAttribute('href') || '';
+        const href = hrefAttr.startsWith('/') ? origin + hrefAttr : hrefAttr;
+        const text = el.textContent?.trim() || '';
+        segments.push({ type: 'link', text, href });
+        return segments;
+      }
+      for (const child of Array.from(el.childNodes)) {
+        segments.push(...traverse(child));
+      }
+    }
+    return segments;
+  }
+  return traverse(container);
+}
+
+function segmentsToMarkdown(segments) {
+  // Simple joiner: links -> [text](href), text -> content; keep spacing
+  const parts = [];
+  for (const seg of segments) {
+    if (seg.type === 'link') {
+      if (seg.text) parts.push(`[${seg.text}](${seg.href})`);
+      else parts.push(seg.href);
+    } else if (seg.type === 'text') {
+      parts.push(seg.content);
+    }
+  }
+  // Collapse excessive whitespace while preserving basic sentence spacing
+  return parts.join(' ').replace(/\s{2,}/g, ' ').trim();
+}
+
 class SelectionAI {
   constructor() {
     this.selectedText = '';
@@ -11,18 +285,18 @@ class SelectionAI {
     this.PopoverAI = null;
     this.buttonTimeout = null;
     this.position = null;
-    
+
     // Mode switching
     this.currentMode = null; // null, 'text', or 'drag'
     this.modeSwitcher = null;
-    
+
     // Drag box selection
     this.dragBox = null;
     this.dragStart = null;
     this.dragEnd = null;
     this.isDragging = false;
     this.dragBoxContainer = null;
-    
+
     // Settings / availability
     this.apiAvailability = {
       prompt: 'unknown',
@@ -37,16 +311,16 @@ class SelectionAI {
       try {
         const overrides = e.detail || {};
         const effective = { ...this.apiAvailability };
-        ['prompt','summarizer','writer'].forEach(k => {
+        ['prompt', 'summarizer', 'writer'].forEach(k => {
           if (overrides[k] && overrides[k].state) {
             effective[k] = overrides[k].state;
           }
         });
         this.apiAvailability = effective;
         this.updateSettingsButtonIcon();
-      } catch (_) {}
+      } catch (_) { }
     });
-    
+
     this.loadPopoverModule();
     this.init();
   }
@@ -63,7 +337,7 @@ class SelectionAI {
       console.log('PopoverAI class:', this.PopoverAI);
       console.log('PopoverAI module loaded successfully');
       if (i18n && i18n.initI18n) {
-        try { await i18n.initI18n(); } catch (_) {}
+        try { await i18n.initI18n(); } catch (_) { }
         this.i18n = i18n;
       }
     } catch (error) {
@@ -74,25 +348,25 @@ class SelectionAI {
   init() {
     // Check if AI APIs are available
     this.checkAIAvailability();
-    
+
     // Create mode switcher
     this.createModeSwitcher();
-    
+
     // Listen for text selection
     document.addEventListener('mouseup', this.handleTextSelection.bind(this));
     document.addEventListener('click', this.handleClick.bind(this));
-    
+
     // Listen for drag box selection
     document.addEventListener('mousedown', this.handleDragStart.bind(this));
     document.addEventListener('mousemove', this.handleDragMove.bind(this));
     document.addEventListener('mouseup', this.handleDragEnd.bind(this));
-    
+
     // Listen for escape key to close popover
     document.addEventListener('keydown', this.handleKeydown.bind(this));
-    
+
     // Listen for resize to update positions (not scroll - elements should stay anchored)
     window.addEventListener('resize', this.updatePositions.bind(this), { passive: true });
-    
+
     // Listen for popover closed event
     window.addEventListener('popoverClosed', this.handlePopoverClosed.bind(this));
   }
@@ -103,9 +377,9 @@ class SelectionAI {
       chrome.storage.local.get(['selection_ai_locale']).then(({ selection_ai_locale }) => {
         if (selection_ai_locale) {
           this.locale = selection_ai_locale;
-          try { window.__selection_ai_cached_locale = selection_ai_locale; } catch (_) {}
+          try { window.__selection_ai_cached_locale = selection_ai_locale; } catch (_) { }
         }
-      }).catch(() => {});
+      }).catch(() => { });
 
       // Apply stored debug overrides first
       const overridesObj = await chrome.storage.local.get(['selection_ai_debug_overrides']);
@@ -148,33 +422,33 @@ class SelectionAI {
     if (this.currentMode !== 'text') {
       return;
     }
-    
+
     // Don't show buttons if they're already visible or if popover is open
     if (this.buttonContainer || this.popover) {
       return;
     }
 
     const mousePosition = {
-        x: event.clientX,
-        y: event.clientY
-    };  
-    
+      x: event.clientX,
+      y: event.clientY
+    };
+
     const selection = window.getSelection();
     const selectedText = selection.toString().trim();
-    
+
     if (selectedText.length > 0) {
       this.selectedText = selectedText;
       this.position = mousePosition;
       this.selectionPosition = mousePosition;
-      
+
       // Store the selection range for anchoring
       this.selectionRange = selection.getRangeAt(0).cloneRange();
-      
+
       // Store selected text in extension storage
-      chrome.storage.local.set({ 
+      chrome.storage.local.set({
         selectedText: this.selectedText,
       });
-      
+
       // Show action buttons
       this.showActionButtons(mousePosition);
     }
@@ -183,99 +457,47 @@ class SelectionAI {
   showActionButtons(position) {
     // Remove existing buttons
     this.hideActionButtons();
-    
+
     // Calculate boundary-aware position
     const safePosition = this.calculateSafePosition(position, { width: 200, height: 60 });
-    
+
     // Create button container with Shadow DOM for style isolation
     this.buttonContainer = document.createElement('div');
     this.buttonContainer.className = 'selection-ai-buttons';
-    
+
     // Calculate absolute position relative to page content (not viewport)
     const absolutePosition = this.calculateAbsolutePosition(safePosition);
-    
-    this.buttonContainer.style.cssText = `
-      position: absolute;
-      left: ${absolutePosition.x}px;
-      top: ${absolutePosition.y}px;
-    `;
-    
+
+    this.buttonContainer.style.cssText = getButtonContainerCSS(absolutePosition);
+
     // Create shadow root for complete style isolation
     this.buttonShadowRoot = this.buttonContainer.attachShadow({ mode: 'open' });
-    
+
     // Add CSS styles to shadow root for complete isolation
     const style = document.createElement('style');
-    style.textContent = `
-      .selection-ai-buttons {
-        background: rgba(255, 255, 255, 1);
-        backdrop-filter: blur(10px);
-        border-radius: 25px;
-        padding: 8px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-        border: 1px solid rgba(0, 0, 0, 0.1);
-        opacity: 0;
-        filter: blur(20px);
-        transition: opacity 0.3s ease-out, filter 0.3s ease-out;
-      }
-      
-      .selection-ai-buttons.visible {
-        opacity: 1;
-        filter: blur(0px);
-      }
-      
-      .selection-ai-buttons-inner {
-        padding: 8px;
-        display: flex;
-        gap: 8px;
-        border-radius: 25px;
-      }
-      
-      .selection-ai-button {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        border: none;
-        color: black;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s ease;
-        position: relative;
-        background: transparent;
-      }
-      
-      .selection-ai-button:hover {
-        background: rgba(0, 0, 0, 0.1);
-      }
-      
-      .selection-ai-button svg {
-        width: 20px;
-        height: 20px;
-      }
-    `;
+    style.textContent = selectionActionButtonsCSS;
     this.buttonShadowRoot.appendChild(style);
-    
+
     // Create inner container for glass effect
     const innerContainer = document.createElement('div');
     innerContainer.className = 'selection-ai-buttons-inner';
-    
+
     // Add to DOM first, then trigger animation
     document.body.appendChild(this.buttonContainer);
-    
+
     // Trigger fade in animation after a brief delay
     requestAnimationFrame(() => {
       this.buttonContainer.classList.add('visible');
     });
-    
+
     // Create buttons
-    const t = this.i18n?.t || ((k)=>k);
+    const t = this.i18n?.t || ((k) => k);
     const buttons = [
-      { id: 'prompt', icon: this.getPromptIcon(), label: t('button_prompt') },
-      { id: 'summarize', icon: this.getSummarizeIcon(), label: t('button_summarize') },
-      { id: 'write', icon: this.getWriteIcon(), label: t('button_write') }
+      { id: 'prompt', icon: ICONS.prompt, label: t('button_prompt') },
+      { id: 'summarize', icon: ICONS.summarize, label: t('button_summarize') },
+      { id: 'write', icon: ICONS.write, label: t('button_write') }
     ];
-    
+
     buttons.forEach(button => {
       const buttonEl = document.createElement('button');
       buttonEl.className = 'selection-ai-button';
@@ -285,13 +507,13 @@ class SelectionAI {
         e.stopPropagation();
         this.handleButtonClick(button.id);
       });
-      
+
       innerContainer.appendChild(buttonEl);
     });
-    
+
     // Append inner container to shadow root
     this.buttonShadowRoot.appendChild(innerContainer);
-    
+
     // Clear any existing timeout
     if (this.buttonTimeout) {
       clearTimeout(this.buttonTimeout);
@@ -304,11 +526,11 @@ class SelectionAI {
       clearTimeout(this.buttonTimeout);
       this.buttonTimeout = null;
     }
-    
+
     if (this.buttonContainer) {
       // Remove visible class to trigger fade out
       this.buttonContainer.classList.remove('visible');
-      
+
       // Wait for transition to complete before removing from DOM
       setTimeout(() => {
         if (this.buttonContainer) {
@@ -322,13 +544,10 @@ class SelectionAI {
   handleButtonClick(action) {
     console.log('Button clicked:', action);
     console.log('PopoverAI available:', !!this.PopoverAI);
-    
-    // Don't clear text selection - we want to keep it highlighted
-    // window.getSelection().removeAllRanges();
-    
+
     // Don't hide buttons - keep them visible when popover is open
     this.hideActionButtons();
-    
+
     switch (action) {
       case 'prompt':
         console.log('Creating prompt popover...');
@@ -350,16 +569,16 @@ class SelectionAI {
     console.log('showPopover called with action:', action);
     console.log('Selected text:', this.selectedText);
     console.log('Selection range:', this.selectionRange);
-    
+
     // Apply selection highlighting (not needed for settings)
     if (action !== 'settings') {
       this.highlightSelection();
     }
-    
+
     // Get position from selection range
     const position = this.position;
     console.log('Calculated position:', position);
-    
+
     // Wait for PopoverAI to be loaded
     if (!this.PopoverAI) {
       console.log('Waiting for PopoverAI module to load...');
@@ -370,12 +589,12 @@ class SelectionAI {
         attempts++;
       }
     }
-    
+
     // Create popover using the PopoverAI class
     if (this.PopoverAI) {
       console.log('Creating popover with PopoverAI class');
       try {
-        const payload = action === 'settings' 
+        const payload = action === 'settings'
           ? JSON.stringify({ availability: this.apiAvailability, locale: this.locale })
           : this.selectedText;
         this.popover = new this.PopoverAI(action, payload, position, this.selectionRange, selectionType || 'text');
@@ -393,7 +612,7 @@ class SelectionAI {
         this.PopoverAI = module.PopoverAI;
         if (this.PopoverAI) {
           console.log('PopoverAI loaded on retry');
-          const payload = action === 'settings' 
+          const payload = action === 'settings'
             ? JSON.stringify({ availability: this.apiAvailability, locale: this.locale })
             : this.selectedText;
           this.popover = new this.PopoverAI(action, payload, position, this.selectionRange, selectionType || 'text');
@@ -414,7 +633,7 @@ class SelectionAI {
       const minHeight = 200;
       const maxHeight = 600;
       const finalHeight = Math.min(Math.max(height + 20, minHeight), maxHeight);
-      
+
       this.popover.style.height = `${finalHeight}px`;
     }
   }
@@ -430,13 +649,13 @@ class SelectionAI {
     this.hideActionButtons();
     // Hide drag box when popover is closed
     this.hideDragBox();
-    
+
     // Clear any pending timeout
     if (this.buttonTimeout) {
       clearTimeout(this.buttonTimeout);
       this.buttonTimeout = null;
     }
-    
+
     // Reset state to allow new selections
     this.selectionRange = null;
     this.selectedText = '';
@@ -474,31 +693,18 @@ class SelectionAI {
   showNotification(message) {
     const notification = document.createElement('div');
     notification.textContent = message;
-    notification.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #3b82f6;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 50px;
-      z-index: 10002;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      opacity: 0;
-      filter: blur(20px);
-      transition: opacity 0.3s ease-out, filter 0.3s ease-out;
-    `;
-    
+    notification.style.cssText = notificationCSS;
+
     document.body.appendChild(notification);
-    
+
     setTimeout(() => {
-    // Trigger fade in
-    requestAnimationFrame(() => {
-      notification.style.opacity = '1';
-      notification.style.filter = 'blur(0px)';
-    });
+      // Trigger fade in
+      requestAnimationFrame(() => {
+        notification.style.opacity = '1';
+        notification.style.filter = 'blur(0px)';
+      });
     }, 100);
-    
+
     setTimeout(() => {
       // Fade out before removing
       notification.style.opacity = '0';
@@ -514,7 +720,7 @@ class SelectionAI {
     if (this.popover && this.popover.popoverElement) {
       const isClickInsidePopover = this.popover.popoverElement.contains(event.target);
       const isClickOnActionButtons = this.buttonContainer?.contains(event.target);
-      
+
       if (!isClickInsidePopover && !isClickOnActionButtons) {
         console.log('Clicking outside popover, closing...');
         this.closePopover();
@@ -535,13 +741,13 @@ class SelectionAI {
     this.removeSelectionHighlight();
     // Hide drag box when popover is closed
     this.hideDragBox();
-    
+
     // Clear any pending timeout
     if (this.buttonTimeout) {
       clearTimeout(this.buttonTimeout);
       this.buttonTimeout = null;
     }
-    
+
     // Reset state to allow new selections
     this.popover = null;
     this.selectionRange = null;
@@ -559,7 +765,7 @@ class SelectionAI {
     if (!this.selectionRange) {
       return this.selectionPosition || { x: 0, y: 0 };
     }
-    
+
     try {
       const rect = this.selectionRange.getBoundingClientRect();
       return {
@@ -575,22 +781,13 @@ class SelectionAI {
   // Highlight the selected text with primary color
   highlightSelection() {
     if (!this.selectionRange) return;
-    
+
     try {
       // Store original selection style
       this.originalSelectionStyle = document.createElement('style');
-      this.originalSelectionStyle.textContent = `
-        ::selection {
-          background-color: #3b82f6 !important;
-          color: white !important;
-        }
-        ::-moz-selection {
-          background-color: #3b82f6 !important;
-          color: white !important;
-        }
-      `;
+      this.originalSelectionStyle.textContent = selectionHighlightCSS;
       document.head.appendChild(this.originalSelectionStyle);
-      
+
       // Restore the selection
       const selection = window.getSelection();
       selection.removeAllRanges();
@@ -614,9 +811,9 @@ class SelectionAI {
       width: window.innerWidth,
       height: window.innerHeight
     };
-    
+
     const margin = 20; // Minimum margin from viewport edges
-    
+
     // Calculate safe horizontal position
     let x = position.x;
     if (x + elementSize.width > viewport.width - margin) {
@@ -625,7 +822,7 @@ class SelectionAI {
     if (x < margin) {
       x = margin;
     }
-    
+
     // Calculate safe vertical position
     let y = position.y;
     if (y + elementSize.height > viewport.height - margin) {
@@ -634,7 +831,7 @@ class SelectionAI {
     if (y < margin) {
       y = margin;
     }
-    
+
     return { x, y };
   }
 
@@ -654,23 +851,23 @@ class SelectionAI {
       // For absolute positioning, we need to recalculate based on current scroll position
       const currentLeft = parseInt(this.buttonContainer.style.left);
       const currentTop = parseInt(this.buttonContainer.style.top);
-      
+
       // Convert absolute position back to viewport coordinates for boundary checking
       const viewportPosition = {
         x: currentLeft - window.scrollX,
         y: currentTop - window.scrollY
       };
-      
+
       const safePosition = this.calculateSafePosition(viewportPosition, { width: 200, height: 60 });
       const absolutePosition = this.calculateAbsolutePosition(safePosition);
-      
+
       // Only update if position actually changed (due to resize)
       if (absolutePosition.x !== currentLeft || absolutePosition.y !== currentTop) {
         this.buttonContainer.style.left = `${absolutePosition.x}px`;
         this.buttonContainer.style.top = `${absolutePosition.y}px`;
       }
     }
-    
+
     // Popover should stay anchored to its initial position
     // No position updates needed on scroll
   }
@@ -679,100 +876,39 @@ class SelectionAI {
   createModeSwitcher() {
     this.modeSwitcher = document.createElement('div');
     this.modeSwitcher.className = 'selection-ai-mode-switcher';
-    
-    this.modeSwitcher.style.cssText = `
-      position: fixed;
-      left: 20px;
-      bottom: 20px;
-      z-index: 10000;
-    `;
-    
+
+    this.modeSwitcher.style.cssText = modeSwitcherCSS;
+
     // Create shadow root for style isolation
     this.modeSwitcherShadowRoot = this.modeSwitcher.attachShadow({ mode: 'open' });
-    
+
     // Add CSS styles
     const style = document.createElement('style');
-    style.textContent = `
-      .mode-switcher {
-        display: flex;
-        gap: 8px;
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(10px);
-        border-radius: 25px;
-        padding: 8px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-        border: 1px solid rgba(0, 0, 0, 0.1);
-      }
-      
-      .mode-btn {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        border: none;
-        background: transparent;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s ease;
-        color: #6b7280;
-      }
-
-      .mode-btn, .mode-btn svg, .mode-btn path {
-        cursor: pointer !important;
-      }
-      
-      .mode-btn.active {
-        background: #3b82f6;
-        color: white;
-      }
-      
-      .mode-btn:hover:not(.active) {
-        background: rgba(0, 0, 0, 0.1);
-      }
-      
-      .mode-btn svg {
-        width: 20px;
-        height: 20px;
-      }
-      
-      /* Override cursor for mode switcher */
-      .mode-switcher {
-        cursor: default !important;
-      }
-      
-      .mode-switcher * {
-        cursor: default !important;
-      }
-      
-      .mode-btn {
-        cursor: pointer !important;
-      }
-    `;
+    style.textContent = modeSwitcherRootCSS;
     this.modeSwitcherShadowRoot.appendChild(style);
-    
+
     // Create inner container
     const innerContainer = document.createElement('div');
     innerContainer.className = 'mode-switcher';
-    
+
     // Create mode buttons
-    const t = this.i18n?.t || ((k)=>k);
+    const t = this.i18n?.t || ((k) => k);
     const textBtn = document.createElement('button');
     textBtn.className = 'mode-btn';
-    textBtn.innerHTML = this.getTextModeIcon();
+    textBtn.innerHTML = ICONS.text;
     textBtn.title = t('mode_text');
     textBtn.addEventListener('click', () => this.toggleMode('text'));
-    
+
     const dragBtn = document.createElement('button');
     dragBtn.className = 'mode-btn';
-    dragBtn.innerHTML = this.getDragModeIcon();
+    dragBtn.innerHTML = ICONS.dashedBox;
     dragBtn.title = t('mode_drag');
     dragBtn.addEventListener('click', () => this.toggleMode('drag'));
 
     const currentPageBtn = document.createElement('button');
     currentPageBtn.className = 'mode-btn';
     currentPageBtn.setAttribute('id', 'selection-ai-current-page-btn');
-    currentPageBtn.innerHTML = this.getCurrentPageIcon();
+    currentPageBtn.innerHTML = ICONS.page;
     currentPageBtn.title = t('mode_current_page');
     currentPageBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -789,8 +925,8 @@ class SelectionAI {
         };
         this.position = pos;
         // Build current page context
-        const segments = this.extractStructuredTextWithLinks(document.body.innerHTML);
-        const markdown = this.segmentsToMarkdown(segments);
+        const segments = extractStructuredTextWithLinks(document.body.innerHTML);
+        const markdown = segmentsToMarkdown(segments);
         this.selectedText = markdown;
         this.selectionRange = null;
         this.showPopover('prompt', 'page').catch(console.error);
@@ -802,7 +938,7 @@ class SelectionAI {
     const settingsBtn = document.createElement('button');
     settingsBtn.className = 'mode-btn';
     settingsBtn.setAttribute('id', 'selection-ai-settings-btn');
-    settingsBtn.innerHTML = this.getSettingsIconWithBadge();
+    settingsBtn.innerHTML = ICONS.settings;
     settingsBtn.title = t('button_settings');
     settingsBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -820,13 +956,13 @@ class SelectionAI {
       this.position = pos;
       this.showPopover('settings').catch(console.error);
     });
-    
+
     innerContainer.appendChild(textBtn);
     innerContainer.appendChild(dragBtn);
     innerContainer.appendChild(currentPageBtn);
     innerContainer.appendChild(settingsBtn);
     this.modeSwitcherShadowRoot.appendChild(innerContainer);
-    
+
     // Add to DOM
     document.body.appendChild(this.modeSwitcher);
 
@@ -840,7 +976,7 @@ class SelectionAI {
         } else if (this.i18n?.initI18n) {
           await this.i18n.initI18n();
         }
-        const t = this.i18n?.t || ((k)=>k);
+        const t = this.i18n?.t || ((k) => k);
         const buttons = this.modeSwitcherShadowRoot.querySelectorAll('.mode-btn');
         if (buttons[0]) buttons[0].title = t('mode_text');
         if (buttons[1]) buttons[1].title = t('mode_drag');
@@ -858,10 +994,10 @@ class SelectionAI {
     if (!this.modeSwitcherShadowRoot) return;
     const btn = this.modeSwitcherShadowRoot.querySelector('#selection-ai-settings-btn');
     if (btn) {
-      btn.innerHTML = this.getSettingsIconWithBadge();
+      btn.innerHTML = ICONS.settings;
     }
   }
-  
+
   toggleMode(mode) {
     // If clicking the same mode that's already active, deactivate it
     if (this.currentMode === mode) {
@@ -870,196 +1006,151 @@ class SelectionAI {
       // Otherwise, switch to the new mode
       this.currentMode = mode;
     }
-    
+
     // Update button states
     const buttons = this.modeSwitcherShadowRoot.querySelectorAll('.mode-btn');
     buttons.forEach(btn => btn.classList.remove('active'));
-    
+
     // Only add active class if a mode is selected
     if (this.currentMode) {
       buttons[this.currentMode === 'text' ? 0 : 1].classList.add('active');
     }
-    
+
     // Update cursor based on active mode
     this.updateCursor();
-    
+
     // Clear any existing selections
     this.hideActionButtons();
     this.hideDragBox();
     this.closePopover();
-    
+
     // Clear text selection if switching modes or deactivating
     if (this.currentMode === 'drag' || this.currentMode === null) {
       window.getSelection().removeAllRanges();
     }
-    
+
     // Reset drag state
     this.isDragging = false;
     this.dragStart = null;
     this.dragEnd = null;
   }
-  
+
   updateCursor() {
     // Remove all cursor classes
     document.body.classList.remove('text-mode-active', 'drag-mode-active');
-    
+
     // Add appropriate cursor class based on current mode
     if (this.currentMode === 'text') {
       document.body.classList.add('text-mode-active');
     } else if (this.currentMode === 'drag') {
       document.body.classList.add('drag-mode-active');
     }
-    
+
     // Add cursor styles to document head if not already added
     if (!document.getElementById('selection-ai-cursor-styles')) {
       const style = document.createElement('style');
       style.id = 'selection-ai-cursor-styles';
-      style.textContent = `
-        body.text-mode-active {
-          cursor: text !important;
-        }
-        
-        body.drag-mode-active {
-          cursor: crosshair !important;
-        }
-        
-        body.drag-mode-active * {
-          cursor: crosshair !important;
-        }
-        
-        /* Override cursor for extension UI elements - more specific selectors */
-        .selection-ai-popover,
-        .selection-ai-popover *,
-        .selection-ai-buttons,
-        .selection-ai-buttons *,
-        .selection-ai-mode-switcher,
-        .selection-ai-mode-switcher *,
-        .selection-ai-drag-box-container,
-        .selection-ai-drag-box-container * {
-          cursor: default !important;
-        }
-        
-        /* Additional overrides for shadow DOM elements */
-        [class*="selection-ai"] {
-          cursor: default !important;
-        }
-        
-        [class*="selection-ai"] * {
-          cursor: default !important;
-        }
-      `;
+      style.textContent = cursorCSS;
       document.head.appendChild(style);
     }
-    
+
     console.log('Cursor updated for mode:', this.currentMode);
     console.log('Body classes:', document.body.className);
   }
-  
+
   // Drag box selection methods
   handleDragStart(event) {
     if (this.currentMode !== 'drag' || this.isDragging) return;
-    
+
     // Don't start drag if clicking on UI elements
-    if (event.target.closest('.selection-ai-mode-switcher') || 
-        event.target.closest('.selection-ai-buttons') ||
-        event.target.closest('.selection-ai-popover')) {
+    if (event.target.closest('.selection-ai-mode-switcher') ||
+      event.target.closest('.selection-ai-buttons') ||
+      event.target.closest('.selection-ai-popover')) {
       return;
     }
-    
+
     // Clean up any existing drag box and action buttons
     this.hideDragBox();
     this.hideActionButtons();
-    
+
     this.isDragging = true;
     this.dragStart = { x: event.clientX, y: event.clientY };
     this.dragEnd = { x: event.clientX, y: event.clientY };
-    
+
     this.createDragBox();
     event.preventDefault();
   }
-  
+
   handleDragMove(event) {
     if (!this.isDragging || this.currentMode !== 'drag') return;
-    
+
     this.dragEnd = { x: event.clientX, y: event.clientY };
     this.updateDragBox();
     event.preventDefault();
   }
-  
+
   handleDragEnd(event) {
     if (!this.isDragging || this.currentMode !== 'drag') return;
-    
+
     this.isDragging = false;
-    
+
     // Only show action buttons if drag box has meaningful size
     const width = Math.abs(this.dragEnd.x - this.dragStart.x);
     const height = Math.abs(this.dragEnd.y - this.dragStart.y);
-    
+
     if (width > 20 && height > 20) {
       this.showDragBoxActionButtons();
     } else {
       this.hideDragBox();
     }
-    
+
     event.preventDefault();
   }
-  
+
   createDragBox() {
     this.dragBoxContainer = document.createElement('div');
     this.dragBoxContainer.className = 'selection-ai-drag-box-container';
-    
-    this.dragBoxContainer.style.cssText = `
-      position: absolute;
-      left: 0px;
-      top: 0px;
-      pointer-events: none;
-      z-index: 10000;
-    `;
-    
+
+    this.dragBoxContainer.style.cssText = dragBoxContainerCSS;
+
     // Create shadow root for style isolation
     this.dragBoxShadowRoot = this.dragBoxContainer.attachShadow({ mode: 'open' });
-    
+
     // Add CSS styles
     const style = document.createElement('style');
-    style.textContent = `
-      .drag-box {
-        position: absolute;
-        border: 2px dashed #3b82f6;
-        pointer-events: none;
-      }
-    `;
+    style.textContent = dragBoxCSS;
     this.dragBoxShadowRoot.appendChild(style);
-    
+
     // Create drag box element
     this.dragBox = document.createElement('div');
     this.dragBox.className = 'drag-box';
     this.dragBoxShadowRoot.appendChild(this.dragBox);
-    
+
     // Add to DOM
     document.body.appendChild(this.dragBoxContainer);
-    
+
     this.updateDragBox();
   }
-  
+
   updateDragBox() {
     if (!this.dragBox || !this.dragStart || !this.dragEnd) return;
-    
+
     const left = Math.min(this.dragStart.x, this.dragEnd.x);
     const top = Math.min(this.dragStart.y, this.dragEnd.y);
     const width = Math.abs(this.dragEnd.x - this.dragStart.x);
     const height = Math.abs(this.dragEnd.y - this.dragStart.y);
-    
+
     // Convert viewport coordinates to page coordinates
     const absolutePosition = this.calculateAbsolutePosition({ x: left, y: top });
-    
-    this.dragBox.style.cssText = `
-      left: ${absolutePosition.x}px;
-      top: ${absolutePosition.y}px;
-      width: ${width}px;
-      height: ${height}px;
-    `;
+
+    this.dragBox.style.cssText = getDragBoxCSS({ 
+      x: absolutePosition.x, 
+      y: absolutePosition.y, 
+      width, 
+      height
+    });
   }
-  
+
   hideDragBox() {
     if (this.dragBoxContainer) {
       this.dragBoxContainer.remove();
@@ -1068,108 +1159,56 @@ class SelectionAI {
       this.dragBoxShadowRoot = null;
     }
   }
-  
+
   showDragBoxActionButtons() {
     if (!this.dragBox || !this.dragStart || !this.dragEnd) return;
-    
+
     // Calculate position below bottom right corner
     const right = Math.max(this.dragStart.x, this.dragEnd.x);
     const bottom = Math.max(this.dragStart.y, this.dragEnd.y);
     const position = { x: right - 100, y: bottom + 10 };
-    
+
     // Remove existing buttons
     this.hideActionButtons();
-    
+
     // Calculate boundary-aware position
     const safePosition = this.calculateSafePosition(position, { width: 200, height: 60 });
-    
+
     // Create button container with Shadow DOM for style isolation
     this.buttonContainer = document.createElement('div');
     this.buttonContainer.className = 'selection-ai-buttons';
-    
+
     // Calculate absolute position relative to page content
     const absolutePosition = this.calculateAbsolutePosition(safePosition);
-    
-    this.buttonContainer.style.cssText = `
-      position: absolute;
-      left: ${absolutePosition.x}px;
-      top: ${absolutePosition.y}px;
-    `;
-    
+
+    this.buttonContainer.style.cssText = getButtonContainerCSS(absolutePosition);
+
     // Create shadow root for complete style isolation
     this.buttonShadowRoot = this.buttonContainer.attachShadow({ mode: 'open' });
-    
+
     // Add CSS styles to shadow root for complete isolation
     const style = document.createElement('style');
-    style.textContent = `
-      .selection-ai-buttons {
-        background: rgba(255, 255, 255, 1);
-        backdrop-filter: blur(10px);
-        border-radius: 25px;
-        padding: 8px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-        border: 1px solid rgba(0, 0, 0, 0.1);
-        opacity: 0;
-        filter: blur(20px);
-        transition: opacity 0.3s ease-out, filter 0.3s ease-out;
-      }
-      
-      .selection-ai-buttons.visible {
-        opacity: 1;
-        filter: blur(0px);
-      }
-      
-      .selection-ai-buttons-inner {
-        padding: 8px;
-        display: flex;
-        gap: 8px;
-        border-radius: 25px;
-      }
-      
-      .selection-ai-button {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        border: none;
-        color: black;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s ease;
-        position: relative;
-        background: transparent;
-      }
-      
-      .selection-ai-button:hover {
-        background: rgba(0, 0, 0, 0.1);
-      }
-      
-      .selection-ai-button svg {
-        width: 20px;
-        height: 20px;
-      }
-    `;
+    style.textContent = selectionActionButtonsCSS;
     this.buttonShadowRoot.appendChild(style);
-    
+
     // Create inner container for glass effect
     const innerContainer = document.createElement('div');
     innerContainer.className = 'selection-ai-buttons-inner';
-    
+
     // Add to DOM first, then trigger animation
     document.body.appendChild(this.buttonContainer);
-    
+
     // Trigger fade in animation after a brief delay
     requestAnimationFrame(() => {
       this.buttonContainer.classList.add('visible');
     });
-    
+
     // Create buttons for drag box (Prompt, Colors)
     const buttons = [
-      { id: 'prompt', icon: this.getPromptIcon(), label: 'Prompt' },
-      { id: 'colors', icon: this.getColorsIcon(), label: 'Colors' }
+      { id: 'prompt', icon: ICONS.prompt, label: 'Prompt' },
+      { id: 'colors', icon: ICONS.colors, label: 'Colors' }
     ];
-    
+
     buttons.forEach(button => {
       const buttonEl = document.createElement('button');
       buttonEl.className = 'selection-ai-button';
@@ -1179,25 +1218,25 @@ class SelectionAI {
         e.stopPropagation();
         this.handleDragBoxButtonClick(button.id);
       });
-      
+
       innerContainer.appendChild(buttonEl);
     });
-    
+
     // Append inner container to shadow root
     this.buttonShadowRoot.appendChild(innerContainer);
-    
+
     // Clear any existing timeout
     if (this.buttonTimeout) {
       clearTimeout(this.buttonTimeout);
     }
   }
-  
+
   handleDragBoxButtonClick(action) {
     console.log('Drag box button clicked:', action);
-    
+
     // Hide buttons
     this.hideActionButtons();
-    
+
     switch (action) {
       case 'prompt':
         console.log('Creating drag box prompt popover...');
@@ -1210,22 +1249,22 @@ class SelectionAI {
       // settings handled from mode switcher
     }
   }
-  
+
   async showDragBoxPopover(action) {
     console.log('showDragBoxPopover called with action:', action);
-    
+
     // Capture screenshot of drag box area
     const screenshot = await this.captureDragBoxScreenshot();
     if (!screenshot) {
       console.error('Failed to capture screenshot');
       return;
     }
-    
+
     // Get position from drag box
     const right = Math.max(this.dragStart.x, this.dragEnd.x);
     const bottom = Math.max(this.dragStart.y, this.dragEnd.y);
     const position = { x: right - 200, y: bottom + 20 };
-    
+
     // Wait for PopoverAI to be loaded
     if (!this.PopoverAI) {
       console.log('Waiting for PopoverAI module to load...');
@@ -1235,7 +1274,7 @@ class SelectionAI {
         attempts++;
       }
     }
-    
+
     // Create popover using the PopoverAI class
     if (this.PopoverAI) {
       console.log('Creating drag box popover with PopoverAI class');
@@ -1247,15 +1286,15 @@ class SelectionAI {
       }
     }
   }
-  
+
   async captureDragBoxScreenshot() {
     if (!this.dragStart || !this.dragEnd) return null;
-    
+
     const left = Math.min(this.dragStart.x, this.dragEnd.x);
     const top = Math.min(this.dragStart.y, this.dragEnd.y);
     const width = Math.abs(this.dragEnd.x - this.dragStart.x);
     const height = Math.abs(this.dragEnd.y - this.dragStart.y);
-    
+
     try {
       // For Chrome screenshot API, we need viewport coordinates (not page coordinates)
       // The screenshot captures the visible viewport, so we use the original viewport coordinates
@@ -1265,14 +1304,14 @@ class SelectionAI {
       const viewportTop = top + borderOffset;
       const viewportWidth = width - (borderOffset * 2);
       const viewportHeight = height - (borderOffset * 2);
-      
+
       // Account for device pixel ratio scaling
       const devicePixelRatio = window.devicePixelRatio || 1;
       const scaledLeft = viewportLeft * devicePixelRatio;
       const scaledTop = viewportTop * devicePixelRatio;
       const scaledWidth = viewportWidth * devicePixelRatio;
       const scaledHeight = viewportHeight * devicePixelRatio;
-      
+
       console.log('Screenshot coordinates:', {
         original: { left, top, width, height },
         viewport: { viewportLeft, viewportTop, viewportWidth, viewportHeight },
@@ -1280,7 +1319,7 @@ class SelectionAI {
         devicePixelRatio,
         scrollPosition: { scrollX: window.scrollX, scrollY: window.scrollY }
       });
-      
+
       // Use Chrome extension API to capture screenshot
       return new Promise((resolve) => {
         // Send message to background script to capture screenshot
@@ -1295,8 +1334,7 @@ class SelectionAI {
         }, (response) => {
           if (chrome.runtime.lastError) {
             console.error('Chrome screenshot API error:', chrome.runtime.lastError);
-            // Fallback to canvas representation
-            this.createFallbackScreenshot(width, height).then(resolve);
+            alert('Failed to capture screenshot');
           } else if (response && response.dataUrl) {
             if (response.cropArea) {
               // Crop the image in content script where DOM APIs are available
@@ -1310,17 +1348,17 @@ class SelectionAI {
             }
           } else {
             // Fallback to canvas representation
-            this.createFallbackScreenshot(width, height).then(resolve);
+            alert('Failed to capture screenshot');
           }
         });
       });
-      
+
     } catch (error) {
       console.error('Failed to capture screenshot:', error);
-      return this.createFallbackScreenshot(width, height);
+      alert('Failed to capture screenshot');
     }
   }
-  
+
   async cropImage(dataUrl, cropArea) {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -1329,75 +1367,47 @@ class SelectionAI {
           imageSize: { width: img.width, height: img.height },
           cropArea: cropArea
         });
-        
+
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        
+
         canvas.width = cropArea.width;
         canvas.height = cropArea.height;
-        
+
         // Draw the cropped portion of the image
         ctx.drawImage(
           img,
           cropArea.x, cropArea.y, cropArea.width, cropArea.height, // Source rectangle
           0, 0, cropArea.width, cropArea.height // Destination rectangle
         );
-        
+
         console.log('Image cropped successfully');
         resolve(canvas.toDataURL('image/png'));
       };
-      
+
       img.onerror = () => {
         reject(new Error('Failed to load image for cropping'));
       };
-      
+
       img.src = dataUrl;
     });
   }
 
-  async createFallbackScreenshot(width, height) {
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d');
-    
-    // Create a visual representation of the selection
-    ctx.fillStyle = '#f8f9fa';
-    ctx.fillRect(0, 0, width, height);
-    
-    // Add border
-    ctx.strokeStyle = '#3b82f6';
-    ctx.lineWidth = 2;
-    ctx.setLineDash([5, 5]);
-    ctx.strokeRect(0, 0, width, height);
-    
-    // Add text
-    ctx.fillStyle = '#3b82f6';
-    ctx.font = 'bold 12px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('Selected Area', width/2, height/2 - 5);
-    ctx.font = '10px Arial';
-    ctx.fillStyle = '#6b7280';
-    ctx.fillText(`${width} × ${height}px`, width/2, height/2 + 10);
-    
-    return canvas.toDataURL('image/png');
-  }
-  
   async showColorsPopover() {
     console.log('showColorsPopover called');
-    
+
     // Capture screenshot first
     const screenshot = await this.captureDragBoxScreenshot();
     if (!screenshot) {
       console.error('Failed to capture screenshot for colors');
       return;
     }
-    
+
     // Get position from drag box
     const right = Math.max(this.dragStart.x, this.dragEnd.x);
     const bottom = Math.max(this.dragStart.y, this.dragEnd.y);
     const position = { x: right - 200, y: bottom + 20 };
-    
+
     // Wait for PopoverAI to be loaded
     if (!this.PopoverAI) {
       console.log('Waiting for PopoverAI module to load...');
@@ -1407,7 +1417,7 @@ class SelectionAI {
         attempts++;
       }
     }
-    
+
     // Create colors popover using the PopoverAI class
     if (this.PopoverAI) {
       console.log('Creating colors popover with PopoverAI class');
@@ -1419,91 +1429,12 @@ class SelectionAI {
       }
     }
   }
-  
-  // Icon getters
-  getTextModeIcon() {
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-text-cursor-icon lucide-text-cursor"><path d="M17 22h-1a4 4 0 0 1-4-4V6a4 4 0 0 1 4-4h1"/><path d="M7 22h1a4 4 0 0 0 4-4v-1"/><path d="M7 2h1a4 4 0 0 1 4 4v1"/></svg>`;
-  }
-  
-  getDragModeIcon() {
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-dashed-icon lucide-square-dashed"><path d="M5 3a2 2 0 0 0-2 2"/><path d="M19 3a2 2 0 0 1 2 2"/><path d="M21 19a2 2 0 0 1-2 2"/><path d="M5 21a2 2 0 0 1-2-2"/><path d="M9 3h1"/><path d="M9 21h1"/><path d="M14 3h1"/><path d="M14 21h1"/><path d="M3 9v1"/><path d="M21 9v1"/><path d="M3 14v1"/><path d="M21 14v1"/></svg>`;
-  }
-  
-  getColorsIcon() {
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`;
-  }
-
-  getPromptIcon() {
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg>`;
-  }
-
-  getSummarizeIcon() {
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/><path d="M8 11h8"/><path d="M8 7h6"/></svg>`;
-  }
-
-  getWriteIcon() {
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 21h8"/><path d="m15 5 4 4"/><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>`;
-  }
 
   getSettingsIconWithBadge() {
-    const needsBadge = ['prompt','summarizer','writer'].some(k => (this.apiAvailability[k] && this.apiAvailability[k] !== 'available'));
-    const settingsSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-icon lucide-settings"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg>`;
-    if (!needsBadge) return settingsSvg;
-    const badgeSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="red" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="position:absolute; right:-12px; top:-12px; border-radius:50%; background:red;height:18px;width:18px;"><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`;
-    return `<div style="position:relative; width:20px; height:20px;">${settingsSvg}${badgeSvg}</div>`;
-  }
-
-  getCurrentPageIcon() {
-    // Sticky note icon from spec
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-icon lucide-file"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>`;
-  }
-
-  extractStructuredTextWithLinks(html) {
-    const container = document.createElement('div');
-    container.innerHTML = html;
-    const origin = window.location.origin;
-    function traverse(node) {
-      const segments = [];
-      if (node.nodeType === Node.TEXT_NODE) {
-        const text = node.textContent?.trim();
-        if (text) segments.push({ type: 'text', content: text });
-        return segments;
-      }
-      if (node.nodeType === Node.ELEMENT_NODE) {
-        const el = node;
-        const tagName = el.tagName.toLowerCase();
-        if (tagName === 'style' || tagName === 'script' || tagName === 'noscript' || tagName === 'meta' || tagName === 'link') {
-          return segments;
-        }
-        if (tagName === 'a') {
-          const hrefAttr = el.getAttribute('href') || '';
-          const href = hrefAttr.startsWith('/') ? origin + hrefAttr : hrefAttr;
-          const text = el.textContent?.trim() || '';
-          segments.push({ type: 'link', text, href });
-          return segments;
-        }
-        for (const child of Array.from(el.childNodes)) {
-          segments.push(...traverse(child));
-        }
-      }
-      return segments;
-    }
-    return traverse(container);
-  }
-
-  segmentsToMarkdown(segments) {
-    // Simple joiner: links -> [text](href), text -> content; keep spacing
-    const parts = [];
-    for (const seg of segments) {
-      if (seg.type === 'link') {
-        if (seg.text) parts.push(`[${seg.text}](${seg.href})`);
-        else parts.push(seg.href);
-      } else if (seg.type === 'text') {
-        parts.push(seg.content);
-      }
-    }
-    // Collapse excessive whitespace while preserving basic sentence spacing
-    return parts.join(' ').replace(/\s{2,}/g, ' ').trim();
+    const needsBadge = ['prompt', 'summarizer', 'writer'].some(k => (this.apiAvailability[k] && this.apiAvailability[k] !== 'available'));
+    if (!needsBadge) return icons.settings;
+    const badgeSvg = icons.warning;
+    return `<div style="position:relative; width:20px; height:20px;">${icons.settings}${badgeSvg}</div>`;
   }
 }
 
