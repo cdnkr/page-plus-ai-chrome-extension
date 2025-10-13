@@ -20,7 +20,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["popover.js"],
+      "resources": ["popover.js", "i18n.js"],
       "matches": ["<all_urls>"]
     }
   ],

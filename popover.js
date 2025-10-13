@@ -39,6 +39,8 @@ export class PopoverAI {
     createPopover() {
         try {
             console.log('Creating popover element...');
+      // Load i18n lazily
+      this.loadI18nOnce();
             // Create popover container with Shadow DOM for style isolation
             this.popoverElement = document.createElement('div');
             this.popoverElement.className = 'selection-ai-popover';
@@ -47,7 +49,7 @@ export class PopoverAI {
             this.shadowRoot = this.popoverElement.attachShadow({ mode: 'open' });
 
             // Use mouse position with boundary checking (same as action buttons)
-            const safePosition = this.calculateSafePosition(this.position, { width: 400, height: 300 });
+            const safePosition = this.calculateSafePosition(this.position, { width: 400, height: 360 });
             const absolutePosition = this.calculateAbsolutePosition(safePosition);
 
             this.popoverElement.style.cssText = `
@@ -255,7 +257,8 @@ export class PopoverAI {
         
         .selected-text-context {
           font-size: 13px;
-          margin-bottom: 12px;
+          margin-bottom: 20px;
+          margin-top: 6px;
         }
         
         .context-text {
@@ -400,6 +403,26 @@ export class PopoverAI {
         .action-btn.primary:hover {
           background: #2563eb;
           border-color: #2563eb;
+        }
+
+        .ghost-btn {
+          background: transparent !important;
+          border: none !important;
+          cursor: pointer !important;
+          padding: 8px 12px !important;
+          color: #374151 !important;
+          font-size: 14px !important;
+          font-weight: 500 !important;
+          border-radius: 16px !important;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          transition: all 0.2s ease;
+        }
+
+        .ghost-btn:hover {
+          background: rgba(0, 0, 0, 0.1) !important;
         }
         
         .hidden {
@@ -704,8 +727,38 @@ export class PopoverAI {
             throw error;
         }
     }
+    async loadI18nOnce() {
+        if (this.i18nLoaded) return;
+        try {
+            const mod = await import(chrome.runtime.getURL('i18n.js'));
+            if (mod && mod.initI18n) {
+                await mod.initI18n();
+                this.t = mod.t;
+                this.getBaseLanguage = mod.getBaseLanguage;
+                this.getUiLocaleOptions = mod.getUiLocaleOptions;
+                this.i18nLoaded = true;
+            }
+        } catch (e) {
+            console.warn('i18n load failed, falling back to defaults', e);
+            this.t = (k)=>k;
+            this.getBaseLanguage = ()=>'en';
+            this.getUiLocaleOptions = ()=>['en-US','es-ES','ja-JP'];
+            this.i18nLoaded = true;
+        }
+    }
+    getPreferredBaseLanguage() {
+        let lang = (navigator.language || 'en').toLowerCase();
+        try {
+            const stored = window.__selection_ai_cached_locale;
+            if (stored) lang = String(stored).toLowerCase();
+        } catch (_) {}
+        const baseLang = (lang.split('-')[0] || 'en').toLowerCase();
+        const supported = ['en', 'es', 'ja'];
+        return supported.includes(baseLang) ? baseLang : 'en';
+    }
 
-    init() {
+
+    async init() {
         // Get DOM elements from shadow root
         this.headerTitle = this.shadowRoot.querySelector('#header-title');
         this.inputSection = this.shadowRoot.querySelector('#input-section');
@@ -757,6 +810,9 @@ export class PopoverAI {
             this.shareResponse();
         });
 
+        // Ensure i18n is ready before configuring action-specific UI
+        await this.loadI18nOnce();
+
         // Add drag functionality to header
         this.setupDragHandlers();
 
@@ -782,37 +838,283 @@ export class PopoverAI {
             this.actionButtons.style.display = 'none';
         }
 
+        const t = this.t || ((k)=>k);
         switch (this.action) {
             case 'prompt':
                 if (this.selectionType === 'dragbox') {
-                    this.headerTitle.innerHTML = '<span>Image</span><span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-right-icon lucide-move-right"><path d="M18 8L22 12L18 16"/><path d="M2 12H22"/></svg></span><span>Ask</span>';
-                    this.userInput.placeholder = 'Ask a question about the selected image...';
+                    this.headerTitle.innerHTML = `<span>${t('header_image_ask')}</span>`;
+                    this.userInput.placeholder = t('placeholder_ask_image');
                 } else {
-                    this.headerTitle.innerHTML = '<span>Text</span><span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-right-icon lucide-move-right"><path d="M18 8L22 12L18 16"/><path d="M2 12H22"/></svg></span><span>Ask</span>';
-                    this.userInput.placeholder = 'Ask a question about the selected text...';
+                    this.headerTitle.innerHTML = `<span>${t('header_text_ask')}</span>`;
+                    this.userInput.placeholder = t('placeholder_ask_text');
                 }
                 this.inputSection.classList.remove('hidden');
                 break;
             case 'summarize':
-                this.headerTitle.innerHTML = '<span>Text</span><span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-right-icon lucide-move-right"><path d="M18 8L22 12L18 16"/><path d="M2 12H22"/></svg></span><span>Summarize</span>';
+                this.headerTitle.innerHTML = `<span>${t('header_text_summarize')}</span>`;
                 this.inputSection.classList.add('hidden');
                 this.startSummarization();
                 break;
             case 'write':
                 if (this.selectionType === 'dragbox') {
-                    this.headerTitle.innerHTML = '<span>Image</span><span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-right-icon lucide-move-right"><path d="M18 8L22 12L18 16"/><path d="M2 12H22"/></svg></span><span>Write</span>';
-                    this.userInput.placeholder = 'What would you like to write about the selected image?';
+                    this.headerTitle.innerHTML = `<span>${t('header_image_write')}</span>`;
+                    this.userInput.placeholder = t('placeholder_write_image');
                 } else {
-                    this.headerTitle.innerHTML = '<span>Text</span><span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-right-icon lucide-move-right"><path d="M18 8L22 12L18 16"/><path d="M2 12H22"/></svg></span><span>Write</span>';
-                    this.userInput.placeholder = 'What would you like to write about the selected text?';
+                    this.headerTitle.innerHTML = `<span>${t('header_text_write')}</span>`;
+                    this.userInput.placeholder = t('placeholder_write_text');
                 }
                 this.inputSection.classList.remove('hidden');
                 break;
             case 'colors':
-                this.headerTitle.innerHTML = '<span>Image</span><span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-right-icon lucide-move-right"><path d="M18 8L22 12L18 16"/><path d="M2 12H22"/></svg></span><span>Colors</span>';
+                this.headerTitle.innerHTML = `<span>${t('colors_title')}</span>`;
                 this.inputSection.classList.add('hidden');
                 this.startColorAnalysis();
                 break;
+            case 'settings':
+                this.headerTitle.innerHTML = `<span>${t('settings_title')}</span>`;
+                this.inputSection.classList.add('hidden');
+                this.selectedTextContext.style.display = 'none';
+                this.actionButtons.style.display = 'none';
+                this.startSettingsView();
+                break;
+        }
+    }
+
+    async startSettingsView() {
+        try {
+            await this.loadI18nOnce();
+            let payload = {};
+            try { payload = JSON.parse(this.selectedText || '{}'); } catch (_) {}
+            const availability = payload.availability || {};
+            const locale = payload.locale || (navigator.language || 'en-US');
+
+            const t = this.t || ((k)=>k);
+            const apiRows = [
+                { key: 'prompt', label: t('api_prompt'), icon: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-more-icon lucide-message-circle-more"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>` },
+                { key: 'summarizer', label: t('api_summarizer'), icon: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-text-icon lucide-book-text"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/><path d="M8 11h8"/><path d="M8 7h6"/></svg>` },
+                { key: 'writer', label: t('api_writer'), icon: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-line-icon lucide-pencil-line"><path d="M13 21h8"/><path d="m15 5 4 4"/><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>` }
+            ];
+
+            const statusBadge = (status, progress) => {
+                if (status === 'downloading' || status === 'downloadable') return '';
+
+                const map = {
+                    available: { text: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-icon lucide-check"><path d="M20 6 9 17l-5-5"/></svg>', color: '#10b981' },
+                    // downloadable: { text: 'downloadable', color: '#2563eb' },
+                    // downloading: { text: 'downloading', color: '#2563eb' },
+                    unavailable: { text: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-alert-icon lucide-circle-alert"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>', color: '#ef4444' },
+                    unknown: { text: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-question-mark-icon lucide-shield-question-mark"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M9.1 9a3 3 0 0 1 5.82 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>', color: '#6b7280' }
+                };
+                const s = map[status] || map.unknown;
+                return `<span style="display:inline-block; padding:2px 8px; border-radius:9999px; font-size:11px; color:${s.color};">${s.text}</span>`;
+            };
+
+            const render = async () => {
+                const overridesObj = await chrome.storage.local.get(['selection_ai_debug_overrides']);
+                const overrides = overridesObj.selection_ai_debug_overrides || {};
+                const effective = { ...availability };
+                apiRows.forEach(r => {
+                    if (overrides[r.key] && overrides[r.key].state) {
+                        effective[r.key] = overrides[r.key].state;
+                    }
+                });
+
+                const rowsHtml = apiRows.map(r => {
+                    const o = overrides[r.key] || {};
+                    const status = (effective[r.key] || 'unknown');
+                    const progress = o.progress;
+                    const actionHtml = status === 'downloadable' 
+                        ? `<button class="action-btn" data-action="download" data-key="${r.key}"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg></button>`
+                        : status === 'downloading' 
+                            ? (() => {
+                                const size = 28; // px
+                                const stroke = 3;
+                                const r = (size - stroke) / 2;
+                                const c = 2 * Math.PI * r;
+                                const pct = Math.max(0, Math.min(100, Number(progress ?? 0)));
+                                const offset = c * (1 - pct / 100);
+                                return `
+                                <div style="position:relative; width:${size}px; height:${size}px; display:inline-flex; align-items:center; justify-content:center;">
+                                  <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+                                    <circle cx="${size/2}" cy="${size/2}" r="${r}" stroke="#e5e7eb" stroke-width="${stroke}" fill="none" />
+                                    <circle cx="${size/2}" cy="${size/2}" r="${r}" stroke="#3b82f6" stroke-width="${stroke}" fill="none" stroke-linecap="round"
+                                      stroke-dasharray="${c.toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}" transform="rotate(-90 ${size/2} ${size/2})" />
+                                  </svg>
+                                  <div style="position:absolute; font-size:8px; color:#111827; font-weight:600;">${pct}%</div>
+                                </div>`;
+                            })()
+                            : '';
+                    // Debug controls
+                    const debugSelect = `
+                        <select class="debug-state" data-key="${r.key}" style="padding:4px 6px; border-radius:8px; border:1px solid #d1d5db; background:white; font-size:12px;">
+                            ${['default','available','downloadable','downloading','unavailable'].map(v => `<option value="${v}" ${((o.state||'default')===v)?'selected':''}>${v}</option>`).join('')}
+                        </select>
+                    `;
+                    const progressCtrl = `
+                        <input class="debug-progress" data-key="${r.key}" type="range" min="0" max="100" value="${typeof o.progress==='number'?o.progress:0}" style="width:80px; ${((o.state||'default')==='downloading')?'':'display:none;'}"/>
+                    `;
+                    return `<div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0; gap:8px;">
+                        <div style="display:flex; align-items:center; gap:8px; min-width:160px;">${r.icon}<span>${r.label}</span></div>
+                        <div style="display:flex; align-items:center; gap:8px;">${statusBadge(status, progress)} ${actionHtml}</div>
+                        <!-- <div style="display:flex; align-items:center; gap:8px;">${debugSelect}${progressCtrl}</div> -->
+                    </div>`;
+                }).join('');
+
+                const html = `
+                <div style="display:flex; flex-direction:column; gap:16px;">
+                    <div>
+                        <div style="font-weight:600; color:#374151; margin-bottom:8px;">${t('settings_api_availability')}</div>
+                        ${rowsHtml}
+                        <div style="margin-top:8px; font-size:12px; color:#6b7280;">${t('settings_debug_help')}</div>
+                        <div style="display:flex; gap:8px; margin-top:8px;">
+                            <button class="ghost-btn" id="open-flags">
+                                ${t('settings_open_flags')}
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-up-right-icon lucide-move-up-right"><path d="M13 5H19V11"/><path d="M19 5L5 19"/></svg>
+                            </button>
+                            <button class="ghost-btn" id="open-internals">
+                                ${t('settings_open_internals')}
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-up-right-icon lucide-move-up-right"><path d="M13 5H19V11"/><path d="M19 5L5 19"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div style="font-weight:600; color:#374151; margin-bottom:8px;">${t('settings_language')}</div>
+                        <select id="language-select" style="padding:8px 10px; border-radius:10px; border:1px solid #d1d5db; background:white; font-size:13px;">
+                            ${this.languageOptions(locale)}
+                        </select>
+                    </div>
+
+                    <div style="border-top:1px solid #e5e7eb; padding-top:12px;">
+                        <div style="font-weight:600; color:#374151; margin-bottom:8px;">${t('settings_debug')}</div>
+                        <div style="font-size:12px; color:#6b7280; margin-bottom:8px;">${t('settings_debug_help')}</div>
+                        <div style="display:flex; gap:8px;">
+                            <button class="action-btn" id="clear-debug">${t('settings_clear_overrides')}</button>
+                        </div>
+                    </div>
+                </div>
+                `;
+
+                this.responseSection.style.display = 'flex';
+                this.responseContent.innerHTML = html;
+
+                // Wire actions
+                const flagsBtn = this.shadowRoot.querySelector('#open-flags');
+                const internalsBtn = this.shadowRoot.querySelector('#open-internals');
+                const langSel = this.shadowRoot.querySelector('#language-select');
+                const downloadButtons = this.shadowRoot.querySelectorAll('[data-action="download"]');
+                const debugSelects = this.shadowRoot.querySelectorAll('.debug-state');
+                const debugProgress = this.shadowRoot.querySelectorAll('.debug-progress');
+                const clearBtn = this.shadowRoot.querySelector('#clear-debug');
+
+                if (flagsBtn) flagsBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.openUrl('chrome://flags');
+                });
+                if (internalsBtn) internalsBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.openUrl('chrome://on-device-internals');
+                });
+                if (langSel) langSel.addEventListener('change', async (e) => {
+                    const newLocale = e.target.value;
+                    try {
+                        await chrome.storage.local.set({ selection_ai_locale: newLocale });
+                        window.location.reload();
+                    } catch (err) {
+                        console.error('Failed to save locale', err);
+                    }
+                });
+                downloadButtons.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        // Trigger a user-gesture download via availability API if supported
+                        this.triggerModelDownload(btn.getAttribute('data-key'));
+                    });
+                });
+
+                const saveOverrides = async (newOverrides) => {
+                    await chrome.storage.local.set({ selection_ai_debug_overrides: newOverrides });
+                    // Notify content script to refresh badge/icons
+                    window.dispatchEvent(new CustomEvent('selectionAiAvailabilityOverride', { detail: newOverrides }));
+                    // Re-render to reflect changes
+                    render();
+                };
+
+                const currentOverrides = overrides; // from earlier await
+
+                debugSelects.forEach(sel => {
+                    sel.addEventListener('change', async (e) => {
+                        const key = sel.getAttribute('data-key');
+                        const val = sel.value;
+                        const next = { ...currentOverrides };
+                        next[key] = next[key] || {};
+                        if (val === 'default') {
+                            delete next[key];
+                        } else {
+                            next[key].state = val;
+                            if (val !== 'downloading') delete next[key].progress;
+                        }
+                        await saveOverrides(next);
+                    });
+                });
+
+                debugProgress.forEach(slider => {
+                    slider.addEventListener('input', async () => {
+                        const key = slider.getAttribute('data-key');
+                        const val = Number(slider.value);
+                        const next = { ...currentOverrides };
+                        next[key] = next[key] || {};
+                        if ((next[key].state || 'default') === 'downloading') {
+                            next[key].progress = val;
+                            await saveOverrides(next);
+                        }
+                    });
+                });
+
+                if (clearBtn) clearBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    await saveOverrides({});
+                });
+            };
+
+            // Initial render
+            render();
+        } catch (e) {
+            console.error('Failed to render settings view', e);
+            this.showError('Failed to load settings');
+        }
+    }
+
+    languageOptions(current) {
+        const options = [
+            'en-US','es-ES','ja-JP'
+        ];
+        return options.map(code => `<option value="${code}" ${code===current?'selected':''}>${code}</option>`).join('');
+    }
+
+    async openUrl(url) {
+        try {
+            await chrome.runtime.sendMessage({ action: 'openUrl', url });
+        } catch (e) {
+            console.error('openUrl failed', e);
+        }
+    }
+
+    async triggerModelDownload(key) {
+        try {
+            // If the API exposes request for download via availability(), call it.
+            // Some implementations may start download on create(). We'll attempt a benign call.
+            if (key === 'prompt' && 'LanguageModel' in self) {
+                await LanguageModel.create();
+            } else if (key === 'summarizer' && 'Summarizer' in self) {
+                await Summarizer.create();
+            } else if (key === 'writer' && 'Writer' in self) {
+                await Writer.create();
+            }
+            this.showNotification('Model download requested');
+        } catch (e) {
+            console.error('Failed to request model download', e);
+            this.showNotification('Failed to request download');
         }
     }
 
@@ -861,28 +1163,48 @@ export class PopoverAI {
 
     async handlePrompt(userInput) {
         try {
+            // Load preferred language and normalize to base code (e.g., en-US -> en)
+            // Cache locale on window for reuse; coerce to supported base language
+            try {
+                const { selection_ai_locale } = await chrome.storage.local.get(['selection_ai_locale']);
+                if (selection_ai_locale) window.__selection_ai_cached_locale = selection_ai_locale;
+            } catch (_) {}
+            const baseLang = this.getPreferredBaseLanguage();
+
+            // Build Prompt API options with languages per docs
+            const promptOptions = this.selectionType === 'dragbox'
+                ? {
+                    expectedInputs: [
+                        { type: 'image' },
+                        { type: 'text', languages: [baseLang] }
+                    ],
+                    expectedOutputs: [
+                        { type: 'text', languages: [baseLang] }
+                    ]
+                  }
+                : {
+                    expectedInputs: [
+                        { type: 'text', languages: [baseLang] }
+                    ],
+                    expectedOutputs: [
+                        { type: 'text', languages: [baseLang] }
+                    ]
+                  };
+
             // Check if Prompt API is available
             if (!('LanguageModel' in self)) {
                 throw new Error('Prompt API not available');
             }
 
             // Check availability
-            const availability = await LanguageModel.availability();
+            const availability = await LanguageModel.availability(promptOptions);
             if (availability === 'unavailable') {
                 throw new Error('Language model not available');
             }
 
             // Create session if not exists
             if (!this.session) {
-                if (this.selectionType === 'dragbox') {
-                    // Create session with image input support
-                    this.session = await LanguageModel.create({
-                        expectedInputs: [{ type: 'image' }]
-                    });
-                } else {
-                    // Create regular session for text
-                    this.session = await LanguageModel.create();
-                }
+                this.session = await LanguageModel.create(promptOptions);
             }
 
             // Show loading
@@ -936,13 +1258,20 @@ export class PopoverAI {
 
     async handleWrite(userInput) {
         try {
+            // Load preferred language and normalize to base code
+            try {
+                const { selection_ai_locale } = await chrome.storage.local.get(['selection_ai_locale']);
+                if (selection_ai_locale) window.__selection_ai_cached_locale = selection_ai_locale;
+            } catch (_) {}
+            const baseLang = this.getPreferredBaseLanguage();
+
             // Check if Writer API is available
             if (!('Writer' in self)) {
                 throw new Error('Writer API not available');
             }
 
             // Check availability
-            const availability = await Writer.availability();
+            const availability = await Writer.availability({ languages: [baseLang] });
             if (availability === 'unavailable') {
                 throw new Error('Writer not available');
             }
@@ -952,7 +1281,8 @@ export class PopoverAI {
                 this.writer = await Writer.create({
                     tone: 'neutral',
                     format: 'markdown',
-                    length: 'medium'
+                    length: 'medium',
+                    languages: [baseLang]
                 });
             }
 
@@ -992,13 +1322,20 @@ export class PopoverAI {
 
     async startSummarization() {
         try {
+            // Load preferred language and normalize to base code
+            try {
+                const { selection_ai_locale } = await chrome.storage.local.get(['selection_ai_locale']);
+                if (selection_ai_locale) window.__selection_ai_cached_locale = selection_ai_locale;
+            } catch (_) {}
+            const baseLang = this.getPreferredBaseLanguage();
+
             // Check if Summarizer API is available
             if (!('Summarizer' in self)) {
                 throw new Error('Summarizer API not available');
             }
 
             // Check availability
-            const availability = await Summarizer.availability();
+            const availability = await Summarizer.availability({ languages: [baseLang] });
             if (availability === 'unavailable') {
                 throw new Error('Summarizer not available');
             }
@@ -1008,7 +1345,8 @@ export class PopoverAI {
                 this.summarizer = await Summarizer.create({
                     type: 'key-points',
                     format: 'markdown',
-                    length: 'medium'
+                    length: 'medium',
+                    languages: [baseLang]
                 });
             }
 

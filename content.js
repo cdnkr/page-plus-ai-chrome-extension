@@ -23,6 +23,30 @@ class SelectionAI {
     this.isDragging = false;
     this.dragBoxContainer = null;
     
+    // Settings / availability
+    this.apiAvailability = {
+      prompt: 'unknown',
+      summarizer: 'unknown',
+      writer: 'unknown'
+    };
+    this.locale = navigator.language || 'en-US';
+
+    // Listen for overrides from settings popover
+    window.addEventListener('selectionAiAvailabilityOverride', (e) => {
+      // Merge overrides into availability preview for icon badge
+      try {
+        const overrides = e.detail || {};
+        const effective = { ...this.apiAvailability };
+        ['prompt','summarizer','writer'].forEach(k => {
+          if (overrides[k] && overrides[k].state) {
+            effective[k] = overrides[k].state;
+          }
+        });
+        this.apiAvailability = effective;
+        this.updateSettingsButtonIcon();
+      } catch (_) {}
+    });
+    
     this.loadPopoverModule();
     this.init();
   }
@@ -30,11 +54,18 @@ class SelectionAI {
   async loadPopoverModule() {
     try {
       console.log('Attempting to load PopoverAI module...');
-      const module = await import(chrome.runtime.getURL('popover.js'));
+      const [module, i18n] = await Promise.all([
+        import(chrome.runtime.getURL('popover.js')),
+        import(chrome.runtime.getURL('i18n.js')).catch(() => null)
+      ]);
       console.log('Module loaded:', module);
       this.PopoverAI = module.PopoverAI;
       console.log('PopoverAI class:', this.PopoverAI);
       console.log('PopoverAI module loaded successfully');
+      if (i18n && i18n.initI18n) {
+        try { await i18n.initI18n(); } catch (_) {}
+        this.i18n = i18n;
+      }
     } catch (error) {
       console.error('Failed to load PopoverAI module:', error);
     }
@@ -68,22 +99,45 @@ class SelectionAI {
 
   async checkAIAvailability() {
     try {
-      // Check for Prompt API
-      if ('LanguageModel' in self) {
-        console.log('Prompt API is available');
+      // Load persisted locale
+      chrome.storage.local.get(['selection_ai_locale']).then(({ selection_ai_locale }) => {
+        if (selection_ai_locale) {
+          this.locale = selection_ai_locale;
+          try { window.__selection_ai_cached_locale = selection_ai_locale; } catch (_) {}
+        }
+      }).catch(() => {});
+
+      // Apply stored debug overrides first
+      const overridesObj = await chrome.storage.local.get(['selection_ai_debug_overrides']);
+      const overrides = overridesObj.selection_ai_debug_overrides || {};
+
+      // Prompt API
+      if ('LanguageModel' in self && typeof LanguageModel.availability === 'function') {
+        const status = await LanguageModel.availability();
+        this.apiAvailability.prompt = overrides.prompt?.state || status || 'available';
+      } else {
+        this.apiAvailability.prompt = overrides.prompt?.state || 'unavailable';
       }
-      
-      // Check for Summarizer API
-      if ('Summarizer' in self) {
-        console.log('Summarizer API is available');
+
+      // Summarizer API
+      if ('Summarizer' in self && typeof Summarizer.availability === 'function') {
+        const status = await Summarizer.availability();
+        this.apiAvailability.summarizer = overrides.summarizer?.state || status || 'available';
+      } else {
+        this.apiAvailability.summarizer = overrides.summarizer?.state || 'unavailable';
       }
-      
-      // Check for Writer API
-      if ('Writer' in self) {
-        console.log('Writer API is available');
+
+      // Writer API
+      if ('Writer' in self && typeof Writer.availability === 'function') {
+        const status = await Writer.availability();
+        this.apiAvailability.writer = overrides.writer?.state || status || 'available';
+      } else {
+        this.apiAvailability.writer = overrides.writer?.state || 'unavailable';
       }
-      
+
       this.isInitialized = true;
+      // Refresh settings button badge/icon if present
+      this.updateSettingsButtonIcon();
     } catch (error) {
       console.error('AI APIs not available:', error);
     }
@@ -215,10 +269,11 @@ class SelectionAI {
     });
     
     // Create buttons
+    const t = this.i18n?.t || ((k)=>k);
     const buttons = [
-      { id: 'prompt', icon: this.getPromptIcon(), label: 'Prompt' },
-      { id: 'summarize', icon: this.getSummarizeIcon(), label: 'Summarize' },
-      { id: 'write', icon: this.getWriteIcon(), label: 'Write' }
+      { id: 'prompt', icon: this.getPromptIcon(), label: t('button_prompt') },
+      { id: 'summarize', icon: this.getSummarizeIcon(), label: t('button_summarize') },
+      { id: 'write', icon: this.getWriteIcon(), label: t('button_write') }
     ];
     
     buttons.forEach(button => {
@@ -287,6 +342,7 @@ class SelectionAI {
         console.log('Creating write popover...');
         this.showPopover('write').catch(console.error);
         break;
+      // settings handled from mode switcher
     }
   }
 
@@ -295,8 +351,10 @@ class SelectionAI {
     console.log('Selected text:', this.selectedText);
     console.log('Selection range:', this.selectionRange);
     
-    // Apply selection highlighting
-    this.highlightSelection();
+    // Apply selection highlighting (not needed for settings)
+    if (action !== 'settings') {
+      this.highlightSelection();
+    }
     
     // Get position from selection range
     const position = this.position;
@@ -317,7 +375,10 @@ class SelectionAI {
     if (this.PopoverAI) {
       console.log('Creating popover with PopoverAI class');
       try {
-        this.popover = new this.PopoverAI(action, this.selectedText, position, this.selectionRange);
+        const payload = action === 'settings' 
+          ? JSON.stringify({ availability: this.apiAvailability, locale: this.locale })
+          : this.selectedText;
+        this.popover = new this.PopoverAI(action, payload, position, this.selectionRange);
         console.log('Popover created:', this.popover);
         console.log('Popover element:', this.popover?.popoverElement);
         console.log('Shadow root:', this.popover?.shadowRoot);
@@ -332,7 +393,10 @@ class SelectionAI {
         this.PopoverAI = module.PopoverAI;
         if (this.PopoverAI) {
           console.log('PopoverAI loaded on retry');
-          this.popover = new this.PopoverAI(action, this.selectedText, position);
+          const payload = action === 'settings' 
+            ? JSON.stringify({ availability: this.apiAvailability, locale: this.locale })
+            : this.selectedText;
+          this.popover = new this.PopoverAI(action, payload, position);
         } else {
           console.error('PopoverAI still not available after retry');
         }
@@ -692,24 +756,77 @@ class SelectionAI {
     innerContainer.className = 'mode-switcher';
     
     // Create mode buttons
+    const t = this.i18n?.t || ((k)=>k);
     const textBtn = document.createElement('button');
     textBtn.className = 'mode-btn';
     textBtn.innerHTML = this.getTextModeIcon();
-    textBtn.title = 'Text Selection';
+    textBtn.title = t('mode_text');
     textBtn.addEventListener('click', () => this.toggleMode('text'));
     
     const dragBtn = document.createElement('button');
     dragBtn.className = 'mode-btn';
     dragBtn.innerHTML = this.getDragModeIcon();
-    dragBtn.title = 'Drag Box Selection';
+    dragBtn.title = t('mode_drag');
     dragBtn.addEventListener('click', () => this.toggleMode('drag'));
+
+    const settingsBtn = document.createElement('button');
+    settingsBtn.className = 'mode-btn';
+    settingsBtn.setAttribute('id', 'selection-ai-settings-btn');
+    settingsBtn.innerHTML = this.getSettingsIconWithBadge();
+    settingsBtn.title = t('button_settings');
+    settingsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Position above the mode switcher (centered horizontally)
+      const rect = this.modeSwitcher.getBoundingClientRect();
+      const popoverWidth = 400;
+      const popoverHeight = 360;
+      const margin = 12;
+      const modeSwitcherHeight = 58;
+      const offset = 60;
+      const pos = {
+        x: rect.left + (rect.width / 2) - (popoverWidth / 2),
+        y: rect.top - popoverHeight - margin - modeSwitcherHeight - offset
+      };
+      this.position = pos;
+      this.showPopover('settings').catch(console.error);
+    });
     
     innerContainer.appendChild(textBtn);
     innerContainer.appendChild(dragBtn);
+    innerContainer.appendChild(settingsBtn);
     this.modeSwitcherShadowRoot.appendChild(innerContainer);
     
     // Add to DOM
     document.body.appendChild(this.modeSwitcher);
+
+    // React to language changes to update tooltips immediately
+    window.addEventListener('selectionAiLanguageChanged', async () => {
+      try {
+        if (!this.i18n) {
+          const i18n = await import(chrome.runtime.getURL('i18n.js'));
+          this.i18n = i18n;
+          if (this.i18n?.initI18n) await this.i18n.initI18n();
+        } else if (this.i18n?.initI18n) {
+          await this.i18n.initI18n();
+        }
+        const t = this.i18n?.t || ((k)=>k);
+        const buttons = this.modeSwitcherShadowRoot.querySelectorAll('.mode-btn');
+        if (buttons[0]) buttons[0].title = t('mode_text');
+        if (buttons[1]) buttons[1].title = t('mode_drag');
+        const settingsBtn = this.modeSwitcherShadowRoot.querySelector('#selection-ai-settings-btn');
+        if (settingsBtn) settingsBtn.title = t('button_settings');
+      } catch (e) {
+        console.warn('Failed to update tooltips after language change', e);
+      }
+    });
+  }
+
+  updateSettingsButtonIcon() {
+    if (!this.modeSwitcherShadowRoot) return;
+    const btn = this.modeSwitcherShadowRoot.querySelector('#selection-ai-settings-btn');
+    if (btn) {
+      btn.innerHTML = this.getSettingsIconWithBadge();
+    }
   }
   
   toggleMode(mode) {
@@ -1014,7 +1131,7 @@ class SelectionAI {
       this.buttonContainer.classList.add('visible');
     });
     
-    // Create buttons for drag box (Prompt and Colors)
+    // Create buttons for drag box (Prompt, Colors)
     const buttons = [
       { id: 'prompt', icon: this.getPromptIcon(), label: 'Prompt' },
       { id: 'colors', icon: this.getColorsIcon(), label: 'Colors' }
@@ -1057,6 +1174,7 @@ class SelectionAI {
         console.log('Creating colors popover...');
         this.showColorsPopover().catch(console.error);
         break;
+      // settings handled from mode switcher
     }
   }
   
@@ -1292,6 +1410,14 @@ class SelectionAI {
 
   getWriteIcon() {
     return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 21h8"/><path d="m15 5 4 4"/><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>`;
+  }
+
+  getSettingsIconWithBadge() {
+    const needsBadge = ['prompt','summarizer','writer'].some(k => (this.apiAvailability[k] && this.apiAvailability[k] !== 'available'));
+    const settingsSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-icon lucide-settings"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg>`;
+    if (!needsBadge) return settingsSvg;
+    const badgeSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="red" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="position:absolute; right:-12px; top:-12px; border-radius:50%; background:red;height:18px;width:18px;"><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`;
+    return `<div style="position:relative; width:20px; height:20px;">${settingsSvg}${badgeSvg}</div>`;
   }
 }
 
