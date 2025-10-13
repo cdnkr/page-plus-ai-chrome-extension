@@ -26,6 +26,8 @@ const MESSAGES = {
         placeholder_ask_page: 'Ask something about this page...',
         settings_title: 'Settings',
         settings_api_availability: 'API Availability',
+        settings_api_availability_description: 'The following browser based APIs in Chrome are needed for features to work correctly. These APIs harness on-device AI capabilities, keeping your data private.',
+        settings_flags_help: 'Some of these APIs require flags to be enabled in Chrome. Click the "Open Flags" button to open the flags page and search for the required flags and enable them before returning here to download them.',
         settings_language: 'Language',
         settings_debug: 'Debug Mode',
         settings_debug_help: 'Override API states for testing. “Default” uses the detected state.',
@@ -33,8 +35,11 @@ const MESSAGES = {
         settings_open_internals: 'Device Internals',
         settings_clear_overrides: 'Clear Overrides',
         api_prompt: 'Ask API',
+        api_prompt_description: 'This is a powerful on-device AI Model. This extension uses this for Text, Image and Page Prompt capabilities.',
         api_summarizer: 'Summarizer API',
+        api_summarizer_description: 'This on-device AI Model is used for Text summarization.',
         api_writer: 'Writer API',
+        api_writer_description: 'This on-device AI Model is used for writing generation based on Text content.',
         api_downloading: 'Downloading…',
         api_downloadable: 'Downloadable',
         err_prompt_unavailable: 'Ask API not available.',
@@ -44,7 +49,8 @@ const MESSAGES = {
         err_summarizer_not_available: 'Summarizer unavailable.',
         err_generic: 'Failed to process request. Please try again.',
         colors_title: 'Colors',
-        selected_area: 'Selected Area'
+        selected_area: 'Selected Area',
+        mode_current_page: 'Query Current Page'
     },
 
     es: {
@@ -69,6 +75,8 @@ const MESSAGES = {
         placeholder_ask_page: 'Haz una pregunta sobre esta página...',
         settings_title: 'Configuración',
         settings_api_availability: 'Disponibilidad de la API',
+        settings_api_availability_description: 'Las siguientes API de navegador en Chrome son necesarias para que las funciones funcionen correctamente. Estas API aprovechan capacidades de IA en el dispositivo, manteniendo tus datos privados.',
+        settings_flags_help: 'Algunas de estas API requieren flags para ser habilitadas en Chrome. Haz clic en el botón "Abrir flags" para abrir la página de flags y buscar las flags requeridas y habilitarlas antes de volver aquí para descargarlos.',
         settings_language: 'Idioma',
         settings_debug: 'Modo de depuración',
         settings_debug_help: 'Sobrescribe el estado de las API para pruebas. “Predeterminado” usa el detectado.',
@@ -76,8 +84,11 @@ const MESSAGES = {
         settings_open_internals: 'Internos del dispositivo',
         settings_clear_overrides: 'Borrar sobrescrituras',
         api_prompt: 'API de Preguntas',
+        api_prompt_description: 'Esta es una potente IA en el dispositivo. Esta extensión usa esta para las capacidades de Preguntas de Texto, Imagen y Página.',
         api_summarizer: 'API de Resumen',
+        api_summarizer_description: 'Esta IA en el dispositivo es usada para la resumen de Texto.',
         api_writer: 'API de Escritura',
+        api_writer_description: 'Esta IA en el dispositivo es usada para la generación de escritura basada en el contenido de Texto.',
         api_downloading: 'Descargando…',
         api_downloadable: 'Disponible para descargar',
         err_prompt_unavailable: 'La API de Preguntas no está disponible.',
@@ -87,7 +98,8 @@ const MESSAGES = {
         err_summarizer_not_available: 'El resumidor no está disponible.',
         err_generic: 'No se pudo procesar la solicitud. Inténtalo de nuevo.',
         colors_title: 'Colores',
-        selected_area: 'Área seleccionada'
+        selected_area: 'Área seleccionada',
+        mode_current_page: 'Consultar Página Actual'
     },
 
     ja: {
@@ -112,6 +124,8 @@ const MESSAGES = {
         placeholder_ask_page: 'このページについて何か質問がありますか...',
         settings_title: '設定',
         settings_api_availability: 'API の利用状況',
+        settings_api_availability_description: '以下の Chrome ブラウザベースの API が機能するために必要です。これらの API はデバイス上の AI 機能を活用し、データをプライバシー保護します。',
+        settings_flags_help: 'これらの API には、Chrome でフラグを有効にする必要があります。「フラグを開く」ボタンをクリックしてフラグページを開き、必要なフラグを検索して有効にし、ここに戻ってダウンロードしてください。',
         settings_language: '言語',
         settings_debug: 'デバッグモード',
         settings_debug_help: 'テスト用に API 状態を上書きします。「default」は検出された状態を使用します。',
@@ -119,6 +133,9 @@ const MESSAGES = {
         settings_open_internals: 'デバイス内部情報',
         settings_clear_overrides: '上書きをクリア',
         api_prompt: '質問 API',
+        api_prompt_description: 'これは強力なデバイス上の AI モデルです。この拡張機能は、テキスト、画像、ページの質問機能に使用します。',
+        api_summarizer_description: 'このデバイス上の AI モデルは、テキストの要約に使用されます。',
+        api_writer_description: 'このデバイス上の AI モデルは、テキストの内容に基づいた書き込み生成に使用されます。',
         api_summarizer: '要約 API',
         api_writer: 'ライター API',
         api_downloading: 'ダウンロード中…',
@@ -130,7 +147,8 @@ const MESSAGES = {
         err_summarizer_not_available: '要約は利用できません。',
         err_generic: 'リクエストの処理に失敗しました。もう一度お試しください。',
         colors_title: 'カラー',
-        selected_area: '選択範囲'
+        selected_area: '選択範囲',
+        mode_current_page: '現在のページをクエリ'
     }
 };
 

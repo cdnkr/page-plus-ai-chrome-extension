@@ -345,9 +345,9 @@ class SelectionAI {
     }
   }
 
-  init() {
+  async init() {
     // Check if AI APIs are available
-    this.checkAIAvailability();
+    await this.checkAIAvailability();
 
     // Create mode switcher
     this.createModeSwitcher();
@@ -893,11 +893,16 @@ class SelectionAI {
 
     // Create mode buttons
     const t = this.i18n?.t || ((k) => k);
-    const textBtn = document.createElement('button');
-    textBtn.className = 'mode-btn';
-    textBtn.innerHTML = ICONS.text;
-    textBtn.title = t('mode_text');
-    textBtn.addEventListener('click', () => this.toggleMode('text'));
+
+    let textBtn = null;
+    let currentPageBtn = null;
+    if (this.apiAvailability.prompt === 'available' || this.apiAvailability.summarizer === 'available' || this.apiAvailability.writer === 'available') {
+      textBtn = document.createElement('button');
+      textBtn.className = 'mode-btn';
+      textBtn.innerHTML = ICONS.text;
+      textBtn.title = t('mode_text');
+      textBtn.addEventListener('click', () => this.toggleMode('text'));
+    }
 
     const dragBtn = document.createElement('button');
     dragBtn.className = 'mode-btn';
@@ -905,41 +910,44 @@ class SelectionAI {
     dragBtn.title = t('mode_drag');
     dragBtn.addEventListener('click', () => this.toggleMode('drag'));
 
-    const currentPageBtn = document.createElement('button');
-    currentPageBtn.className = 'mode-btn';
-    currentPageBtn.setAttribute('id', 'selection-ai-current-page-btn');
-    currentPageBtn.innerHTML = ICONS.page;
-    currentPageBtn.title = t('mode_current_page');
-    currentPageBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      try {
-        const rect = this.modeSwitcher.getBoundingClientRect();
-        const popoverWidth = 400;
-        const popoverHeight = 360;
-        const margin = 12;
-        const modeSwitcherHeight = 58;
-        const offset = 60;
-        const pos = {
-          x: rect.left + (rect.width / 2) - (popoverWidth / 2),
-          y: rect.top - popoverHeight - margin - modeSwitcherHeight - offset
-        };
-        this.position = pos;
-        // Build current page context
-        const segments = extractStructuredTextWithLinks(document.body.innerHTML);
-        const markdown = segmentsToMarkdown(segments);
-        this.selectedText = markdown;
-        this.selectionRange = null;
-        this.showPopover('prompt', 'page').catch(console.error);
-      } catch (err) {
-        console.error('Failed to open current page prompt', err);
-      }
-    });
+    if (this.apiAvailability.prompt === 'available') {
+      currentPageBtn = document.createElement('button');
+      currentPageBtn.className = 'mode-btn';
+      currentPageBtn.setAttribute('id', 'selection-ai-current-page-btn');
+      currentPageBtn.innerHTML = ICONS.page;
+      currentPageBtn.title = t('mode_current_page');
+      currentPageBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        try {
+          const rect = this.modeSwitcher.getBoundingClientRect();
+          const popoverWidth = 400;
+          const popoverHeight = 360;
+          const margin = 12;
+          const modeSwitcherHeight = 58;
+          const offset = 60;
+          const pos = {
+            x: rect.left + (rect.width / 2) - (popoverWidth / 2),
+            y: rect.top - popoverHeight - margin - modeSwitcherHeight - offset
+          };
+          this.position = pos;
+          // Build current page context
+          const segments = extractStructuredTextWithLinks(document.body.innerHTML);
+          const markdown = segmentsToMarkdown(segments);
+          this.selectedText = markdown;
+          this.selectionRange = null;
+          this.showPopover('prompt', 'page').catch(console.error);
+        } catch (err) {
+          console.error('Failed to open current page prompt', err);
+        }
+      });
+    }
 
     const settingsBtn = document.createElement('button');
     settingsBtn.className = 'mode-btn';
     settingsBtn.setAttribute('id', 'selection-ai-settings-btn');
     settingsBtn.innerHTML = ICONS.settings;
     settingsBtn.title = t('button_settings');
+
     settingsBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       // Position above the mode switcher (centered horizontally)
@@ -957,14 +965,44 @@ class SelectionAI {
       this.showPopover('settings').catch(console.error);
     });
 
-    innerContainer.appendChild(textBtn);
+    if (textBtn) innerContainer.appendChild(textBtn);
     innerContainer.appendChild(dragBtn);
-    innerContainer.appendChild(currentPageBtn);
+    if (currentPageBtn) innerContainer.appendChild(currentPageBtn);
     innerContainer.appendChild(settingsBtn);
     this.modeSwitcherShadowRoot.appendChild(innerContainer);
 
     // Add to DOM
     document.body.appendChild(this.modeSwitcher);
+
+    // If this is the first time the user is using the extension and api's are not available, show the settings popover which has
+    // details on how to enable and download the required api's.
+    chrome.storage.local.get(['fitstTimeUse']).then(({ fitstTimeUse }) => {
+      if (!fitstTimeUse) {
+        chrome.storage.local.set({ fitstTimeUse: true });
+      }
+
+      if (
+        (
+          this.apiAvailability.prompt !== 'available' ||
+          this.apiAvailability.summarizer !== 'available' ||
+          this.apiAvailability.writer !== 'available'
+        ) && !fitstTimeUse) {
+        // Position above the mode switcher (centered horizontally)
+        const rect = this.modeSwitcher.getBoundingClientRect();
+        const popoverWidth = 400;
+        const popoverHeight = 360;
+        const margin = 12;
+        const modeSwitcherHeight = 58;
+        const offset = 60;
+        const pos = {
+          x: rect.left + (rect.width / 2) - (popoverWidth / 2),
+          y: rect.top - popoverHeight - margin - modeSwitcherHeight - offset
+        };
+        this.position = pos;
+        this.showPopover('settings').catch(console.error);
+      }
+    });
+
 
     // React to language changes to update tooltips immediately
     window.addEventListener('selectionAiLanguageChanged', async () => {
@@ -1143,10 +1181,10 @@ class SelectionAI {
     // Convert viewport coordinates to page coordinates
     const absolutePosition = this.calculateAbsolutePosition({ x: left, y: top });
 
-    this.dragBox.style.cssText = getDragBoxCSS({ 
-      x: absolutePosition.x, 
-      y: absolutePosition.y, 
-      width, 
+    this.dragBox.style.cssText = getDragBoxCSS({
+      x: absolutePosition.x,
+      y: absolutePosition.y,
+      width,
       height
     });
   }
@@ -1204,10 +1242,13 @@ class SelectionAI {
     });
 
     // Create buttons for drag box (Prompt, Colors)
-    const buttons = [
-      { id: 'prompt', icon: ICONS.prompt, label: 'Prompt' },
-      { id: 'colors', icon: ICONS.colors, label: 'Colors' }
-    ];
+    const buttons =
+      this.apiAvailability.prompt === 'available' ? [
+        { id: 'prompt', icon: ICONS.prompt, label: 'Prompt' },
+        { id: 'colors', icon: ICONS.colors, label: 'Colors' }
+      ] : [
+        { id: 'colors', icon: ICONS.colors, label: 'Colors' }
+      ];
 
     buttons.forEach(button => {
       const buttonEl = document.createElement('button');

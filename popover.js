@@ -1,10 +1,12 @@
+const DEBUG_MODE = false;
+
 // Styles 
 
-function getPopoverElementCSS({ absolutePosition, isPageMode }) {
+function getPopoverElementCSS({ position, shouldUseAbsolutePosition }) {
     return `
-    position: ${isPageMode ? 'fixed' : 'absolute'};
-    left: ${absolutePosition.x}px;
-    top: ${absolutePosition.y}px;
+    position: ${shouldUseAbsolutePosition ? 'fixed' : 'absolute'};
+    left: ${position.x}px;
+    top: ${position.y}px;
 `;
 }
 
@@ -362,7 +364,7 @@ button, .action-btn, .copy-color-btn {
     color: #374151 !important;
     font-size: 14px !important;
     font-weight: 500 !important;
-    border-radius: 16px !important;
+    border-radius: 11px !important;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -844,14 +846,22 @@ function getDebugSelectHTML({
 function getSettingsAPIRowHTML({
     icon,
     label,
+    description,
     actionHTML,
     debugSelectHTML,
     statusBadgeHTML,
 }) {
-    return `<div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0; gap:8px;">
-    <div style="display:flex; align-items:center; gap:8px; min-width:160px;">${icon}<span>${label}</span></div>
+    debugSelectHTML = DEBUG_MODE ? `<div style="display:flex; align-items:center; gap:8px;">${debugSelectHTML}</div>` : '';
+
+    return `<div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0; gap:16px;">
+    <div style="display:flex; align-items:flex-start; gap:8px; min-width:160px;">
+        ${icon}
+        <div style="display:flex; flex-direction:column; gap:4px; max-width:260px;">
+            <span>${label}</span>
+            <div style="font-size:12px; color:#6b7280;">${description}</div>
+        </div>
+    </div>
     <div style="display:flex; align-items:center; gap:8px;">${statusBadgeHTML} ${actionHTML}</div>
-    <div style="display:flex; align-items:center; gap:8px;">${debugSelectHTML}</div>
 </div>`;
 }
 
@@ -864,8 +874,9 @@ function getSettingsViewHTML({
 <div style="display:flex; flex-direction:column; gap:16px;">
     <div>
         <div style="font-weight:600; color:#374151; margin-bottom:8px;">${t('settings_api_availability')}</div>
+        <div style="font-size:12px; color:#6b7280; margin-bottom:8px;">${t('settings_api_availability_description')}</div>
         ${apiRowsHTML}
-        <div style="margin-top:8px; font-size:12px; color:#6b7280;">${t('settings_debug_help')}</div>
+        <div style="margin-top:8px; font-size:12px; color:#6b7280;">${t('settings_flags_help')}</div>
         <div style="display:flex; gap:8px; margin-top:8px;">
             <button class="ghost-btn" id="open-flags">
                 ${t('settings_open_flags')}
@@ -883,14 +894,6 @@ function getSettingsViewHTML({
         <select id="language-select" style="padding:8px 10px; border-radius:10px; border:1px solid #d1d5db; background:white; font-size:13px;">
             ${languageOptions}
         </select>
-    </div>
-
-    <div style="border-top:1px solid #e5e7eb; padding-top:12px;">
-        <div style="font-weight:600; color:#374151; margin-bottom:8px;">${t('settings_debug')}</div>
-        <div style="font-size:12px; color:#6b7280; margin-bottom:8px;">${t('settings_debug_help')}</div>
-        <div style="display:flex; gap:8px;">
-            <button class="action-btn" id="clear-debug">${t('settings_clear_overrides')}</button>
-        </div>
     </div>
 </div>`;
 }
@@ -1054,12 +1057,12 @@ export class PopoverAI {
 
             // Use mouse position with boundary checking (same as action buttons)
             const safePosition = this.calculateSafePosition(this.position, { width: 400, height: 360 });
-            const isPageMode = this.selectionType === 'page';
-            const absolutePosition = isPageMode ? safePosition : this.calculateAbsolutePosition(safePosition);
+            const shouldUseAbsolutePosition = this.selectionType === 'page' || this.action === 'settings';
+            const position = shouldUseAbsolutePosition ? safePosition : this.calculateAbsolutePosition(safePosition);
 
             this.popoverElement.style.cssText = getPopoverElementCSS({
-                absolutePosition,
-                isPageMode,
+                position,
+                shouldUseAbsolutePosition,
             });
 
             // Add CSS styles to shadow root for complete isolation
@@ -1269,18 +1272,18 @@ export class PopoverAI {
 
             const t = this.t || ((k) => k);
             const apiRows = [
-                { key: 'prompt', label: t('api_prompt'), icon: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-more-icon lucide-message-circle-more"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>` },
-                { key: 'summarizer', label: t('api_summarizer'), icon: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-text-icon lucide-book-text"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/><path d="M8 11h8"/><path d="M8 7h6"/></svg>` },
-                { key: 'writer', label: t('api_writer'), icon: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-line-icon lucide-pencil-line"><path d="M13 21h8"/><path d="m15 5 4 4"/><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>` }
+                { key: 'prompt', label: t('api_prompt'), description: t('api_prompt_description'), icon: `<svg style="flex-shrink:0; margin-top: 5px;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-more-icon lucide-message-circle-more"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/></svg>` },
+                { key: 'summarizer', label: t('api_summarizer'), description: t('api_summarizer_description'), icon: `<svg style="flex-shrink:0; margin-top: 5px;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-text-icon lucide-book-text"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/><path d="M8 11h8"/><path d="M8 7h6"/></svg>` },
+                { key: 'writer', label: t('api_writer'), description: t('api_writer_description'), icon: `<svg style="flex-shrink:0; margin-top: 5px;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-line-icon lucide-pencil-line"><path d="M13 21h8"/><path d="m15 5 4 4"/><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>` }
             ];
 
             const statusBadge = (status, progress) => {
                 if (status === 'downloading' || status === 'downloadable') return '';
 
                 const map = {
-                    available: { text: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-icon lucide-check"><path d="M20 6 9 17l-5-5"/></svg>', color: '#10b981' },
-                    unavailable: { text: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-alert-icon lucide-circle-alert"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>', color: '#ef4444' },
-                    unknown: { text: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-question-mark-icon lucide-shield-question-mark"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M9.1 9a3 3 0 0 1 5.82 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>', color: '#6b7280' }
+                    available: { text: '<svg style="flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-icon lucide-check"><path d="M20 6 9 17l-5-5"/></svg>', color: '#10b981' },
+                    unavailable: { text: '<svg style="flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-alert-icon lucide-circle-alert"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>', color: '#ef4444' },
+                    unknown: { text: '<svg style="flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-question-mark-icon lucide-shield-question-mark"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M9.1 9a3 3 0 0 1 5.82 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>', color: '#6b7280' }
                 };
                 const s = map[status] || map.unknown;
                 return `<span style="display:inline-block; padding:2px 8px; border-radius:9999px; font-size:11px; color:${s.color};">${s.text}</span>`;
@@ -1330,6 +1333,7 @@ export class PopoverAI {
                     return getSettingsAPIRowHTML({
                         icon: r.icon,
                         label: r.label,
+                        description: r.description,
                         status: status,
                         progress: progress,
                         actionHTML: actionHtml,
