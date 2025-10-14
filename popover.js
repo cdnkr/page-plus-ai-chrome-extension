@@ -591,6 +591,7 @@ button, .action-btn, .copy-color-btn {
 
 .copy-color-btn svg, .copy-color-btn path {
     cursor: pointer;
+    color: black !important;
 }
 
 .copy-color-btn:hover {
@@ -1498,7 +1499,7 @@ export class PopoverAI {
     async triggerModelDownload(key) {
         try {
             // Debug flag to enable mock download simulation
-            const DEBUG_SIMULATE_DOWNLOAD = true;
+            const DEBUG_SIMULATE_DOWNLOAD = false;
 
             if (DEBUG_SIMULATE_DOWNLOAD) {
                 // Mock download simulation for testing UI
@@ -1517,17 +1518,55 @@ export class PopoverAI {
                 // Simulate download progress
                 this.simulateDownloadProgress(key);
             } else {
-                // Real API call for actual download
-                // If the API exposes request for download via availability(), call it.
-                // Some implementations may start download on create(). We'll attempt a benign call.
+                // Real API call for actual download with progress tracking
+                const createOptions = {
+                    monitor: (m) => {
+                        m.addEventListener('downloadprogress', async (e) => {
+                            const progress = Math.round(e.loaded * 100);
+                            
+                            // Get current overrides
+                            const overridesObj = await chrome.storage.local.get(['selection_ai_debug_overrides']);
+                            const overrides = overridesObj.selection_ai_debug_overrides || {};
+                            
+                            // Update progress
+                            const next = { ...overrides };
+                            next[key] = { state: 'downloading', progress };
+                            
+                            await chrome.storage.local.set({ selection_ai_debug_overrides: next });
+                            window.dispatchEvent(new CustomEvent('selectionAiAvailabilityOverride', { detail: next }));
+                        });
+                    }
+                };
+                
+                // Set initial downloading state
+                const overridesObj = await chrome.storage.local.get(['selection_ai_debug_overrides']);
+                const overrides = overridesObj.selection_ai_debug_overrides || {};
+                const next = { ...overrides };
+                next[key] = { state: 'downloading', progress: 0 };
+                await chrome.storage.local.set({ selection_ai_debug_overrides: next });
+                window.dispatchEvent(new CustomEvent('selectionAiAvailabilityOverride', { detail: next }));
+                
+                this.showNotification('Model download started');
+                
+                // Start download with progress monitoring
                 if (key === 'prompt' && 'LanguageModel' in self) {
-                    await LanguageModel.create();
+                    await LanguageModel.create(createOptions);
                 } else if (key === 'summarizer' && 'Summarizer' in self) {
-                    await Summarizer.create();
+                    await Summarizer.create(createOptions);
                 } else if (key === 'writer' && 'Writer' in self) {
-                    await Writer.create();
+                    await Writer.create(createOptions);
                 }
-                this.showNotification('Model download requested');
+                
+                // Mark as available after download completes
+                const overridesObj2 = await chrome.storage.local.get(['selection_ai_debug_overrides']);
+                const overrides2 = overridesObj2.selection_ai_debug_overrides || {};
+                const next2 = { ...overrides2 };
+                next2[key] = { state: 'available', progress: 100 };
+                
+                await chrome.storage.local.set({ selection_ai_debug_overrides: next2 });
+                window.dispatchEvent(new CustomEvent('selectionAiAvailabilityOverride', { detail: next2 }));
+                
+                this.showNotification('Model download completed');
             }
         } catch (e) {
             console.error('Failed to request model download', e);
