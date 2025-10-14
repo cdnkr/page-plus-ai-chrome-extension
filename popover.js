@@ -815,7 +815,7 @@ function getContextHTML({
 function getModelDownloadButtonHTML({
     dataKey,
 }) {
-    return `<button class="action-btn" data-action="download" data-key="${dataKey}"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg></button>`;
+    return `<button style="padding: 2px 8px;" class="action-btn" data-action="download" data-key="${dataKey}"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg></button>`;
 }
 
 function getCircularDownloadProgressHTML({
@@ -827,7 +827,7 @@ function getCircularDownloadProgressHTML({
     offset
 }) {
     return `
-<div style="position:relative; width:${size}px; height:${size}px; display:inline-flex; align-items:center; justify-content:center;">
+<div style="position:relative; width:${size}px; height:${size}px; display:inline-flex; align-items:center; justify-content:center; padding: 2px 8px;">
     <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
     <circle cx="${size / 2}" cy="${size / 2}" r="${r}" stroke="#e5e7eb" stroke-width="${stroke}" fill="none" />
     <circle cx="${size / 2}" cy="${size / 2}" r="${r}" stroke="#3b82f6" stroke-width="${stroke}" fill="none" stroke-linecap="round"
@@ -866,7 +866,7 @@ function getSettingsAPIRowHTML({
             <div style="font-size:12px; color:#6b7280;">${description}</div>
         </div>
     </div>
-    <div style="display:flex; align-items:center; gap:8px;">${statusBadgeHTML} ${actionHTML}</div>
+    <div style="display:flex; align-items:center; justify-content:flex-end; gap:8px;">${statusBadgeHTML} ${actionHTML}</div>
 </div>`;
 }
 
@@ -1317,9 +1317,9 @@ export class PopoverAI {
                 if (status === 'downloading' || status === 'downloadable') return '';
 
                 const map = {
-                    available: { text: '<svg style="flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-icon lucide-check"><path d="M20 6 9 17l-5-5"/></svg>', color: '#10b981' },
-                    unavailable: { text: '<svg style="flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-alert-icon lucide-circle-alert"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>', color: '#ef4444' },
-                    unknown: { text: '<svg style="flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-question-mark-icon lucide-shield-question-mark"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M9.1 9a3 3 0 0 1 5.82 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>', color: '#6b7280' }
+                    available: { text: '<svg style="flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-icon lucide-check"><path d="M20 6 9 17l-5-5"/></svg>', color: '#10b981' },
+                    unavailable: { text: '<svg style="flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-alert-icon lucide-circle-alert"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>', color: '#ef4444' },
+                    unknown: { text: '<svg style="flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-question-mark-icon lucide-shield-question-mark"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M9.1 9a3 3 0 0 1 5.82 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>', color: '#6b7280' }
                 };
                 const s = map[status] || map.unknown;
                 return `<span style="display:inline-block; padding:2px 8px; border-radius:9999px; font-size:11px; color:${s.color};">${s.text}</span>`;
@@ -1561,21 +1561,23 @@ export class PopoverAI {
                     await Writer.create(createOptions);
                 }
                 
-                // Mark as available after download completes
-                const overridesObj2 = await chrome.storage.local.get(['selection_ai_debug_overrides']);
-                const overrides2 = overridesObj2.selection_ai_debug_overrides || {};
-                const next2 = { ...overrides2 };
-                next2[key] = { state: 'available', progress: 100 };
-                
-                await chrome.storage.local.set({ selection_ai_debug_overrides: next2 });
-                window.dispatchEvent(new CustomEvent('selectionAiAvailabilityOverride', { detail: next2 }));
-                
+                // Remove override after download completes so real availability takes over
+                this.removeDownloadOverride(key);
                 this.showNotification('Model download completed');
             }
         } catch (e) {
             console.error('Failed to request model download', e);
             this.showNotification('Failed to request download');
         }
+    }
+
+    async removeDownloadOverride(key) {
+        const overridesObj = await chrome.storage.local.get(['selection_ai_debug_overrides']);
+        const overrides = overridesObj.selection_ai_debug_overrides || {};
+        const next = { ...overrides };
+        delete next[key];
+        await chrome.storage.local.set({ selection_ai_debug_overrides: next });
+        window.dispatchEvent(new CustomEvent('selectionAiAvailabilityOverride', { detail: next }));
     }
 
     async simulateDownloadProgress(key) {
@@ -1607,15 +1609,8 @@ export class PopoverAI {
                 }
             }
 
-            // Mark as available after download completes
-            const overridesObj = await chrome.storage.local.get(['selection_ai_debug_overrides']);
-            const overrides = overridesObj.selection_ai_debug_overrides || {};
-            const next = { ...overrides };
-            next[key] = { state: 'available', progress: 100 };
-
-            await chrome.storage.local.set({ selection_ai_debug_overrides: next });
-            window.dispatchEvent(new CustomEvent('selectionAiAvailabilityOverride', { detail: next }));
-
+            // Remove override after download completes so real availability takes over
+            this.removeDownloadOverride(key);
             this.showNotification('Model download completed');
         } catch (e) {
             console.error('Failed to simulate download progress', e);
