@@ -83,7 +83,7 @@ button, .action-btn, .copy-color-btn {
     height: 32px;
     border-radius: 50%;
     border: none;
-    color: black;
+    color: rgba(0, 0, 0, 0.5);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -97,7 +97,8 @@ button, .action-btn, .copy-color-btn {
 }
 
 .close-btn:hover {
-    background: rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.05);
+    color: rgba(0, 0, 0, 1);
 }
 
 .content {
