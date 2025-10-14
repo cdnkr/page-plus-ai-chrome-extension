@@ -2274,7 +2274,13 @@ export class PopoverAI {
 
     // History management methods
     generateSessionId() {
-        // Create a more stable session ID based on content and action
+        // For page prompts, use URL to ensure per-page history
+        if (this.selectionType === 'page') {
+            const urlHash = this.createSimpleHash(window.location.href);
+            return `session_${this.action}_page_${urlHash}`;
+        }
+        
+        // For text/dragbox selections, use content hash
         const contentHash = this.createSimpleHash(this.selectedText.substring(0, 100));
         return `session_${this.action}_${contentHash}`;
     }
