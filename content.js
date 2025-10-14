@@ -84,22 +84,42 @@ const modeSwitcherCSS = `
 const modeSwitcherRootCSS = `
   .mode-switcher {
     display: flex;
-    gap: 8px;
     background: rgba(255, 255, 255, 1);
     backdrop-filter: blur(10px);
-    border-radius: 12px 25px 25px 25px;
+    border-radius: 25px 25px 25px 25px;
     padding: 8px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     border: 1px solid rgba(0, 0, 0, 0.1);
+    position: relative;
+    transition: all 0.4s ease;
+    gap: 4px;
+  }
+
+  .mode-switcher.hidden {
+    opacity: 0;
+    filter: blur(20px);
+  }
+
+  .mode-switcher .home-button {
+    width: 36px;
+    height: 36px;
+    background: #3b82f6;
+    border-radius: 50%;
+    flex-shrink: 0;
+    cursor: pointer !important;
+  }
+
+  .mode-switcher .home-button:active {
+    scale: 1.05;
   }
   
-  .mode-btn {
+  .mode-switcher .mode-btn {
     width: 40px;
     height: 40px;
     border-radius: 50%;
     border: none;
     background: transparent;
-    cursor: pointer;
+    cursor: pointer !important;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -107,13 +127,17 @@ const modeSwitcherRootCSS = `
     color: rgba(0, 0, 0, 0.5);
   }
 
-  .mode-btn, .mode-btn svg, .mode-btn path {
+  .mode-btn.hidden {
+    display: none;
+  }
+
+  .mode-switcher .mode-btn, .mode-switcher .mode-btn svg, .mode-switcher .mode-btn path {
     cursor: pointer !important;
   }
   
   .mode-btn.active {
-    background: #3b82f6;
-    color: white;
+    background: rgba(0, 0, 0, 0.07);
+    color: black;
   }
   
   .mode-btn:hover:not(.active) {
@@ -198,15 +222,15 @@ function getDragBoxCSS({ x, y, width, height }) {
 // Icons
 
 const ICONS = {
-  text: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-text-cursor-icon lucide-text-cursor"><path d="M17 22h-1a4 4 0 0 1-4-4V6a4 4 0 0 1 4-4h1"/><path d="M7 22h1a4 4 0 0 0 4-4v-1"/><path d="M7 2h1a4 4 0 0 1 4 4v1"/></svg>`,
-  settings: `<svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ellipsis-vertical-icon lucide-ellipsis-vertical"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>`,
+  text: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-type-icon lucide-type"><path d="M12 4v16"/><path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2"/><path d="M9 20h6"/></svg>`,
+  settings: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sliders-horizontal-icon lucide-sliders-horizontal"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></svg>`,
   warning: `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="red" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="position:absolute; right:-12px; top:-12px; border-radius:50%; background:red;height:18px;width:18px;"><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`,
-  dashedBox: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-dashed-icon lucide-square-dashed"><path d="M5 3a2 2 0 0 0-2 2"/><path d="M19 3a2 2 0 0 1 2 2"/><path d="M21 19a2 2 0 0 1-2 2"/><path d="M5 21a2 2 0 0 1-2-2"/><path d="M9 3h1"/><path d="M9 21h1"/><path d="M14 3h1"/><path d="M14 21h1"/><path d="M3 9v1"/><path d="M21 9v1"/><path d="M3 14v1"/><path d="M21 14v1"/></svg>`,
+  dashedBox: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-squircle-dashed-icon lucide-squircle-dashed"><path d="M13.77 3.043a34 34 0 0 0-3.54 0"/><path d="M13.771 20.956a33 33 0 0 1-3.541.001"/><path d="M20.18 17.74c-.51 1.15-1.29 1.93-2.439 2.44"/><path d="M20.18 6.259c-.51-1.148-1.291-1.929-2.44-2.438"/><path d="M20.957 10.23a33 33 0 0 1 0 3.54"/><path d="M3.043 10.23a34 34 0 0 0 .001 3.541"/><path d="M6.26 20.179c-1.15-.508-1.93-1.29-2.44-2.438"/><path d="M6.26 3.82c-1.149.51-1.93 1.291-2.44 2.44"/></svg>`,
   colors: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`,
   prompt: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg>`,
   summarize: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/><path d="M8 11h8"/><path d="M8 7h6"/></svg>`,
   write: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 21h8"/><path d="m15 5 4 4"/><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>`,
-  page: `<svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-icon lucide-file"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>`
+  page: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text-icon lucide-file-text"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>`
 }
 
 // Utils
@@ -584,6 +608,14 @@ class SelectionAI {
           ? JSON.stringify({ availability: this.apiAvailability, locale: this.locale })
           : this.selectedText;
         this.popover = new this.PopoverAI(action, payload, position, this.selectionRange, selectionType || 'text');
+        
+        // Set active state for settings or current page buttons
+        if (action === 'settings') {
+          this.setButtonActive('selection-ai-settings-btn', true);
+        } else if (selectionType === 'page') {
+          this.setButtonActive('selection-ai-current-page-btn', true);
+        }
+        
         console.log('Popover created:', this.popover);
         console.log('Popover element:', this.popover?.popoverElement);
         console.log('Shadow root:', this.popover?.shadowRoot);
@@ -602,6 +634,13 @@ class SelectionAI {
             ? JSON.stringify({ availability: this.apiAvailability, locale: this.locale })
             : this.selectedText;
           this.popover = new this.PopoverAI(action, payload, position, this.selectionRange, selectionType || 'text');
+          
+          // Set active state for settings or current page buttons
+          if (action === 'settings') {
+            this.setButtonActive('selection-ai-settings-btn', true);
+          } else if (selectionType === 'page') {
+            this.setButtonActive('selection-ai-current-page-btn', true);
+          }
         } else {
           console.error('PopoverAI still not available after retry');
         }
@@ -635,6 +674,10 @@ class SelectionAI {
     this.hideActionButtons();
     // Hide drag box when popover is closed
     this.hideDragBox();
+
+    // Remove active state from buttons
+    this.setButtonActive('selection-ai-settings-btn', false);
+    this.setButtonActive('selection-ai-current-page-btn', false);
 
     // Clear any pending timeout
     if (this.buttonTimeout) {
@@ -727,6 +770,10 @@ class SelectionAI {
     this.removeSelectionHighlight();
     // Hide drag box when popover is closed
     this.hideDragBox();
+
+    // Remove active state from buttons
+    this.setButtonActive('selection-ai-settings-btn', false);
+    this.setButtonActive('selection-ai-current-page-btn', false);
 
     // Clear any pending timeout
     if (this.buttonTimeout) {
@@ -877,6 +924,11 @@ class SelectionAI {
     const innerContainer = document.createElement('div');
     innerContainer.className = 'mode-switcher';
 
+    const homeButton = document.createElement('button');
+    homeButton.className = 'mode-btn';
+    homeButton.innerHTML = `<div class="home-button"></div>`;
+    homeButton.addEventListener('click', () => this.toggleActionButtons());
+
     // Create mode buttons
     const t = this.i18n?.t || ((k) => k);
 
@@ -884,21 +936,21 @@ class SelectionAI {
     let currentPageBtn = null;
     if (this.apiAvailability.prompt === 'available' || this.apiAvailability.summarizer === 'available' || this.apiAvailability.writer === 'available') {
       textBtn = document.createElement('button');
-      textBtn.className = 'mode-btn';
+      textBtn.className = 'mode-btn hidden';
       textBtn.innerHTML = ICONS.text;
       textBtn.title = t('mode_text');
       textBtn.addEventListener('click', () => this.toggleMode('text'));
     }
 
     const dragBtn = document.createElement('button');
-    dragBtn.className = 'mode-btn';
+    dragBtn.className = 'mode-btn hidden';
     dragBtn.innerHTML = ICONS.dashedBox;
     dragBtn.title = t('mode_drag');
     dragBtn.addEventListener('click', () => this.toggleMode('drag'));
 
     if (this.apiAvailability.prompt === 'available') {
       currentPageBtn = document.createElement('button');
-      currentPageBtn.className = 'mode-btn';
+      currentPageBtn.className = 'mode-btn hidden';
       currentPageBtn.setAttribute('id', 'selection-ai-current-page-btn');
       currentPageBtn.innerHTML = ICONS.page;
       currentPageBtn.title = t('mode_current_page');
@@ -927,7 +979,7 @@ class SelectionAI {
     }
 
     const settingsBtn = document.createElement('button');
-    settingsBtn.className = 'mode-btn';
+    settingsBtn.className = 'mode-btn hidden';
     settingsBtn.setAttribute('id', 'selection-ai-settings-btn');
     settingsBtn.innerHTML = ICONS.settings;
     settingsBtn.title = t('button_settings');
@@ -959,6 +1011,7 @@ class SelectionAI {
     // logoElement.innerHTML = `<img height="40" width="40" src="${chrome.runtime.getURL('icons/icon128.png')}" alt="Selection AI Logo" />`;
     // innerContainer.appendChild(logoElement);
 
+    if (homeButton) innerContainer.appendChild(homeButton);
     if (textBtn) innerContainer.appendChild(textBtn);
     innerContainer.appendChild(dragBtn);
     if (currentPageBtn) innerContainer.appendChild(currentPageBtn);
@@ -1028,6 +1081,36 @@ class SelectionAI {
     }
   }
 
+  setButtonActive(buttonId, isActive) {
+    if (!this.modeSwitcherShadowRoot) return;
+    const btn = this.modeSwitcherShadowRoot.querySelector(`#${buttonId}`);
+    if (btn) {
+      if (isActive) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    }
+  }
+
+  toggleActionButtons() {
+    const modeSwitcher = this.modeSwitcherShadowRoot.querySelector('.mode-switcher');
+    modeSwitcher.classList.add('hidden');
+
+    setTimeout(() => {
+      const btns = this.modeSwitcherShadowRoot.querySelectorAll('.mode-btn:not(.mode-btn:first-child)');
+
+      btns.forEach(btn => {
+        if (btn.classList.contains('hidden')) {
+          btn.classList.remove('hidden');
+        } else {
+          btn.classList.add('hidden');
+        }
+      });
+      modeSwitcher.classList.remove('hidden');
+    }, 200);
+  }
+
   toggleMode(mode) {
     // If clicking the same mode that's already active, deactivate it
     if (this.currentMode === mode) {
@@ -1043,7 +1126,7 @@ class SelectionAI {
 
     // Only add active class if a mode is selected
     if (this.currentMode) {
-      buttons[this.currentMode === 'text' ? 0 : 1].classList.add('active');
+      buttons[this.currentMode === 'text' ? 1 : 2].classList.add('active');
     }
 
     // Update cursor based on active mode

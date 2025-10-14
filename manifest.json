@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Select, Prompt",
+  "name": "Know: Select → Prompt, Summarize, Write",
   "version": "1.0.0",
   "description": "AI-powered text selection tool using Google's in-browser AI APIs",
   "permissions": [
@@ -9,9 +9,9 @@
     "tabs"
   ],
   "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
+    "16": "icons/16.png",
+    "48": "icons/48.png",
+    "128": "icons/128.png"
   },
   "background": {
     "service_worker": "background.js"
@@ -25,7 +25,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["popover.js", "i18n.js", "icons/icon128.png"],
+      "resources": ["popover.js", "i18n.js", "icons/128.png"],
       "matches": ["<all_urls>"]
     }
   ],
