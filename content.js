@@ -965,6 +965,18 @@ class SelectionAI {
       this.showPopover('settings').catch(console.error);
     });
 
+    // const logoElement = document.createElement('div');
+    // logoElement.className = 'logo-element';
+    // logoElement.style.cssText = `
+    //   display: flex;
+    //   align-items: center;
+    //   justify-content: center;
+    //   height: 40px;
+    //   width: 40px;
+    // `;
+    // logoElement.innerHTML = `<img height="40" width="40" src="${chrome.runtime.getURL('icons/icon128.png')}" alt="Selection AI Logo" />`;
+    // innerContainer.appendChild(logoElement);
+
     if (textBtn) innerContainer.appendChild(textBtn);
     innerContainer.appendChild(dragBtn);
     if (currentPageBtn) innerContainer.appendChild(currentPageBtn);
@@ -976,9 +988,9 @@ class SelectionAI {
 
     // If this is the first time the user is using the extension and api's are not available, show the settings popover which has
     // details on how to enable and download the required api's.
-    chrome.storage.local.get(['fitstTimeUse']).then(({ fitstTimeUse }) => {
-      if (!fitstTimeUse) {
-        chrome.storage.local.set({ fitstTimeUse: true });
+    chrome.storage.local.get(['firstTimeUse']).then(({ firstTimeUse }) => {
+      if (!firstTimeUse) {
+        chrome.storage.local.set({ firstTimeUse: true });
       }
 
       if (
@@ -986,7 +998,7 @@ class SelectionAI {
           this.apiAvailability.prompt !== 'available' ||
           this.apiAvailability.summarizer !== 'available' ||
           this.apiAvailability.writer !== 'available'
-        ) && !fitstTimeUse) {
+        ) && !firstTimeUse) {
         // Position above the mode switcher (centered horizontally)
         const rect = this.modeSwitcher.getBoundingClientRect();
         const popoverWidth = 400;
