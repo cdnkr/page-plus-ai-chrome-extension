@@ -110,7 +110,7 @@ button, .action-btn, .copy-color-btn {
 }
 
 .content::webkit-scrollbar {
-    display: none;
+    display: none !important;
 }
 
 .input-section-wrapper {
@@ -366,6 +366,11 @@ button, .action-btn, .copy-color-btn {
 .action-btn.primary:hover {
     background: #2563eb;
     border-color: #2563eb;
+}
+
+.action-btn svg, 
+.action-btn path {
+    cursor: pointer !important;
 }
 
 .ghost-btn {
