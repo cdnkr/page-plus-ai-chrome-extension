@@ -109,7 +109,7 @@ button, .action-btn, .copy-color-btn {
     overflow: auto;
 }
 
-.content::webkit-scrollbar {
+.content::-webkit-scrollbar {
     display: none !important;
 }
 
