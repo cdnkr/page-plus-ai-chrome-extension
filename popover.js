@@ -221,9 +221,8 @@ button, .action-btn, .copy-color-btn {
 
 .context-text {
     overflow-y: auto;
-    padding: 4px 0;
     font-style: italic;
-    color: #374151;
+    color: #3b82f6;
     padding-left: 1rem;
     display: block;
     border-left: 2px solid #3b82f6;
@@ -1195,7 +1194,7 @@ export class PopoverAI {
                     selectedText: this.selectedText
                 });
             } else if (this.selectionType === 'page') {
-                this.contextText.innerHTML = window.location.href?.replace('https://', '')?.replace('http://', '') || 'Current Page';
+                this.contextText.innerHTML = `${window.location.host}${window.location.pathname}` || 'Current Page';
             } else {
                 this.contextText.textContent = this.selectedText.length > 100 ? this.selectedText.slice(0, 100) + '...' : this.selectedText;
             }
