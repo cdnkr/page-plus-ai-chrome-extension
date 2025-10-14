@@ -76,8 +76,8 @@ const selectionHighlightCSS = `
 
 const modeSwitcherCSS = `
   position: fixed;
-  left: 12px;
-  bottom: 12px;
+  left: 20px;
+  bottom: 20px;
   z-index: 10000;
 `;
 
@@ -87,7 +87,7 @@ const modeSwitcherRootCSS = `
     gap: 8px;
     background: rgba(255, 255, 255, 1);
     backdrop-filter: blur(10px);
-    border-radius: 25px 25px 25px 8px;
+    border-radius: 12px 25px 25px 25px;
     padding: 8px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     border: 1px solid rgba(0, 0, 0, 0.1);
