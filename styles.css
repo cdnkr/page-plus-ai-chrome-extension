@@ -6,7 +6,7 @@
   z-index: 10000;
   background: rgba(255, 255, 255, 1);
   backdrop-filter: blur(10px);
-  border-radius: 25px;
+  border-radius: 12px 25px 25px 25px;
   padding: 0;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(0, 0, 0, 0.1);
@@ -68,6 +68,14 @@
   opacity: 0;
   filter: blur(20px);
   transition: opacity 0.3s ease-out, filter 0.3s ease-out;
+}
+
+.selection-ai-popover.type_page, .selection-ai-popover.action_settings {
+  border-radius: 35px 35px 35px 12px;
+}
+
+.selection-ai-popover.type_text:not(.action_settings), .selection-ai-popover.type_dragbox:not(.action_settings) {
+  border-radius: 12px 35px 35px 35px;
 }
 
 .selection-ai-popover.visible {

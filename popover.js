@@ -1021,6 +1021,12 @@ export class PopoverAI {
             this.initialX = 0;
             this.initialY = 0;
 
+            // Height tracking for bottom-anchored popovers
+            this.initialHeight = null;
+            this.anchorBottomY = null;
+            this.isBottomAnchored = position?.anchorFromBottom || false;
+            this.heightObserver = null;
+
             this.createPopover();
             this.init();
             console.log('PopoverAI constructor completed successfully');
@@ -1038,14 +1044,35 @@ export class PopoverAI {
             // Create popover container with Shadow DOM for style isolation
             this.popoverElement = document.createElement('div');
             this.popoverElement.className = 'selection-ai-popover';
+            this.popoverElement.classList.add(`type_${this.selectionType}`);
+            this.popoverElement.classList.add(`action_${this.action}`);
 
             // Create shadow root for complete style isolation
             this.shadowRoot = this.popoverElement.attachShadow({ mode: 'open' });
 
             // Use mouse position with boundary checking (same as action buttons)
-            const safePosition = this.calculateSafePosition(this.position, { width: 400, height: 360 });
             const shouldUseAbsolutePosition = this.selectionType === 'page' || this.action === 'settings';
-            const position = shouldUseAbsolutePosition ? safePosition : this.calculateAbsolutePosition(safePosition);
+            let position;
+
+            // Handle bottom-anchored positioning
+            if (this.isBottomAnchored && this.position.bottomY !== undefined) {
+                this.anchorBottomY = this.position.bottomY;
+                // For bottom-anchored, just use x position and position off-screen temporarily
+                // Safe x position calculation
+                let safeX = this.position.x;
+                const margin = 20;
+                const popoverWidth = 400;
+                if (safeX + popoverWidth > window.innerWidth - margin) {
+                    safeX = window.innerWidth - popoverWidth - margin;
+                }
+                if (safeX < margin) {
+                    safeX = margin;
+                }
+                position = { x: safeX, y: -10000 };
+            } else {
+                const safePosition = this.calculateSafePosition(this.position, { width: 400, height: 360 });
+                position = shouldUseAbsolutePosition ? safePosition : this.calculateAbsolutePosition(safePosition);
+            }
 
             this.popoverElement.style.cssText = getPopoverElementCSS({
                 position,
@@ -1065,6 +1092,23 @@ export class PopoverAI {
             // Add to DOM
             document.body.appendChild(this.popoverElement);
             console.log('Popover element added to DOM:', this.popoverElement);
+
+            // Handle bottom-anchored positioning after DOM measurement
+            if (this.isBottomAnchored && this.anchorBottomY !== undefined) {
+                // Wait for next frame to ensure layout is complete
+                requestAnimationFrame(() => {
+                    const height = this.popoverElement.offsetHeight;
+                    this.initialHeight = height;
+                    const topY = this.anchorBottomY - height;
+                    this.popoverElement.style.top = `${topY}px`;
+                    console.log('Bottom-anchored popover positioned:', { bottomY: this.anchorBottomY, height, topY });
+
+                    // Set up ResizeObserver for page prompts to track height changes
+                    if ((this.selectionType === 'page' && this.action === 'prompt') || this.action === 'settings') {
+                        this.setupHeightObserver();
+                    }
+                });
+            }
 
             // Stop propagation for all clicks inside the popover
             this.shadowRoot.addEventListener('click', (e) => {
@@ -2250,6 +2294,12 @@ export class PopoverAI {
     }
 
     close() {
+        // Disconnect height observer if it exists
+        if (this.heightObserver) {
+            this.heightObserver.disconnect();
+            this.heightObserver = null;
+        }
+
         if (this.popoverElement) {
             // Remove visible class to trigger fade out
             this.popoverElement.classList.remove('visible');
@@ -2270,6 +2320,42 @@ export class PopoverAI {
                 }
             }, 300); // Match the CSS transition duration
         }
+    }
+
+    setupHeightObserver() {
+        if (!this.popoverElement || !this.isBottomAnchored || !this.anchorBottomY) return;
+
+        // Use ResizeObserver to track height changes
+        this.heightObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                const newHeight = entry.contentRect.height;
+                
+                // Only adjust if height has actually changed and we have an initial height
+                if (this.initialHeight !== null && newHeight !== this.initialHeight) {
+                    const heightDelta = newHeight - this.initialHeight;
+                    
+                    // Get current top position
+                    const currentTop = parseInt(this.popoverElement.style.top, 10);
+                    
+                    // Adjust top position to keep bottom anchored
+                    const newTop = currentTop - heightDelta;
+                    this.popoverElement.style.top = `${newTop}px`;
+                    
+                    // Update initial height for next comparison
+                    this.initialHeight = newHeight;
+                    
+                    console.log('Height changed, adjusted position:', { 
+                        heightDelta, 
+                        newHeight, 
+                        currentTop, 
+                        newTop 
+                    });
+                }
+            }
+        });
+
+        // Start observing the popover element
+        this.heightObserver.observe(this.popoverElement);
     }
 
     // History management methods

@@ -1,18 +1,7 @@
 // Styles
 
 const selectionActionButtonsCSS = `
-  .selection-ai-buttons {
-    background: rgba(255, 255, 255, 1);
-    backdrop-filter: blur(10px);
-    border-radius: 25px;
-    padding: 0px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    opacity: 0;
-    filter: blur(20px);
-    transition: opacity 0.3s ease-out, filter 0.3s ease-out;
-  }
-  
+
   .selection-ai-buttons.visible {
     opacity: 1;
     filter: blur(0px);
@@ -918,13 +907,11 @@ class SelectionAI {
         try {
           const rect = this.modeSwitcher.getBoundingClientRect();
           const popoverWidth = 400;
-          const popoverHeight = 360;
-          const margin = 12;
-          const modeSwitcherHeight = 58;
-          const offset = 60;
+          const margin = 20; // 20px above mode switcher
           const pos = {
             x: rect.left + (rect.width / 2) - (popoverWidth / 2),
-            y: rect.top - popoverHeight - margin - modeSwitcherHeight - offset
+            bottomY: rect.top - margin, // Bottom edge should be 20px above mode switcher
+            anchorFromBottom: true
           };
           this.position = pos;
           // Build current page context
@@ -950,13 +937,11 @@ class SelectionAI {
       // Position above the mode switcher (centered horizontally)
       const rect = this.modeSwitcher.getBoundingClientRect();
       const popoverWidth = 400;
-      const popoverHeight = 360;
-      const margin = 12;
-      const modeSwitcherHeight = 58;
-      const offset = 60;
+      const margin = 20; // 20px above mode switcher
       const pos = {
         x: rect.left + (rect.width / 2) - (popoverWidth / 2),
-        y: rect.top - popoverHeight - margin - modeSwitcherHeight - offset
+        bottomY: rect.top - margin, // Bottom edge should be 20px above mode switcher
+        anchorFromBottom: true
       };
       this.position = pos;
       this.showPopover('settings').catch(console.error);
@@ -999,13 +984,11 @@ class SelectionAI {
         // Position above the mode switcher (centered horizontally)
         const rect = this.modeSwitcher.getBoundingClientRect();
         const popoverWidth = 400;
-        const popoverHeight = 360;
-        const margin = 12;
-        const modeSwitcherHeight = 58;
-        const offset = 60;
+        const margin = 20; // 20px above mode switcher
         const pos = {
           x: rect.left + (rect.width / 2) - (popoverWidth / 2),
-          y: rect.top - popoverHeight - margin - modeSwitcherHeight - offset
+          bottomY: rect.top - margin, // Bottom edge should be 20px above mode switcher
+          anchorFromBottom: true
         };
         this.position = pos;
         this.showPopover('settings').catch(console.error);
