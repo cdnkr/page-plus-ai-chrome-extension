@@ -331,6 +331,22 @@ class SelectionAI {
       } catch (_) { }
     });
 
+    // Listen for availability refresh (when real API state is re-checked after download)
+    window.addEventListener('selectionAiAvailabilityRefresh', (e) => {
+      try {
+        const { key, status } = e.detail || {};
+        if (key && status) {
+          this.apiAvailability[key] = status;
+          this.updateSettingsButtonIcon();
+          
+          // If a new API became available, recreate mode switcher to show new buttons
+          if (status === 'available') {
+            this.recreateModeSwitcher();
+          }
+        }
+      } catch (_) { }
+    });
+
     this.loadPopoverModule();
     this.init();
   }
@@ -1079,6 +1095,21 @@ class SelectionAI {
     if (btn) {
       btn.innerHTML = ICONS.settings;
     }
+  }
+
+  recreateModeSwitcher() {
+    // Remove existing mode switcher
+    if (this.modeSwitcher) {
+      this.modeSwitcher.remove();
+      this.modeSwitcher = null;
+      this.modeSwitcherShadowRoot = null;
+    }
+    
+    // Reset current mode
+    this.currentMode = null;
+    
+    // Recreate with updated availability
+    this.createModeSwitcher();
   }
 
   setButtonActive(buttonId, isActive) {

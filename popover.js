@@ -1,4 +1,6 @@
 const DEBUG_MODE = false;
+// Debug flag to enable mock download simulation
+const DEBUG_SIMULATE_DOWNLOAD = false;
 
 // Styles 
 
@@ -1308,7 +1310,7 @@ export class PopoverAI {
             await this.loadI18nOnce();
             let payload = {};
             try { payload = JSON.parse(this.selectedText || '{}'); } catch (_) { }
-            const availability = payload.availability || {};
+            let availability = payload.availability || {};  // Changed to let so it can be updated
             const locale = payload.locale || (navigator.language || 'en-US');
 
             const t = this.t || ((k) => k);
@@ -1342,7 +1344,7 @@ export class PopoverAI {
 
                 const apiRowsHTML = apiRows.map(r => {
                     const o = overrides[r.key] || {};
-                    const status = (effective[r.key] || 'unknown');
+                    const status = (DEBUG_SIMULATE_DOWNLOAD && o.state !== 'downloading') ? 'downloadable' : (effective[r.key] || 'unknown');
                     const progress = o.progress;
                     const actionHtml = status === 'downloadable'
                         ? getModelDownloadButtonHTML({
@@ -1478,10 +1480,21 @@ export class PopoverAI {
             };
             window.addEventListener('selectionAiAvailabilityOverride', handleOverrideUpdate);
 
-            // Clean up listener when popover closes
+            // Listen for availability refresh (when real API state is re-checked)
+            const handleAvailabilityRefresh = (e) => {
+                const { key, status } = e.detail || {};
+                if (key && status) {
+                    availability[key] = status;  // Update the availability object with fresh data
+                    render();  // Re-render with updated availability
+                }
+            };
+            window.addEventListener('selectionAiAvailabilityRefresh', handleAvailabilityRefresh);
+
+            // Clean up listeners when popover closes
             const originalClose = this.close.bind(this);
             this.close = () => {
                 window.removeEventListener('selectionAiAvailabilityOverride', handleOverrideUpdate);
+                window.removeEventListener('selectionAiAvailabilityRefresh', handleAvailabilityRefresh);
                 originalClose();
             };
         } catch (e) {
@@ -1507,57 +1520,44 @@ export class PopoverAI {
 
     async triggerModelDownload(key) {
         try {
-            // Debug flag to enable mock download simulation
-            const DEBUG_SIMULATE_DOWNLOAD = false;
+            // Real API call for actual download with progress tracking
+            const createOptions = {
+                monitor: (m) => {
+                    m.addEventListener('downloadprogress', async (e) => {
+                        const progress = Math.round(e.loaded * 100);
 
+                        // Get current overrides
+                        const overridesObj = await chrome.storage.local.get(['selection_ai_debug_overrides']);
+                        const overrides = overridesObj.selection_ai_debug_overrides || {};
+
+                        // Update progress
+                        const next = { ...overrides };
+                        next[key] = { state: 'downloading', progress };
+
+                        await chrome.storage.local.set({ selection_ai_debug_overrides: next });
+                        window.dispatchEvent(new CustomEvent('selectionAiAvailabilityOverride', { detail: next }));
+
+                        if (progress === 100) {
+                            await this.setDownloadComplete(key);
+                        }
+                    });
+                }
+            };
+
+            // Set initial downloading state
+            const overridesObj = await chrome.storage.local.get(['selection_ai_debug_overrides']);
+            const overrides = overridesObj.selection_ai_debug_overrides || {};
+            const next = { ...overrides };
+            next[key] = { state: 'downloading', progress: 0 };
+            await chrome.storage.local.set({ selection_ai_debug_overrides: next });
+            window.dispatchEvent(new CustomEvent('selectionAiAvailabilityOverride', { detail: next }));
+
+            this.showNotification('Model download started');
+
+            // Start download with progress monitoring
             if (DEBUG_SIMULATE_DOWNLOAD) {
-                // Mock download simulation for testing UI
-                const overridesObj = await chrome.storage.local.get(['selection_ai_debug_overrides']);
-                const overrides = overridesObj.selection_ai_debug_overrides || {};
-
-                // Set state to downloading with 0 progress
-                const next = { ...overrides };
-                next[key] = { state: 'downloading', progress: 0 };
-
-                await chrome.storage.local.set({ selection_ai_debug_overrides: next });
-                window.dispatchEvent(new CustomEvent('selectionAiAvailabilityOverride', { detail: next }));
-
-                this.showNotification('Model download started (simulated)');
-
-                // Simulate download progress
-                this.simulateDownloadProgress(key);
+                await this.simulateDownloadProgress(key);
             } else {
-                // Real API call for actual download with progress tracking
-                const createOptions = {
-                    monitor: (m) => {
-                        m.addEventListener('downloadprogress', async (e) => {
-                            const progress = Math.round(e.loaded * 100);
-                            
-                            // Get current overrides
-                            const overridesObj = await chrome.storage.local.get(['selection_ai_debug_overrides']);
-                            const overrides = overridesObj.selection_ai_debug_overrides || {};
-                            
-                            // Update progress
-                            const next = { ...overrides };
-                            next[key] = { state: 'downloading', progress };
-                            
-                            await chrome.storage.local.set({ selection_ai_debug_overrides: next });
-                            window.dispatchEvent(new CustomEvent('selectionAiAvailabilityOverride', { detail: next }));
-                        });
-                    }
-                };
-                
-                // Set initial downloading state
-                const overridesObj = await chrome.storage.local.get(['selection_ai_debug_overrides']);
-                const overrides = overridesObj.selection_ai_debug_overrides || {};
-                const next = { ...overrides };
-                next[key] = { state: 'downloading', progress: 0 };
-                await chrome.storage.local.set({ selection_ai_debug_overrides: next });
-                window.dispatchEvent(new CustomEvent('selectionAiAvailabilityOverride', { detail: next }));
-                
-                this.showNotification('Model download started');
-                
-                // Start download with progress monitoring
                 if (key === 'prompt' && 'LanguageModel' in self) {
                     await LanguageModel.create(createOptions);
                 } else if (key === 'summarizer' && 'Summarizer' in self) {
@@ -1565,11 +1565,11 @@ export class PopoverAI {
                 } else if (key === 'writer' && 'Writer' in self) {
                     await Writer.create(createOptions);
                 }
-                
-                // Remove override after download completes so real availability takes over
-                this.removeDownloadOverride(key);
-                this.showNotification('Model download completed');
+
             }
+
+            // Set to available state after download completes, then re-check real availability
+            this.showNotification('Model download completed');
         } catch (e) {
             console.error('Failed to request model download', e);
             this.showNotification('Failed to request download');
@@ -1583,6 +1583,30 @@ export class PopoverAI {
         delete next[key];
         await chrome.storage.local.set({ selection_ai_debug_overrides: next });
         window.dispatchEvent(new CustomEvent('selectionAiAvailabilityOverride', { detail: next }));
+    }
+
+    async setDownloadComplete(key) {
+        // Remove the download override
+        await this.removeDownloadOverride(key);
+
+        // Re-check actual API availability to get fresh state
+        try {
+            let realStatus = 'unknown';
+            if (key === 'prompt' && 'LanguageModel' in self && typeof LanguageModel.availability === 'function') {
+                realStatus = await LanguageModel.availability();
+            } else if (key === 'summarizer' && 'Summarizer' in self && typeof Summarizer.availability === 'function') {
+                realStatus = await Summarizer.availability();
+            } else if (key === 'writer' && 'Writer' in self && typeof Writer.availability === 'function') {
+                realStatus = await Writer.availability();
+            }
+
+            // Dispatch event to trigger UI refresh with fresh availability
+            window.dispatchEvent(new CustomEvent('selectionAiAvailabilityRefresh', {
+                detail: { key, status: realStatus }
+            }));
+        } catch (e) {
+            console.error('Failed to re-check availability', e);
+        }
     }
 
     async simulateDownloadProgress(key) {
@@ -1614,8 +1638,8 @@ export class PopoverAI {
                 }
             }
 
-            // Remove override after download completes so real availability takes over
-            this.removeDownloadOverride(key);
+            // Set to available state after download completes
+            await this.setDownloadComplete(key);
             this.showNotification('Model download completed');
         } catch (e) {
             console.error('Failed to simulate download progress', e);
@@ -2372,26 +2396,26 @@ export class PopoverAI {
         this.heightObserver = new ResizeObserver((entries) => {
             for (const entry of entries) {
                 const newHeight = entry.contentRect.height;
-                
+
                 // Only adjust if height has actually changed and we have an initial height
                 if (this.initialHeight !== null && newHeight !== this.initialHeight) {
                     const heightDelta = newHeight - this.initialHeight;
-                    
+
                     // Get current top position
                     const currentTop = parseInt(this.popoverElement.style.top, 10);
-                    
+
                     // Adjust top position to keep bottom anchored
                     const newTop = currentTop - heightDelta;
                     this.popoverElement.style.top = `${newTop}px`;
-                    
+
                     // Update initial height for next comparison
                     this.initialHeight = newHeight;
-                    
-                    console.log('Height changed, adjusted position:', { 
-                        heightDelta, 
-                        newHeight, 
-                        currentTop, 
-                        newTop 
+
+                    console.log('Height changed, adjusted position:', {
+                        heightDelta,
+                        newHeight,
+                        currentTop,
+                        newTop
                     });
                 }
             }
@@ -2408,7 +2432,7 @@ export class PopoverAI {
             const urlHash = this.createSimpleHash(window.location.href);
             return `session_${this.action}_page_${urlHash}`;
         }
-        
+
         // For text/dragbox selections, use content hash
         const contentHash = this.createSimpleHash(this.selectedText.substring(0, 100));
         return `session_${this.action}_${contentHash}`;
@@ -2635,4 +2659,77 @@ export class PopoverAI {
         // Add event handlers for the new buttons
         this.setupHistoryActionButtons();
     }
+}
+
+async function simulateCreate(createOptions = {}) {
+    const { monitor } = createOptions;
+
+    // Create a mock monitor object that mimics the real API's monitor
+    const mockMonitor = {
+        _listeners: {},
+        addEventListener(eventName, callback) {
+            if (!this._listeners[eventName]) {
+                this._listeners[eventName] = [];
+            }
+            this._listeners[eventName].push(callback);
+        },
+        _dispatchEvent(eventName, eventData) {
+            const listeners = this._listeners[eventName] || [];
+            listeners.forEach(callback => {
+                const event = {
+                    type: eventName,
+                    ...eventData
+                };
+                callback(event);
+            });
+        }
+    };
+
+    // Call the monitor callback if provided (just like the real API)
+    if (typeof monitor === 'function') {
+        monitor(mockMonitor);
+    }
+
+    // Simulate download progress over 3-5 seconds
+    const duration = 3000 + Math.random() * 2000; // Random 3-5 seconds
+    const steps = 20;
+    const stepDuration = duration / steps;
+
+    for (let i = 0; i <= steps; i++) {
+        await new Promise(resolve => setTimeout(resolve, stepDuration));
+
+        const loaded = i / steps; // Progress from 0 to 1 (0% to 100%)
+
+        // Dispatch downloadprogress event (matches real API format)
+        mockMonitor._dispatchEvent('downloadprogress', {
+            loaded: loaded,
+            total: 1
+        });
+    }
+
+    // Return a mock session object (mimics real API response)
+    return {
+        async prompt(text) {
+            // Simulate AI response delay
+            await new Promise(resolve => setTimeout(resolve, 500));
+            return `[SIMULATED] Response to: ${text}`;
+        },
+        async promptStreaming(text) {
+            // Mock streaming response
+            const stream = new ReadableStream({
+                async start(controller) {
+                    const chunks = ['[SIMULATED] ', 'Streaming ', 'response ', 'to: ', text];
+                    for (const chunk of chunks) {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        controller.enqueue(chunk);
+                    }
+                    controller.close();
+                }
+            });
+            return stream;
+        },
+        destroy() {
+            console.log('Mock session destroyed');
+        }
+    };
 }
