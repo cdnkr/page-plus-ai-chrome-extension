@@ -621,8 +621,8 @@ const notificationCSS = `
     position: fixed;
     top: 20px;
     right: 20px;
-    background: #3b82f6;
-    color: white;
+    background: #ffffff;
+    color: black;
     padding: 12px 20px;
     border-radius: 50px;
     z-index: 10002;
