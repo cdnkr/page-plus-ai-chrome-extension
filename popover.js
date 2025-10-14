@@ -222,6 +222,11 @@ button, .action-btn, .copy-color-btn {
     border-left: 2px solid #3b82f6;
 }
 
+.context-text:has(div > img) {
+    border-left: none;
+    padding-left: 0;
+}
+
 .response-content {
     padding: 0;
     border-radius: 12px;
