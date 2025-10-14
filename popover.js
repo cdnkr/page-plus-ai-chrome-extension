@@ -109,6 +109,10 @@ button, .action-btn, .copy-color-btn {
     overflow: auto;
 }
 
+.content::webkit-scrollbar {
+    display: none;
+}
+
 .input-section-wrapper {
     padding: 20px 20px 20px 20px;
     position: relative;
