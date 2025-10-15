@@ -48,7 +48,7 @@ const MESSAGES = {
         err_writer_not_available: 'Writer unavailable.',
         err_summarizer_not_available: 'Summarizer unavailable.',
         err_generic: 'Failed to process request. Please try again.',
-        colors_title: 'Colors',
+        colors_title: 'Image → Colors',
         selected_area: 'Selected Area',
         mode_current_page: 'Query Current Page'
     },
@@ -97,7 +97,7 @@ const MESSAGES = {
         err_writer_not_available: 'El escritor no está disponible.',
         err_summarizer_not_available: 'El resumidor no está disponible.',
         err_generic: 'No se pudo procesar la solicitud. Inténtalo de nuevo.',
-        colors_title: 'Colores',
+        colors_title: 'Imagen → Colores',
         selected_area: 'Área seleccionada',
         mode_current_page: 'Consultar Página Actual'
     },
@@ -146,7 +146,7 @@ const MESSAGES = {
         err_writer_not_available: 'ライターは利用できません。',
         err_summarizer_not_available: '要約は利用できません。',
         err_generic: 'リクエストの処理に失敗しました。もう一度お試しください。',
-        colors_title: 'カラー',
+        colors_title: '画像 → カラー',
         selected_area: '選択範囲',
         mode_current_page: '現在のページをクエリ'
     }

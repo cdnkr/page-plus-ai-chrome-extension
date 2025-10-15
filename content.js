@@ -19,7 +19,7 @@ const selectionActionButtonsCSS = `
     height: 40px;
     border-radius: 50%;
     border: none;
-    color: rgba(0, 0, 0, 0.5);
+    color: rgba(255, 255, 255, 0.5);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -30,8 +30,8 @@ const selectionActionButtonsCSS = `
   }
   
   .selection-ai-button:hover {
-    background: rgba(0, 0, 0, 0.05);
-    color: rgba(0, 0, 0, 1);
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 1);
   }
   
   .selection-ai-button svg {
@@ -65,12 +65,12 @@ const notificationCSS = `
 
 const selectionHighlightCSS = `
   ::selection {
-    background-color: #3b82f6 !important;
-    color: white !important;
+    background-color: #fecf02 !important;
+    color: black !important;
   }
   ::-moz-selection {
-    background-color: #3b82f6 !important;
-    color: white !important;
+    background-color: #fecf02 !important;
+    color: black !important;
   }
 `;
 
@@ -84,7 +84,7 @@ const modeSwitcherCSS = `
 const modeSwitcherRootCSS = `
   .mode-switcher {
     display: flex;
-    background: rgba(255, 255, 255, 1);
+    background: rgba(0, 0, 0, 0.9);
     backdrop-filter: blur(10px);
     border-radius: 25px 25px 25px 25px;
     padding: 8px;
@@ -103,7 +103,7 @@ const modeSwitcherRootCSS = `
   .mode-switcher .home-button {
     width: 36px;
     height: 36px;
-    background: #3b82f6;
+    /* background: #fecf02; */
     border-radius: 50%;
     flex-shrink: 0;
     cursor: pointer !important;
@@ -124,25 +124,31 @@ const modeSwitcherRootCSS = `
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
-    color: rgba(0, 0, 0, 0.5);
+    color: rgba(255, 255, 255, 0.5);
   }
 
   .mode-btn.hidden {
     display: none;
   }
 
-  .mode-switcher .mode-btn, .mode-switcher .mode-btn svg, .mode-switcher .mode-btn path {
+  .mode-switcher .mode-btn,
+   .mode-switcher .mode-btn svg,
+   .mode-switcher .mode-btn path,
+   .mode-switcher .mode-btn svg rect,
+   .mode-switcher .mode-btn svg line,
+   .mode-switcher .mode-btn svg polyline,
+   .mode-btn canvas {
     cursor: pointer !important;
   }
   
   .mode-btn.active {
-    background: rgba(0, 0, 0, 0.07);
-    color: black;
+    background: rgba(255, 255, 255, 0.07);
+    color: white;
   }
   
   .mode-btn:hover:not(.active) {
-    background: rgba(0, 0, 0, 0.05);
-    color: rgba(0, 0, 0, 1);
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 1);
   }
   
   /* Override cursor for mode switcher */
@@ -205,7 +211,7 @@ const dragBoxContainerCSS = `
 const dragBoxCSS = `
   .drag-box {
     position: absolute;
-    border: 2px dashed #3b82f6;
+    border: 2px dashed #fecf02;
     pointer-events: none;
   }
 `;
@@ -222,8 +228,8 @@ function getDragBoxCSS({ x, y, width, height }) {
 // Icons
 
 const ICONS = {
-  text: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-type-icon lucide-type"><path d="M12 4v16"/><path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2"/><path d="M9 20h6"/></svg>`,
-  settings: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sliders-horizontal-icon lucide-sliders-horizontal"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></svg>`,
+  text: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-italic-icon lucide-italic"><line x1="19" x2="10" y1="4" y2="4"/><line x1="14" x2="5" y1="20" y2="20"/><line x1="15" x2="9" y1="4" y2="20"/></svg>`,
+  settings: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-text-align-end-icon lucide-text-align-end"><path d="M21 5H3"/><path d="M21 12H9"/><path d="M21 19H7"/></svg>`,
   warning: `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="red" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="position:absolute; right:-12px; top:-12px; border-radius:50%; background:red;height:18px;width:18px;"><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`,
   dashedBox: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-squircle-dashed-icon lucide-squircle-dashed"><path d="M13.77 3.043a34 34 0 0 0-3.54 0"/><path d="M13.771 20.956a33 33 0 0 1-3.541.001"/><path d="M20.18 17.74c-.51 1.15-1.29 1.93-2.439 2.44"/><path d="M20.18 6.259c-.51-1.148-1.291-1.929-2.44-2.438"/><path d="M20.957 10.23a33 33 0 0 1 0 3.54"/><path d="M3.043 10.23a34 34 0 0 0 .001 3.541"/><path d="M6.26 20.179c-1.15-.508-1.93-1.29-2.44-2.438"/><path d="M6.26 3.82c-1.149.51-1.93 1.291-2.44 2.44"/></svg>`,
   colors: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`,
@@ -269,6 +275,7 @@ function extractStructuredTextWithLinks(html) {
 }
 
 function segmentsToMarkdown(segments) {
+  const limit = 2000;
   // Simple joiner: links -> [text](href), text -> content; keep spacing
   const parts = [];
   for (const seg of segments) {
@@ -279,8 +286,12 @@ function segmentsToMarkdown(segments) {
       parts.push(seg.content);
     }
   }
+  const response = parts.join(' ').replace(/\s{2,}/g, ' ').trim();
+
+  console.log('response length', response.length)
+
   // Collapse excessive whitespace while preserving basic sentence spacing
-  return parts.join(' ').replace(/\s{2,}/g, ' ').trim();
+  return response.slice(0, limit);
 }
 
 class SelectionAI {
@@ -395,6 +406,10 @@ class SelectionAI {
 
     // Listen for popover closed event
     window.addEventListener('popoverClosed', this.handlePopoverClosed.bind(this));
+
+    // Listen for AI streaming events to animate home button
+    window.addEventListener('aiStreamingStart', this.handleStreamingStart.bind(this));
+    window.addEventListener('aiStreamingEnd', this.handleStreamingEnd.bind(this));
   }
 
   async checkAIAvailability() {
@@ -807,6 +822,23 @@ class SelectionAI {
     this.isDragging = false;
   }
 
+  handleStreamingStart() {
+    // Start the home button pulse animation while streaming
+    if (this.homeButtonPulse) {
+      // Use a long duration - will be stopped when streaming ends
+      this.homeButtonPulse.start(60000); // 60 seconds max
+      this.isStreaming = true;
+    }
+  }
+
+  handleStreamingEnd() {
+    // Mark streaming as ended and stop the animation
+    this.isStreaming = false;
+    if (this.homeButtonPulse) {
+      this.homeButtonPulse.stop();
+    }
+  }
+
   // AI request handling moved to PopoverAI class
 
   // Get position from selection range (anchored to text)
@@ -942,8 +974,16 @@ class SelectionAI {
 
     const homeButton = document.createElement('button');
     homeButton.className = 'mode-btn';
-    homeButton.innerHTML = `<div class="home-button"></div>`;
-    homeButton.addEventListener('click', () => this.toggleActionButtons());
+    homeButton.innerHTML = `<div id="home-button" class="home-button"></div>`;
+    homeButton.addEventListener('click', () => {
+      if (this.homeButtonPulse) {
+
+        this.homeButtonPulse.start(300);
+        setTimeout(() => {
+          this.toggleActionButtons();
+        }, 300);
+      }
+    });
 
     // Create mode buttons
     const t = this.i18n?.t || ((k) => k);
@@ -1036,6 +1076,8 @@ class SelectionAI {
 
     // Add to DOM
     document.body.appendChild(this.modeSwitcher);
+
+    this.homeButtonPulse = createPulsingShape(homeButton, 40, 'circle');
 
     // If this is the first time the user is using the extension and api's are not available, show the settings popover which has
     // details on how to enable and download the required api's.
@@ -1587,3 +1629,189 @@ class SelectionAI {
 
 // Initialize the extension
 new SelectionAI();
+
+function createPulsingShape(element, size = 40, shape = 'grid', autoStart = false) {
+  const container = element;
+  if (!container) return;
+
+  container.style.position = "relative";
+  container.style.width = `${size}px`;
+  container.style.height = `${size}px`;
+  container.style.display = "flex";
+  container.style.justifyContent = "center";
+  container.style.alignItems = "center";
+  container.style.background = "rgba(254, 207, 2,0)";
+
+  container.innerHTML = "";
+  const canvas = document.createElement("canvas");
+  
+  // Account for device pixel ratio for crisp rendering
+  const dpr = 10;
+  canvas.width = size * dpr;
+  canvas.height = size * dpr;
+  canvas.style.width = `${size}px`;
+  canvas.style.height = `${size}px`;
+  canvas.style.position = "absolute";
+  container.appendChild(canvas);
+
+  const ctx = canvas.getContext("2d", { alpha: true });
+  ctx.scale(dpr, dpr);
+  
+  // Enable crisp rendering
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+
+  const centerX = size / 2;
+  const centerY = size / 2;
+
+  // Configuration based on shape
+  let dots = [];
+  const baseDotSize = size * 0.035;
+  const pulseAmplitude = size * 0.015;
+  const pulseFrequency = 1.5; // pulses per second
+
+  if (shape === 'grid') {
+    const cols = 6;
+    const rows = 6;
+    const cellWidth = size / cols;
+    const cellHeight = size / rows;
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        dots.push({
+          x: c * cellWidth + cellWidth / 2,
+          y: r * cellHeight + cellHeight / 2,
+          distanceFromCenter: Math.hypot(
+            c - cols / 2,
+            r - rows / 2
+          )
+        });
+      }
+    }
+  } else if (shape === 'circle') {
+    // Arrange dots in concentric circles
+    const rings = 4;
+    const dotsPerRing = [1, 6, 12, 18]; // Center, then increasing dots per ring
+    const maxRadius = size * 0.42;
+
+    for (let ring = 0; ring < rings; ring++) {
+      const radius = ring === 0 ? 0 : (maxRadius / (rings - 1)) * ring;
+      const dotCount = dotsPerRing[ring];
+
+      if (ring === 0) {
+        // Center dot
+        dots.push({
+          x: centerX,
+          y: centerY,
+          distanceFromCenter: 0
+        });
+      } else {
+        for (let i = 0; i < dotCount; i++) {
+          const angle = (i / dotCount) * Math.PI * 2;
+          dots.push({
+            x: centerX + Math.cos(angle) * radius,
+            y: centerY + Math.sin(angle) * radius,
+            distanceFromCenter: ring
+          });
+        }
+      }
+    }
+  }
+
+  let lastTime = 0;
+  let time = 0;
+  let isAnimating = false;
+  let animationStartTime = 0;
+  let animationDuration = 2000;
+  let animationId = null;
+
+  function drawStaticFrame() {
+    ctx.clearRect(0, 0, size, size);
+
+    dots.forEach(dot => {
+      ctx.beginPath();
+      ctx.arc(dot.x, dot.y, baseDotSize, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(254, 207, 2, 1)`;
+      ctx.fill();
+    });
+  }
+
+  function animate(timestamp) {
+    if (!isAnimating) return;
+
+    if (!lastTime) lastTime = timestamp;
+    const deltaTime = (timestamp - lastTime) / 1000;
+    lastTime = timestamp;
+
+    // Check if animation duration has elapsed
+    const elapsedTime = timestamp - animationStartTime;
+    if (elapsedTime >= animationDuration) {
+      isAnimating = false;
+      drawStaticFrame();
+      return;
+    }
+
+    time += deltaTime;
+
+    ctx.clearRect(0, 0, size, size);
+
+    dots.forEach(dot => {
+      // Create a wave-like offset for each dot based on distance from center
+      const delay = dot.distanceFromCenter * 0.15;
+
+      const pulse =
+        Math.sin((time - delay) * Math.PI * pulseFrequency) * 0.5 + 0.5;
+      const radius = baseDotSize + pulse * pulseAmplitude;
+      const opacity = 0.5 + pulse * 0.5;
+
+      ctx.beginPath();
+      ctx.arc(dot.x, dot.y, radius, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(254, 207, 2, ${opacity})`;
+      ctx.fill();
+    });
+
+    animationId = requestAnimationFrame(animate);
+  }
+
+  function startAnimation(duration = 2000) {
+    if (isAnimating) return; // Already animating
+    
+    isAnimating = true;
+    animationDuration = duration;
+    animationStartTime = performance.now();
+    lastTime = 0;
+    
+    animationId = requestAnimationFrame(animate);
+  }
+
+  function stopAnimation() {
+    if (!isAnimating) return;
+    
+    isAnimating = false;
+    if (animationId) {
+      cancelAnimationFrame(animationId);
+      animationId = null;
+    }
+    drawStaticFrame();
+  }
+
+  // Listen for custom event to trigger animation
+  container.addEventListener('pulsingGridAnimate', (event) => {
+    const duration = event.detail?.duration || 2000;
+    startAnimation(duration);
+  });
+
+  // Draw initial frame (static or start animating based on autoStart)
+  if (autoStart) {
+    startAnimation(Infinity); // Infinite duration for continuous animation
+  } else {
+    drawStaticFrame();
+  }
+
+  // Return an object with control methods
+  return {
+    start: startAnimation,
+    stop: stopAnimation,
+    element: container
+  };
+}

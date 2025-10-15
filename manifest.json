@@ -25,7 +25,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["popover.js", "i18n.js", "icons/128.png"],
+      "resources": ["popover.js", "i18n.js", "icons/128.png", "icons/logo.png"],
       "matches": ["<all_urls>"]
     }
   ],

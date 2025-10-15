@@ -15,7 +15,7 @@ function getPopoverElementCSS({ position, shouldUseAbsolutePosition }) {
 const shadowRootCSS = `
 :host {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: rgba(255, 255, 255, 1);
+    background: rgba(0, 0, 0, 0.9);
     backdrop-filter: blur(10px);
     border-radius: 30px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
@@ -53,6 +53,7 @@ button, .action-btn, .copy-color-btn {
     position: relative;
     cursor: move !important;
     user-select: none;
+    background: rgba(0, 0, 0, 1);
 }
 
 .header.dragging {
@@ -66,7 +67,7 @@ button, .action-btn, .copy-color-btn {
     left: 0;
     right: 0;
     height: 40px;
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 1) 0%, transparent 100%);
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, transparent 100%);
     pointer-events: none;
     z-index: 1;
 }
@@ -76,7 +77,7 @@ button, .action-btn, .copy-color-btn {
     align-items: center;
     gap: 8px;
     font-size: 16px;
-    color: #1f2937;
+    color: #ffffff;
     margin: 0;
 }
 
@@ -85,13 +86,13 @@ button, .action-btn, .copy-color-btn {
     height: 32px;
     border-radius: 50%;
     border: none;
-    color: rgba(0, 0, 0, 0.5);
+    color: rgba(255, 255, 255, 0.5);
+    background: rgba(0, 0, 0, 1);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
-    background: white;
 }
 
 .close-btn, .close-btn svg, .close-btn path {
@@ -99,8 +100,8 @@ button, .action-btn, .copy-color-btn {
 }
 
 .close-btn:hover {
-    background: rgba(0, 0, 0, 0.05);
-    color: rgba(0, 0, 0, 1);
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 1);
 }
 
 .content {
@@ -116,6 +117,7 @@ button, .action-btn, .copy-color-btn {
 }
 
 .input-section-wrapper {
+    background: rgba(0, 0, 0, 1);
     padding: 20px 20px 20px 20px;
     position: relative;
 }
@@ -127,14 +129,14 @@ button, .action-btn, .copy-color-btn {
     left: 0;
     right: 0;
     height: 35px;
-    background: linear-gradient(to top, rgba(255, 255, 255, 1) 0%, transparent 100%);
+    background: linear-gradient(to top, rgba(0, 0, 0, 1) 0%, transparent 100%);
     pointer-events: none;
     z-index: 1;
 }
 
 .input-section {
     padding: 16px 12px 12px 18px;
-    background: rgba(0, 0, 0, 0.07);
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 30px;
     box-sizing: border-box;
 }
@@ -153,7 +155,7 @@ button, .action-btn, .copy-color-btn {
     display: block;
     font-size: 14px;
     font-weight: 500;
-    color: #374151;
+    color: rgba(255, 255, 255, 0.6);
     margin-bottom: 8px;
 }
 
@@ -166,20 +168,20 @@ button, .action-btn, .copy-color-btn {
     background: transparent !important;
     border: none !important;
     font-family: sans-serif !important;
-    color: #374151 !important;
+    color: #ffffff !important;
     cursor: text !important;
 }
 
 .input-field::placeholder {
-    color: rgba(0, 0, 0, 0.6);
+    color: rgba(255, 255, 255, 0.6);
 }
 
 .submit-btn {
     width: 44px;
     height: 44px;
     padding: 8px;
-    background: #3b82f6;
-    color: white;
+    background: #fad537;
+    color: black;
     border: none;
     border-radius: 50%;
     font-size: 14px;
@@ -197,12 +199,12 @@ button, .action-btn, .copy-color-btn {
 }
 
 .submit-btn:hover:not(:disabled) {
-    background: #3b82f6;
+    background: #fecf02;
     transform: translateY(-1px);
 }
 
 .submit-btn:disabled {
-    background: rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0);
     cursor: not-allowed;
     transform: none;
 }
@@ -221,10 +223,10 @@ button, .action-btn, .copy-color-btn {
 .context-text {
     overflow-y: auto;
     font-style: italic;
-    color: #3b82f6;
+    color: #fecf02;
     padding-left: 1rem;
     display: block;
-    border-left: 2px solid #3b82f6;
+    border-left: 2px solid #fecf02;
 }
 
 .context-text:has(div > img) {
@@ -237,13 +239,13 @@ button, .action-btn, .copy-color-btn {
     border-radius: 12px;
     font-size: 14px;
     line-height: 1.6;
-    color: #374151;
+    color: #ffffff;
 }
 
 .response-content h1, 
 .response-content h2, 
 .response-content h3 {
-    color: #1f2937;
+    color: #ffffff;
     margin: 16px 0 8px 0;
 }
 
@@ -268,11 +270,39 @@ button, .action-btn, .copy-color-btn {
 }
 
 .response-content blockquote {
-    border-left: 4px solid #3b82f6;
+    border-left: 4px solid #fecf02;
     padding-left: 16px;
     margin: 16px 0;
-    color: #6b7280;
+    color: #ffffff;
     font-style: italic;
+}
+
+.response-content code {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fecf02;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+    font-size: 0.9em;
+}
+
+.response-content pre {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 0;
+    overflow-x: auto;
+}
+
+.response-content pre code {
+    background: transparent;
+    color: #ffffff;
+    padding: 0;
+    border-radius: 0;
+    display: block;
+    font-size: 13px;
+    line-height: 1.5;
 }
 
 .response-content table {
@@ -283,18 +313,18 @@ button, .action-btn, .copy-color-btn {
 
 .response-content th,
 .response-content td {
-    border: 1px solid #d1d5db;
+    border: 1px solid #ffffff;
     padding: 8px 12px;
     text-align: left;
 }
 
 .response-content th {
-    background: #f3f4f6;
+    background: #ffffff;
     font-weight: 600;
 }
 
 .response-content a {
-    color: #3b82f6;
+    color: #fecf02;
     text-decoration: none;
 }
 
@@ -315,14 +345,14 @@ button, .action-btn, .copy-color-btn {
     align-items: center;
     justify-content: center;
     padding: 40px;
-    color: #6b7280;
+    color: #ffffff;
 }
 
 .loading-spinner {
     width: 20px;
     height: 20px;
-    border: 2px solid #e5e7eb;
-    border-top: 2px solid #3b82f6;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-top: 2px solid #fecf02;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -340,7 +370,7 @@ button, .action-btn, .copy-color-btn {
 .action-btn {
     padding: 10px;
     border-radius: 50%;
-    color: #374151;
+    color: rgba(255, 255, 255, 0.5);
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
@@ -354,22 +384,32 @@ button, .action-btn, .copy-color-btn {
 }
 
 .action-btn:hover {
-    background: rgba(0, 0, 0, 0.1) !important;
+    color: rgba(255, 255, 255, 1);
+    background: rgba(255, 255, 255, 0.1) !important;
 }
 
 .action-btn.primary {
-    background: #3b82f6;
+    background: #fecf02;
     color: white;
-    border-color: #3b82f6;
+    border-color: #fecf02;
 }
 
 .action-btn.primary:hover {
-    background: #2563eb;
-    border-color: #2563eb;
+    background: #fecf02;
+    border-color: #fecf02;
 }
 
 .action-btn svg, 
-.action-btn path {
+.action-btn path,
+.action-btn svg rect,
+.action-btn svg line,
+.action-btn svg polyline,
+.copy-color-btn svg,
+.copy-color-btn path,
+.copy-color-btn svg rect,
+.copy-color-btn svg line,
+.copy-color-btn svg polyline,
+.copy-color-btn canvas {
     cursor: pointer !important;
 }
 
@@ -378,7 +418,7 @@ button, .action-btn, .copy-color-btn {
     border: none !important;
     cursor: pointer !important;
     padding: 8px 12px !important;
-    color: #374151 !important;
+    color: #ffffff !important;
     font-size: 14px !important;
     font-weight: 500 !important;
     border-radius: 11px !important;
@@ -390,7 +430,7 @@ button, .action-btn, .copy-color-btn {
 }
 
 .ghost-btn:hover {
-    background: rgba(0, 0, 0, 0.1) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
 }
 
 /* Voice ghost button */
@@ -408,6 +448,14 @@ button, .action-btn, .copy-color-btn {
     width: 18px;
     height: 18px;
     border-width: 2px;
+}
+
+.ghost-btn svg,
+.ghost-btn path,
+.ghost-btn svg rect,
+.ghost-btn svg line,
+.ghost-btn svg polyline {
+    cursor: pointer !important;
 }
 
 .hidden {
@@ -431,7 +479,7 @@ button, .action-btn, .copy-color-btn {
 }
 
 .user-message .message-content {
-    background: #3b82f6;
+    background: #2e2e2e;
     color: white;
     padding: 12px 16px;
     border-radius: 18px 18px 4px 18px;
@@ -446,7 +494,7 @@ button, .action-btn, .copy-color-btn {
 }
 
 .ai-message .message-content {
-    color: #374151;
+    color: rgba(255, 255, 255, 0.8);
     font-size: 14px;
     line-height: 1.4;
     word-wrap: break-word;
@@ -470,6 +518,7 @@ button, .action-btn, .copy-color-btn {
     display: flex;
     align-items: center;
     justify-content: center;
+    color: rgba(255, 255, 255, 0.5);
 }
 
 .message-action-btn, .message-action-btn svg, .message-action-btn path {
@@ -477,8 +526,8 @@ button, .action-btn, .copy-color-btn {
 }
 
 .message-action-btn:hover {
-    background: rgba(0, 0, 0, 0.1);
-    color: #374151;
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
 }
 
 .message-content h1, 
@@ -515,6 +564,35 @@ button, .action-btn, .copy-color-btn {
     opacity: 0.8;
 }
 
+.message-content code {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fecf02;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+    font-size: 0.9em;
+}
+
+.message-content pre {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 16px;
+    margin: 12px 0;
+    overflow-x: auto;
+}
+
+.message-content pre code {
+    background: transparent;
+    color: #fecf02;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 0;
+    border-radius: 0;
+    display: block;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
 .message-content table {
     width: 100%;
     border-collapse: collapse;
@@ -530,7 +608,7 @@ button, .action-btn, .copy-color-btn {
 }
 
 .message-content th {
-    background: rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.05);
     font-weight: 600;
 }
 
@@ -574,14 +652,14 @@ button, .action-btn, .copy-color-btn {
     font-family: monospace;
     font-size: 12px;
     font-weight: 600;
-    color: #374151;
+    color: #ffffff;
     margin-bottom: 2px;
 }
 
 .color-rgb {
     font-family: monospace;
     font-size: 10px;
-    color: #6b7280;
+    color: rgba(255, 255, 255, 0.6);
 }
 
 .copy-color-btn {
@@ -594,18 +672,18 @@ button, .action-btn, .copy-color-btn {
     align-items: center;
     justify-content: center;
     opacity: 0.7;
-    background: rgba(255, 255, 255, 0.9);
     border: none;
+    background: rgba(0, 0, 0, 0);
 }
 
 .copy-color-btn svg, .copy-color-btn path {
     cursor: pointer;
-    color: black !important;
+    color: rgba(255, 255, 255, 0.5) !important;
 }
 
 .copy-color-btn:hover {
     opacity: 1;
-    background: rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .colors-grid {
@@ -617,14 +695,26 @@ button, .action-btn, .copy-color-btn {
 .conversation-history {
     margin-top: 20px;
 }
+
+.header-logo {
+    height: 28px;
+    width: auto;
+    cursor: move !important;
+}
+
+.header-logo img {
+    height: 100%;
+    width: auto;
+}
 `;
 
 const notificationCSS = `
     position: fixed;
     top: 20px;
     right: 20px;
-    background: #ffffff;
-    color: black;
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(10px);
+    color: #ffffff;
     padding: 12px 20px;
     border-radius: 50px;
     z-index: 10002;
@@ -637,6 +727,36 @@ const notificationCSS = `
 // Utils
 
 function parseMarkdownToHTML(markdown) {
+    // Store code blocks to prevent them from being processed
+    const codeBlocks = [];
+    const codeBlockPlaceholder = '___CODEBLOCK_';
+    
+    // Extract and store code blocks first (triple backticks)
+    markdown = markdown.replace(/```(\w+)?\n?([\s\S]*?)```/g, (match, language, code) => {
+        const placeholder = `${codeBlockPlaceholder}${codeBlocks.length}___`;
+        const escapedCode = code
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+        const langClass = language ? ` class="language-${language}"` : '';
+        codeBlocks.push(`<pre><code${langClass}>${escapedCode}</code></pre>`);
+        return placeholder;
+    });
+
+    // Store inline code to prevent it from being processed
+    const inlineCodes = [];
+    const inlineCodePlaceholder = '___INLINECODE_';
+    
+    markdown = markdown.replace(/`([^`]+)`/g, (match, code) => {
+        const placeholder = `${inlineCodePlaceholder}${inlineCodes.length}___`;
+        const escapedCode = code
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+        inlineCodes.push(`<code>${escapedCode}</code>`);
+        return placeholder;
+    });
+
     let html = markdown
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
@@ -723,10 +843,21 @@ function parseMarkdownToHTML(markdown) {
     html = html
         .split(/\n{2,}/)
         .map(block => {
-            if (/^<\/?(h\d|ul|li|blockquote|table)/.test(block.trim())) return block;
+            if (/^<\/?(h\d|ul|li|blockquote|table|pre)/.test(block.trim())) return block;
+            if (block.includes(codeBlockPlaceholder)) return block; // Don't wrap code blocks in paragraphs
             return `<p>${block.trim().replace(/\n/g, "<br>")}</p>`;
         })
         .join("\n");
+
+    // Restore code blocks
+    html = html.replace(new RegExp(`${codeBlockPlaceholder}(\\d+)___`, 'g'), (match, index) => {
+        return codeBlocks[parseInt(index)];
+    });
+
+    // Restore inline code
+    html = html.replace(new RegExp(`${inlineCodePlaceholder}(\\d+)___`, 'g'), (match, index) => {
+        return inlineCodes[parseInt(index)];
+    });
 
     return html.trim();
 }
@@ -739,7 +870,7 @@ function getShadowRootHTML() {
     <div class="header">
         <div id="header-title" class="header-title">AI Assistant</div>
         <button class="close-btn" id="close-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M18 6 6 18"/>
             <path d="m6 6 12 12"/>
         </svg>
@@ -838,8 +969,8 @@ function getCircularDownloadProgressHTML({
     return `
 <div style="position:relative; width:${size}px; height:${size}px; display:inline-flex; align-items:center; justify-content:center; padding: 2px 8px;">
     <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-    <circle cx="${size / 2}" cy="${size / 2}" r="${r}" stroke="#e5e7eb" stroke-width="${stroke}" fill="none" />
-    <circle cx="${size / 2}" cy="${size / 2}" r="${r}" stroke="#3b82f6" stroke-width="${stroke}" fill="none" stroke-linecap="round"
+    <circle cx="${size / 2}" cy="${size / 2}" r="${r}" stroke="rgba(255, 255, 255, 0.5)" stroke-width="${stroke}" fill="none" />
+    <circle cx="${size / 2}" cy="${size / 2}" r="${r}" stroke="#fecf02" stroke-width="${stroke}" fill="none" stroke-linecap="round"
         stroke-dasharray="${c.toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}" transform="rotate(-90 ${size / 2} ${size / 2})" />
     </svg>
     <div style="position:absolute; font-size:8px; color:#111827; font-weight:600;">${pct}%</div>
@@ -851,7 +982,7 @@ function getDebugSelectHTML({
     state,
 }) {
     return `
-    <select class="debug-state" data-key="${key}" style="padding:4px 6px; border-radius:8px; border:1px solid #d1d5db; background:white; font-size:12px;">
+    <select class="debug-state" data-key="${key}" style="padding:4px 6px; border-radius:8px; border:1px solid rgba(255, 255, 255, 0.5); background:rgba(255, 255, 255, 0.05); font-size:12px;">
         ${['default', 'available', 'downloadable', 'downloading', 'unavailable'].map(v => `<option value="${v}" ${((state || 'default') === v) ? 'selected' : ''}>${v}</option>`).join('')}
     </select>
 `;
@@ -868,11 +999,11 @@ function getSettingsAPIRowHTML({
     debugSelectHTML = DEBUG_MODE ? `<div style="display:flex; align-items:center; gap:8px;">${debugSelectHTML}</div>` : '';
 
     return `<div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0; gap:16px;">
-    <div style="display:flex; align-items:flex-start; gap:8px; min-width:160px;">
+    <div style="display:flex; align-items:flex-start; gap:12px; min-width:160px;">
         ${icon}
         <div style="display:flex; flex-direction:column; gap:4px; max-width:260px;">
             <span>${label}</span>
-            <div style="font-size:12px; color:#6b7280;">${description}</div>
+            <div style="font-size:12px; color:rgba(255, 255, 255, 0.7);">${description}</div>
         </div>
     </div>
     <div style="display:flex; align-items:center; justify-content:flex-end; gap:8px;">${statusBadgeHTML} ${actionHTML}</div>
@@ -887,10 +1018,10 @@ function getSettingsViewHTML({
     return `
 <div style="display:flex; flex-direction:column; gap:16px;">
     <div>
-        <div style="font-weight:600; color:#374151; margin-bottom:8px;">${t('settings_api_availability')}</div>
-        <div style="font-size:12px; color:#6b7280; margin-bottom:8px;">${t('settings_api_availability_description')}</div>
+        <div style="font-weight:600; color:white; margin-bottom:8px;">${t('settings_api_availability')}</div>
+        <div style="font-size:12px; color:rgba(255, 255, 255, 0.7); margin-bottom:8px;">${t('settings_api_availability_description')}</div>
         ${apiRowsHTML}
-        <div style="margin-top:8px; font-size:12px; color:#6b7280;">${t('settings_flags_help')}</div>
+        <div style="margin-top:8px; font-size:12px; color:rgba(255, 255, 255, 0.7);">${t('settings_flags_help')}</div>
         <div style="display:flex; gap:8px; margin-top:8px;">
             <button class="ghost-btn" id="open-flags">
                 ${t('settings_open_flags')}
@@ -904,8 +1035,8 @@ function getSettingsViewHTML({
     </div>
 
     <div>
-        <div style="font-weight:600; color:#374151; margin-bottom:8px;">${t('settings_language')}</div>
-        <select id="language-select" style="padding:8px 10px; border-radius:10px; border:1px solid #d1d5db; background:white; font-size:13px;">
+        <div style="font-weight:600; color:rgba(255, 255, 255, 0.8); margin-bottom:8px;">${t('settings_language')}</div>
+        <select id="language-select" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255, 255, 255, 0.5); background:rgba(255, 255, 255, 0.05); color:rgba(255, 255, 255, 0.8); font-size:13px;">
             ${languageOptions}
         </select>
     </div>
@@ -1298,7 +1429,7 @@ export class PopoverAI {
                 this.startColorAnalysis();
                 break;
             case 'settings':
-                this.headerTitle.innerHTML = `<span>${t('settings_title')}</span>`;
+                this.headerTitle.innerHTML = `<div class="header-logo"><img src="${chrome.runtime.getURL('icons/logo.png')}" alt="Logo"></div>`;
                 this.inputSection.classList.add('hidden');
                 this.selectedTextContext.style.display = 'none';
                 this.actionButtons.style.display = 'none';
@@ -1661,8 +1792,9 @@ export class PopoverAI {
         this.userInput.value = '';
 
         this.submitBtn.disabled = true;
-        this.submitBtn.innerHTML = loadingSpinnerHTML;
-        this.showLoading();
+        this.submitBtn.innerHTML = `<div id="orbital"></div>`;
+
+        createPulsingShape(this.submitBtn.querySelector('#orbital'), 40, 'circle', true);
 
         try {
             switch (this.action) {
@@ -1731,6 +1863,9 @@ export class PopoverAI {
             // Show loading
             this.showLoading();
 
+            // Dispatch streaming start event
+            window.dispatchEvent(new CustomEvent('aiStreamingStart'));
+
             // Get conversation history context
             const historyContext = this.getHistoryContext();
 
@@ -1768,11 +1903,16 @@ export class PopoverAI {
                 this.updateResponse(this.currentResponse);
             }
 
+            // Dispatch streaming end event
+            window.dispatchEvent(new CustomEvent('aiStreamingEnd'));
+
             // Finalize the AI message in conversation history
             this.finalizeAiMessage();
 
             this.showActionButtons();
         } catch (error) {
+            // Dispatch streaming end event on error
+            window.dispatchEvent(new CustomEvent('aiStreamingEnd'));
             this.showError(error.message);
         }
     }
@@ -1807,6 +1947,9 @@ export class PopoverAI {
                 });
             }
 
+            // Dispatch streaming start event
+            window.dispatchEvent(new CustomEvent('aiStreamingStart'));
+
             // Get conversation history context
             const historyContext = this.getHistoryContext();
 
@@ -1832,11 +1975,16 @@ export class PopoverAI {
                 this.updateResponse(this.currentResponse);
             }
 
+            // Dispatch streaming end event
+            window.dispatchEvent(new CustomEvent('aiStreamingEnd'));
+
             // Finalize the AI message in conversation history
             this.finalizeAiMessage();
 
             this.showActionButtons();
         } catch (error) {
+            // Dispatch streaming end event on error
+            window.dispatchEvent(new CustomEvent('aiStreamingEnd'));
             this.showError(error.message);
         }
     }
@@ -1874,6 +2022,9 @@ export class PopoverAI {
             // Show loading
             this.showLoading();
 
+            // Dispatch streaming start event
+            window.dispatchEvent(new CustomEvent('aiStreamingStart'));
+
             // Get streaming summary
             const stream = this.summarizer.summarizeStreaming(this.selectedText);
 
@@ -1883,8 +2034,13 @@ export class PopoverAI {
                 this.updateResponse(this.currentResponse);
             }
 
+            // Dispatch streaming end event
+            window.dispatchEvent(new CustomEvent('aiStreamingEnd'));
+
             this.showActionButtons();
         } catch (error) {
+            // Dispatch streaming end event on error
+            window.dispatchEvent(new CustomEvent('aiStreamingEnd'));
             this.showError(error.message);
         }
     }
@@ -2065,7 +2221,12 @@ export class PopoverAI {
         // Show the response section for other actions
         this.responseSection.style.display = 'flex';
 
-        this.responseContent.innerHTML = loadingSpinnerHTML;
+        this.responseContent.innerHTML = `
+        <div style="display: flex; justify-content: center; align-items: center; width: 100%; padding: 100px 0 50px 0;">
+            <div id="orbital-loading"></div>
+        </div>`;
+
+        createPulsingShape(this.responseContent.querySelector('#orbital-loading'), 40, 'circle', true);
     }
 
     showError(message) {
@@ -2735,3 +2896,190 @@ async function simulateCreate(createOptions = {}) {
         }
     };
 }
+
+function createPulsingShape(element, size = 40, shape = 'grid', autoStart = false) {
+    const container = element;
+    if (!container) return;
+  
+    container.style.position = "relative";
+    container.style.width = `${size}px`;
+    container.style.height = `${size}px`;
+    container.style.display = "flex";
+    container.style.justifyContent = "center";
+    container.style.alignItems = "center";
+    container.style.background = "rgba(254, 207, 2,0)";
+  
+    container.innerHTML = "";
+    const canvas = document.createElement("canvas");
+    
+    // Account for device pixel ratio for crisp rendering
+    const dpr = 10;
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
+    canvas.style.width = `${size}px`;
+    canvas.style.height = `${size}px`;
+    canvas.style.position = "absolute";
+    container.appendChild(canvas);
+  
+    const ctx = canvas.getContext("2d", { alpha: true });
+    ctx.scale(dpr, dpr);
+    
+    // Enable crisp rendering
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+  
+    const centerX = size / 2;
+    const centerY = size / 2;
+  
+    // Configuration based on shape
+    let dots = [];
+    const baseDotSize = size * 0.035;
+    const pulseAmplitude = size * 0.015;
+    const pulseFrequency = 1.5; // pulses per second
+  
+    if (shape === 'grid') {
+      const cols = 6;
+      const rows = 6;
+      const cellWidth = size / cols;
+      const cellHeight = size / rows;
+  
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          dots.push({
+            x: c * cellWidth + cellWidth / 2,
+            y: r * cellHeight + cellHeight / 2,
+            distanceFromCenter: Math.hypot(
+              c - cols / 2,
+              r - rows / 2
+            )
+          });
+        }
+      }
+    } else if (shape === 'circle') {
+      // Arrange dots in concentric circles
+      const rings = 4;
+      const dotsPerRing = [1, 6, 12, 18]; // Center, then increasing dots per ring
+      const maxRadius = size * 0.42;
+  
+      for (let ring = 0; ring < rings; ring++) {
+        const radius = ring === 0 ? 0 : (maxRadius / (rings - 1)) * ring;
+        const dotCount = dotsPerRing[ring];
+  
+        if (ring === 0) {
+          // Center dot
+          dots.push({
+            x: centerX,
+            y: centerY,
+            distanceFromCenter: 0
+          });
+        } else {
+          for (let i = 0; i < dotCount; i++) {
+            const angle = (i / dotCount) * Math.PI * 2;
+            dots.push({
+              x: centerX + Math.cos(angle) * radius,
+              y: centerY + Math.sin(angle) * radius,
+              distanceFromCenter: ring
+            });
+          }
+        }
+      }
+    }
+  
+    let lastTime = 0;
+    let time = 0;
+    let isAnimating = false;
+    let animationStartTime = 0;
+    let animationDuration = 2000;
+    let animationId = null;
+  
+    function drawStaticFrame() {
+      ctx.clearRect(0, 0, size, size);
+  
+      dots.forEach(dot => {
+        ctx.beginPath();
+        ctx.arc(dot.x, dot.y, baseDotSize, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(254, 207, 2, 1)`;
+        ctx.fill();
+      });
+    }
+  
+    function animate(timestamp) {
+      if (!isAnimating) return;
+  
+      if (!lastTime) lastTime = timestamp;
+      const deltaTime = (timestamp - lastTime) / 1000;
+      lastTime = timestamp;
+  
+      // Check if animation duration has elapsed
+      const elapsedTime = timestamp - animationStartTime;
+      if (elapsedTime >= animationDuration) {
+        isAnimating = false;
+        drawStaticFrame();
+        return;
+      }
+  
+      time += deltaTime;
+  
+      ctx.clearRect(0, 0, size, size);
+  
+      dots.forEach(dot => {
+        // Create a wave-like offset for each dot based on distance from center
+        const delay = dot.distanceFromCenter * 0.15;
+  
+        const pulse =
+          Math.sin((time - delay) * Math.PI * pulseFrequency) * 0.5 + 0.5;
+        const radius = baseDotSize + pulse * pulseAmplitude;
+        const opacity = 0.5 + pulse * 0.5;
+  
+        ctx.beginPath();
+        ctx.arc(dot.x, dot.y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(254, 207, 2, ${opacity})`;
+        ctx.fill();
+      });
+  
+      animationId = requestAnimationFrame(animate);
+    }
+  
+    function startAnimation(duration = 2000) {
+      if (isAnimating) return; // Already animating
+      
+      isAnimating = true;
+      animationDuration = duration;
+      animationStartTime = performance.now();
+      lastTime = 0;
+      
+      animationId = requestAnimationFrame(animate);
+    }
+  
+    function stopAnimation() {
+      if (!isAnimating) return;
+      
+      isAnimating = false;
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+      }
+      drawStaticFrame();
+    }
+  
+    // Listen for custom event to trigger animation
+    container.addEventListener('pulsingGridAnimate', (event) => {
+      const duration = event.detail?.duration || 2000;
+      startAnimation(duration);
+    });
+  
+    // Draw initial frame (static or start animating based on autoStart)
+    if (autoStart) {
+      startAnimation(Infinity); // Infinite duration for continuous animation
+    } else {
+      drawStaticFrame();
+    }
+  
+    // Return an object with control methods
+    return {
+      start: startAnimation,
+      stop: stopAnimation,
+      element: container
+    };
+  }
+  
