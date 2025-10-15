@@ -218,20 +218,39 @@ button, .action-btn, .copy-color-btn {
 .selected-text-context {
     font-size: 13px;
     margin-top: 6px;
+    padding: 1rem;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.selected-text-context:has(div > img) {
+    padding: 0;
 }
 
 .context-text {
     overflow-y: auto;
-    font-style: italic;
-    color: #fecf02;
-    padding-left: 1rem;
-    display: block;
-    border-left: 2px solid #fecf02;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    color: rgba(255, 255, 255, 1);
+    font-weight: 500;
 }
 
-.context-text:has(div > img) {
-    border-left: none;
-    padding-left: 0;
+.context-text .context-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: rgba(255, 255, 255, 1);
+}
+
+.context-text .context-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke: rgba(255, 255, 255, 1);
+}
+
+.context-text .context-content {
+    flex: 1;
+    min-width: 0;
 }
 
 .response-content {
@@ -947,7 +966,7 @@ function getShadowRootHTML() {
 function getContextHTML({
     selectedText,
 }) {
-    return `<div style="margin-bottom: 12px;">
+    return `<div style="margin-bottom: 12px;width: 100%;">
     <img src="${selectedText}" style="width: 100%; height: auto; border-radius: 20px;" alt="Selected area screenshot" />
 </div>`;
 }
@@ -1324,13 +1343,20 @@ export class PopoverAI {
         // Ensure context text is populated immediately
         if (this.contextText) {
             if (this.selectionType === 'dragbox') {
+                // Image context - no icon
                 this.contextText.innerHTML = getContextHTML({
                     selectedText: this.selectedText
                 });
             } else if (this.selectionType === 'page') {
-                this.contextText.innerHTML = `${window.location.host}${window.location.pathname}` || 'Current Page';
+                // Page context - show page icon
+                const pageIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text-icon lucide-file-text"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>`;
+                const pageText = `${window.location.host}${window.location.pathname}` || 'Current Page';
+                this.contextText.innerHTML = `<span class="context-icon">${pageIcon}</span><span class="context-content">${pageText}</span>`;
             } else {
-                this.contextText.textContent = this.selectedText.length > 100 ? this.selectedText.slice(0, 100) + '...' : this.selectedText;
+                // Text selection - show text icon
+                const textIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-italic-icon lucide-italic"><line x1="19" x2="10" y1="4" y2="4"/><line x1="14" x2="5" y1="20" y2="20"/><line x1="15" x2="9" y1="4" y2="20"/></svg>`;
+                const textContent = this.selectedText.length > 100 ? this.selectedText.slice(0, 100) + '...' : this.selectedText;
+                this.contextText.innerHTML = `<span class="context-icon">${textIcon}</span><span class="context-content">${textContent}</span>`;
             }
         }
 
