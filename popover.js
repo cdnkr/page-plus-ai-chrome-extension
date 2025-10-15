@@ -123,10 +123,10 @@ button, .action-btn, .copy-color-btn {
 .input-section-wrapper::before {
     content: '';
     position: absolute;
-    top: -40px;
+    top: -35px;
     left: 0;
     right: 0;
-    height: 40px;
+    height: 35px;
     background: linear-gradient(to top, rgba(255, 255, 255, 1) 0%, transparent 100%);
     pointer-events: none;
     z-index: 1;
@@ -215,7 +215,6 @@ button, .action-btn, .copy-color-btn {
 
 .selected-text-context {
     font-size: 13px;
-    margin-bottom: 20px;
     margin-top: 6px;
 }
 
@@ -613,6 +612,10 @@ button, .action-btn, .copy-color-btn {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 12px;
+}
+
+.conversation-history {
+    margin-top: 20px;
 }
 `;
 
