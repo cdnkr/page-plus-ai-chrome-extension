@@ -2,6 +2,147 @@
 
 A Chrome extension that uses Google's new in-browser AI APIs (Prompt, Summarizer, and Writer) to provide AI-powered text and image analysis and generation directly in your browser.
 
+## Installation & Testing
+
+### Prerequisites
+- **Chrome Version**: Chrome 138+ (stable) required
+- **Storage**: At least 22 GB free space for model download
+- **Hardware**: 16 GB RAM + 4 CPU cores OR 4+ GB VRAM
+- **OS**: Windows 10/11, macOS 13+, Linux, or ChromeOS
+
+### Installation (No Build Step Required)
+1. **Download/Clone** this repository to your local machine
+2. **Open Chrome** and navigate to `chrome://extensions/`
+3. **Enable Developer Mode** (toggle in top-right corner)
+4. **Click "Load unpacked"** and select the root directory of this extension
+5. **Extension is ready** - no build step needed.
+
+### Testing Checklist
+
+#### Basic Functionality Tests
+1. **Text Selection Mode**:
+   - Navigate to any webpage (e.g., news article, Wikipedia)
+   - Select any text on the page
+   - Verify 3 circular buttons appear: Prompt, Summarize, Write
+   - Test each button to ensure popover opens
+
+2. **Drag Box Selection Mode**:
+   - Click the mode switcher (top-left corner of extension UI)
+   - Switch to "Drag Box" mode
+   - Drag to create a selection box on any part of the page
+   - Verify 2 buttons appear: Prompt, Colors
+   - Test both buttons
+
+3. **Page Mode**:
+   - Switch to "Page" mode using the mode switcher
+   - Click the prompt button to query the entire page
+   - Verify AI responds with page content analysis
+
+#### AI Feature Tests
+1. **Prompt API**:
+   - Select text and click "Prompt"
+   - Ask: "What is this text about?"
+   - Verify streaming response appears
+   - Test follow-up questions in the same conversation
+
+2. **Summarizer API**:
+   - Select text and click "Summarize"
+   - Verify summary is generated
+
+3. **Writer API**:
+   - Select text and click "Write"
+   - Ask to rewrite or expand the content
+   - Verify new content is generated
+
+4. **Color Analysis**:
+   - Switch to Drag Box mode
+   - Select an image or colorful area
+   - Click "Colors" button
+   - Verify 6 prominent colors are extracted
+
+#### Advanced Feature Tests
+1. **Voice Input**:
+   - Click microphone button in popover
+   - Grant microphone permission when prompted
+   - Speak a question and verify text appears
+   - Test voice input with different languages
+
+2. **Conversation History**:
+   - Have a conversation with the AI
+   - Close and reopen the popover
+   - Verify conversation history is preserved
+   - Test history navigation
+
+3. **Settings & API Status**:
+   - Click settings button in popover
+   - Verify API availability status is shown
+   - Test language switching (EN/ES/JP)
+   - Check model download status
+
+4. **Drag & Drop**:
+   - Open any popover
+   - Drag the popover by its header
+   - Verify it moves smoothly
+   - Test positioning on different screen areas
+
+#### Edge Cases & Error Handling
+1. **API Unavailable**:
+   - Test behavior when APIs are not available
+   - Verify appropriate error messages
+   - Check settings for API status
+
+2. **Model Download**:
+   - If first time use, verify model download prompt
+   - Test with insufficient storage space
+   - Verify download progress indicators
+
+3. **Selection Edge Cases**:
+   - Test with very short text selections
+   - Test with images vs text
+   - Test on different website types
+   - Test with overlapping selections
+
+4. **Performance**:
+   - Test with large text selections
+   - Test multiple rapid selections
+   - Verify smooth animations
+   - Check memory usage in DevTools
+
+#### Cross-Site Testing
+Test on various websites:
+- **News sites** (CNN, BBC, etc.)
+- **Wikipedia** articles
+- **Social media** (Twitter, LinkedIn)
+- **E-commerce** (Amazon product pages)
+- **Documentation** (GitHub, Stack Overflow)
+- **Images** (Google Images, Unsplash)
+
+#### Browser Compatibility
+- Test on different Chrome versions (138+)
+- Verify Shadow DOM isolation works
+- Test on different screen sizes
+- Verify responsive design
+
+### Expected Behavior
+- **Smooth animations** for all interactions
+- **Real-time streaming** responses from AI
+- **Context-aware** conversations
+- **No external network** requests (all local processing)
+- **Persistent** conversation history
+- **Multi-language** support
+- **Error handling** for API unavailability
+
+### Troubleshooting
+If something doesn't work:
+1. **Check Chrome version** (must be 138+)
+2. **Verify hardware requirements** (RAM/VRAM)
+3. **Check API availability** in settings
+4. **Ensure sufficient storage** (22GB+)
+5. **Try different websites** if selection fails
+6. **Refresh page** if extension stops responding
+
+---
+
 ## Features
 
 ### Selection Modes
