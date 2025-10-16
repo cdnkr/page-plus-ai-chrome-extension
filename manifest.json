@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Know: Select → Prompt, Summarize, Write",
   "version": "1.0.0",
-  "description": "AI-powered text selection tool using Google's in-browser AI APIs",
+  "description": "On-device AI analysis on text, images and pages. Powered by Google's in-browser AI APIs.",
   "permissions": [
     "storage",
     "activeTab",
