@@ -27,8 +27,6 @@
   filter: blur(0px);
 }
 
-/* Removed old keyframe animations - using CSS transitions instead */
-
 /* Selection AI Buttons */
 .selection-ai-button {
   width: 40px;
@@ -48,10 +46,6 @@
   background: rgba(255, 255, 255, 0.05);
 }
 
-/* .selection-ai-button:active {
-  transform: scale(0.95);
-} */
-
 .selection-ai-button svg {
   width: 20px;
   height: 20px;
@@ -70,14 +64,6 @@
   filter: blur(20px);
   transition: opacity 0.3s ease-out, filter 0.3s ease-out;
 }
-
-/* .selection-ai-popover.type_page, .selection-ai-popover.action_settings {
-  border-radius: 35px 35px 35px 12px;
-}
-
-.selection-ai-popover.type_text:not(.action_settings), .selection-ai-popover.type_dragbox:not(.action_settings) {
-  border-radius: 12px 35px 35px 35px;
-} */
 
 .selection-ai-popover.visible {
   opacity: 1;
@@ -123,65 +109,6 @@
 /* Hide buttons when not needed */
 .selection-ai-buttons.hidden {
   display: none !important;
-}
-
-/* Responsive adjustments */
-@media (max-width: 480px) {
-  .selection-ai-buttons {
-    gap: 6px;
-    padding: 6px;
-  }
-  
-  .selection-ai-button {
-    width: 36px;
-    height: 36px;
-  }
-  
-  .selection-ai-button svg {
-    width: 18px;
-    height: 18px;
-  }
-}
-
-/* Dark mode support (if needed) */
-/* @media (prefers-color-scheme: dark) {
-  .selection-ai-buttons {
-    background: rgba(31, 41, 55, 0.95);
-    border-color: rgba(255, 255, 255, 0.1);
-  }
-  
-  .selection-ai-notification {
-    background: #059669;
-  }
-} */
-
-/* Focus styles for accessibility */
-.selection-ai-button:focus {
-  outline: 2px solid #fecf02;
-  outline-offset: 2px;
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  .selection-ai-button {
-    border: 2px solid #000;
-  }
-  
-  .selection-ai-buttons {
-    border: 2px solid #000;
-  }
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  .selection-ai-buttons,
-  .selection-ai-popover {
-    transition: none;
-  }
-  
-  .selection-ai-button {
-    transition: none;
-  }
 }
 
 /* Selection highlighting styles */
