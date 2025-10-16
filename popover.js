@@ -4,11 +4,12 @@ const DEBUG_SIMULATE_DOWNLOAD = false;
 
 // Styles 
 
-function getPopoverElementCSS({ position, shouldUseAbsolutePosition }) {
+function getPopoverElementCSS({ position, shouldUseAbsolutePosition, width = 400 }) {
     return `
     position: ${shouldUseAbsolutePosition ? 'fixed' : 'absolute'};
     left: ${position.x}px;
     top: ${position.y}px;
+    width: ${width}px;
 `;
 }
 
@@ -23,7 +24,6 @@ const shadowRootCSS = `
     opacity: 0;
     filter: blur(20px);
     transition: opacity 0.3s ease-out, filter 0.3s ease-out;
-    width: 400px;
     border: none;
     z-index: 10001;
     display: block;
@@ -110,6 +110,12 @@ button, .action-btn, .copy-color-btn {
     padding: 20px;
     max-height: 40vh;
     overflow: auto;
+}
+
+.content:has(.history-content) {
+    padding: 0;
+    max-height: 40vh;
+    overflow: hidden;
 }
 
 .content::-webkit-scrollbar {
@@ -713,6 +719,7 @@ button, .action-btn, .copy-color-btn {
 
 .conversation-history {
     margin-top: 20px;
+    padding-bottom: 50px
 }
 
 .header-logo {
@@ -724,6 +731,96 @@ button, .action-btn, .copy-color-btn {
 .header-logo img {
     height: 100%;
     width: auto;
+}
+
+/* History view styles */
+.history-view {
+    display: flex;
+    height: 40vh;
+    width: 100%;
+}
+
+.history-sidebar {
+    width: 240px;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    max-height: 40vh;
+    overflow-y: auto;
+    padding: 12px;
+    padding-top: 20px;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.history-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.history-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.history-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+.history-item {
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.history-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.history-item.active {
+    background: rgba(254, 207, 2, 0.25);
+}
+
+.history-item-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.history-item-date {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.history-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.history-no-items {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+}
+
+.history-content {
+    display: flex;
+    flex-direction: column;
+    max-height: 40vh;
+    overflow: auto;
+    padding: 20px;
+}
+
+.history-content::scrollbar {
+    display: none;
 }
 `;
 
@@ -898,9 +995,9 @@ function getShadowRootHTML() {
 
     <div class="content">
         <div class="selected-text-context" id="selected-text-context">
-        <div class="context-text" id="context-text">
-        
-        </div>
+            <div class="context-text" id="context-text">
+            
+            </div>
         </div>
         
         <div class="conversation-history" id="conversation-history" style="display: none;">
@@ -908,27 +1005,27 @@ function getShadowRootHTML() {
         </div>
         
         <div class="response-section" id="response-section" style="display: none;">
-        <div class="response-content" id="response-content">
-            <div class="loading">
-            <div class="loading-spinner"></div>
+            <div class="response-content" id="response-content">
+                <div class="loading">
+                <div class="loading-spinner"></div>
+                </div>
             </div>
-        </div>
 
-        <div class="action-buttons" id="action-buttons" style="display: none;">
-            <button class="action-btn" id="copy-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-            </svg>
-            </button>
-            <button class="action-btn" id="share-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                <polyline points="16,6 12,2 8,6"/>
-                <line x1="12" y1="2" x2="12" y2="15"/>
-            </svg>
-            </button>
-        </div>
+            <div class="action-buttons initial-action-buttons" id="action-buttons" style="display: none;">
+                <button class="action-btn" id="copy-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                        <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                    </svg>
+                </button>
+                <button class="action-btn" id="share-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                        <polyline points="16,6 12,2 8,6"/>
+                        <line x1="12" y1="2" x2="12" y2="15"/>
+                    </svg>
+                </button>
+            </div>
         </div>
     </div>
     <div class="input-section-wrapper">
@@ -1155,6 +1252,38 @@ function getMessageContentHTML({
     return `<div class="message-content">${content}</div>`;
 }
 
+function getHistoryViewHTML({
+    sidebarHTML,
+    mainHTML
+}) {
+    return `
+<div class="history-view">
+    <div class="history-sidebar" id="history-sidebar">
+        ${sidebarHTML}
+    </div>
+    <div class="history-main">
+        ${mainHTML}
+    </div>
+</div>`;
+}
+
+function getHistoryItemHTML({
+    sessionId,
+    title,
+    date,
+    isActive
+}) {
+    return `
+<div class="history-item ${isActive ? 'active' : ''}" data-session-id="${sessionId}">
+    <div class="history-item-title">${title}</div>
+    <div class="history-item-date">${date}</div>
+</div>`;
+}
+
+function getHistoryNoItemsHTML() {
+    return `<div class="history-no-items">No history yet</div>`;
+}
+
 // Popover script for handling AI interactions
 
 export class PopoverAI {
@@ -1215,7 +1344,7 @@ export class PopoverAI {
             this.shadowRoot = this.popoverElement.attachShadow({ mode: 'open' });
 
             // Use mouse position with boundary checking (same as action buttons)
-            const shouldUseAbsolutePosition = this.selectionType === 'page' || this.action === 'settings';
+            const shouldUseAbsolutePosition = this.selectionType === 'page' || this.action === 'settings' || this.action === 'history';
             let position;
 
             // Handle bottom-anchored positioning
@@ -1225,7 +1354,7 @@ export class PopoverAI {
                 // Safe x position calculation
                 let safeX = this.position.x;
                 const margin = 20;
-                const popoverWidth = 400;
+                const popoverWidth = this.action === 'history' ? 800 : 400;
                 if (safeX + popoverWidth > window.innerWidth - margin) {
                     safeX = window.innerWidth - popoverWidth - margin;
                 }
@@ -1234,13 +1363,16 @@ export class PopoverAI {
                 }
                 position = { x: safeX, y: -10000 };
             } else {
-                const safePosition = this.calculateSafePosition(this.position, { width: 400, height: 360 });
+                const popoverWidth = this.action === 'history' ? 800 : 400;
+                const safePosition = this.calculateSafePosition(this.position, { width: popoverWidth, height: 360 });
                 position = shouldUseAbsolutePosition ? safePosition : this.calculateAbsolutePosition(safePosition);
             }
 
+            const popoverWidth = this.action === 'history' ? 800 : 400;
             this.popoverElement.style.cssText = getPopoverElementCSS({
                 position,
                 shouldUseAbsolutePosition,
+                width: popoverWidth
             });
 
             // Add CSS styles to shadow root for complete isolation
@@ -1268,7 +1400,7 @@ export class PopoverAI {
                     console.log('Bottom-anchored popover positioned:', { bottomY: this.anchorBottomY, height, topY });
 
                     // Set up ResizeObserver for page prompts to track height changes
-                    if ((this.selectionType === 'page' && this.action === 'prompt') || this.action === 'settings') {
+                    if ((this.selectionType === 'page' && this.action === 'prompt') || this.action === 'settings' || this.action === 'history') {
                         this.setupHeightObserver();
                     }
                 });
@@ -1375,11 +1507,11 @@ export class PopoverAI {
                 this.handleSubmit();
             }
         });
-        this.copyBtn.addEventListener('click', (e) => {
+        this.copyBtn?.addEventListener('click', (e) => {
             e.stopPropagation();
             this.copyResponse();
         });
-        this.shareBtn.addEventListener('click', (e) => {
+        this.shareBtn?.addEventListener('click', (e) => {
             e.stopPropagation();
             this.shareResponse();
         });
@@ -1460,6 +1592,13 @@ export class PopoverAI {
                 this.selectedTextContext.style.display = 'none';
                 this.actionButtons.style.display = 'none';
                 this.startSettingsView();
+                break;
+            case 'history':
+                this.headerTitle.innerHTML = `<span>${t('header_history')}</span>`;
+                this.inputSection.classList.remove('hidden');
+                this.selectedTextContext.style.display = 'none';
+                this.actionButtons.style.display = 'none';
+                this.startHistoryView();
                 break;
         }
     }
@@ -1662,6 +1801,183 @@ export class PopoverAI {
         }
     }
 
+    async startHistoryView() {
+        try {
+            await this.loadI18nOnce();
+            const t = this.t || ((k) => k);
+
+            // Load all sessions from storage
+            const allData = await chrome.storage.local.get(null);
+            const sessions = [];
+
+            // Filter for session keys and parse them
+            for (const [key, value] of Object.entries(allData)) {
+                if (key.startsWith('session_')) {
+                    // Parse session info from key
+                    const parts = key.split('_');
+                    const action = parts[1]; // prompt, write, etc.
+                    
+                    // Get the first message for the title
+                    if (Array.isArray(value) && value.length > 0) {
+                        const firstEntry = value[0];
+                        const timestamp = firstEntry.timestamp || Date.now();
+                        
+                        sessions.push({
+                            sessionId: key,
+                            action: action,
+                            title: firstEntry.user?.substring(0, 50) || 'Untitled conversation',
+                            timestamp: timestamp,
+                            entries: value
+                        });
+                    }
+                }
+            }
+
+            // Sort by timestamp (most recent first)
+            sessions.sort((a, b) => b.timestamp - a.timestamp);
+
+            // Generate sidebar HTML
+            let sidebarHTML = '';
+            if (sessions.length === 0) {
+                sidebarHTML = getHistoryNoItemsHTML();
+            } else {
+                sidebarHTML = sessions.map((session, index) => {
+                    const date = new Date(session.timestamp);
+                    const dateStr = this.formatHistoryDate(date);
+                    
+                    return getHistoryItemHTML({
+                        sessionId: session.sessionId,
+                        title: session.title,
+                        date: dateStr,
+                        isActive: index === 0 // First one is active by default
+                    });
+                }).join('');
+            }
+
+            // Generate main content HTML (show most recent conversation)
+            let mainHTML = '';
+            if (sessions.length > 0) {
+                const activeSession = sessions[0];
+                this.currentHistorySession = activeSession;
+                this.sessionId = activeSession.sessionId;
+                this.conversationHistory = activeSession.entries;
+                
+                // Preserve the original action type from the session for handling new messages
+                this.originalAction = activeSession.action;
+                this.isHistoryMode = true;
+                
+                // Build conversation HTML
+                mainHTML = `
+                    <div class="history-content">
+                        <div class="conversation-history" id="conversation-history" style="display: block;">
+                            ${this.buildHistoryConversationHTML(activeSession.entries)}
+                        </div>
+                    </div>`;
+            } else {
+                mainHTML = `
+                    <div class="history-content">
+                        <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: rgba(255, 255, 255, 0.5);">
+                            ${t('history_no_conversations')}
+                        </div>
+                    </div>`;
+            }
+
+            // Show in response section
+            this.responseSection.style.display = 'flex';
+            this.responseContent.innerHTML = getHistoryViewHTML({
+                sidebarHTML,
+                mainHTML
+            });
+
+            // Set up click handlers for history items
+            this.setupHistoryItemClickHandlers(sessions);
+
+        } catch (error) {
+            console.error('Failed to load history:', error);
+            this.showError('Failed to load conversation history');
+        }
+    }
+
+    formatHistoryDate(date) {
+        const now = new Date();
+        const diff = now - date;
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+
+        if (minutes < 1) return 'Just now';
+        if (minutes < 60) return `${minutes}m ago`;
+        if (hours < 24) return `${hours}h ago`;
+        if (days < 7) return `${days}d ago`;
+        
+        return date.toLocaleDateString();
+    }
+
+    buildHistoryConversationHTML(entries) {
+        return entries.map(entry => {
+            const userContent = this.escapeHtml(entry.user);
+            const aiContent = this.isHtmlContent(entry.ai) ? entry.ai : parseMarkdownToHTML(entry.ai);
+            
+            return `
+                <div class="message user-message">
+                    <div class="message-content">${userContent}</div>
+                </div>
+                <div class="message ai-message">
+                    <div class="message-content">${aiContent}</div>
+                    <div class="message-actions">
+                        ${getMessageActionButtonsHTML({
+                            content: this.escapeHtml(this.stripHtml(entry.ai))
+                        })}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    setupHistoryItemClickHandlers(sessions) {
+        const historyItems = this.shadowRoot.querySelectorAll('.history-item');
+        
+        historyItems.forEach((item, index) => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                
+                // Remove active class from all items
+                historyItems.forEach(i => i.classList.remove('active'));
+                
+                // Add active class to clicked item
+                item.classList.add('active');
+                
+                // Load the selected session
+                const session = sessions[index];
+                this.loadHistorySession(session);
+            });
+        });
+    }
+
+    loadHistorySession(session) {
+        this.currentHistorySession = session;
+        this.sessionId = session.sessionId;
+        this.conversationHistory = session.entries;
+        
+        // Preserve the original action type from the session for handling new messages
+        this.originalAction = session.action;
+        this.isHistoryMode = true;
+
+        // Update the main content area
+        const historyMain = this.shadowRoot.querySelector('.history-main');
+        if (historyMain) {
+            historyMain.innerHTML = `
+                <div class="history-content">
+                    <div class="conversation-history" id="conversation-history" style="display: block;">
+                        ${this.buildHistoryConversationHTML(session.entries)}
+                    </div>
+                </div>`;
+            
+            // Re-setup action buttons for the new conversation
+            this.setupHistoryActionButtons();
+        }
+    }
+
     languageOptions(current) {
         const options = [
             'en-US', 'es-ES', 'ja-JP'
@@ -1809,8 +2125,13 @@ export class PopoverAI {
         const userInput = this.userInput.value.trim();
         if (!userInput) return;
 
-        // Add user message to conversation history immediately
-        if (this.action === 'prompt' || this.action === 'write') {
+        // Determine the actual action to handle (could be history mode using original action)
+        const actionToHandle = (this.action === 'history' && this.originalAction) 
+            ? this.originalAction 
+            : this.action;
+
+        // Add user message to conversation history immediately for prompt/write actions
+        if (actionToHandle === 'prompt' || actionToHandle === 'write') {
             this.addUserMessageToHistory(userInput);
         }
 
@@ -1823,7 +2144,7 @@ export class PopoverAI {
         createPulsingShape(this.submitBtn.querySelector('#orbital'), 40, 'circle', true);
 
         try {
-            switch (this.action) {
+            switch (actionToHandle) {
                 case 'prompt':
                     await this.handlePrompt(userInput);
                     break;
@@ -1896,7 +2217,7 @@ export class PopoverAI {
             const historyContext = this.getHistoryContext();
 
             let stream;
-            if (this.selectionType === 'dragbox') {
+            if (this.selectionType === 'dragbox' && !this.isHistoryMode) {
                 // For drag box, send image with text prompt and history
                 const imageFile = await this.dataURLtoFile(this.selectedText, 'screenshot.png');
                 const fullPrompt = historyContext + userInput;
@@ -1917,9 +2238,16 @@ export class PopoverAI {
                     }
                 ]);
             } else {
-                // For text selection, use text prompt with history
-                const baseContext = `Based on this selected text: "${this.selectedText}"`;
-                const prompt = `${baseContext}\n\n${historyContext}User question: ${userInput}`;
+                // For text selection or history mode, use text prompt with history
+                let prompt;
+                if (this.isHistoryMode || !this.selectedText) {
+                    // In history mode or no selection, just use history context and user question
+                    prompt = `${historyContext}${userInput}`;
+                } else {
+                    // With selection, include it in the context
+                    const baseContext = `Based on this selected text: "${this.selectedText}"`;
+                    prompt = `${baseContext}\n\n${historyContext}User question: ${userInput}`;
+                }
                 stream = this.session.promptStreaming(prompt);
             }
 
@@ -1981,7 +2309,10 @@ export class PopoverAI {
 
             // Create writing prompt with context based on selection type
             let prompt;
-            if (this.selectionType === 'dragbox') {
+            if (this.isHistoryMode || !this.selectedText) {
+                // In history mode or no selection, just use history context
+                prompt = `${historyContext}Write about: ${userInput}`;
+            } else if (this.selectionType === 'dragbox') {
                 // For drag box, we have an image
                 prompt = `${historyContext}Based on this selected image, write about: ${userInput}`;
             } else {
@@ -2198,26 +2529,60 @@ export class PopoverAI {
             return;
         }
 
-        // For prompt and write actions, show streaming response in conversation history
-        if (this.action === 'prompt' || this.action === 'write') {
+        // For prompt, write, and history actions, show streaming response in conversation history
+        if (this.action === 'prompt' || this.action === 'write' || this.action === 'history' || this.isHistoryMode) {
             this.updateStreamingResponse(text);
+            
+            // Use requestAnimationFrame to ensure DOM has updated before scrolling
+            requestAnimationFrame(() => {
+                // In history mode, scroll the history-content container instead of main content
+                if (this.action === 'history' || this.isHistoryMode) {
+                    const historyContent = this.shadowRoot.querySelector('.history-content');
+                    if (historyContent) {
+                        historyContent.scrollTo({
+                            top: historyContent.scrollHeight - 20,
+                            behavior: 'smooth'
+                        });
+                    }
+                } else {
+                    this.content.scrollTo({
+                        top: this.content.scrollHeight + 10,
+                        behavior: 'smooth'
+                    });
+                }
+            });
         } else {
             const html = parseMarkdownToHTML(text);
             this.responseContent.innerHTML = html;
-        }
-
-        // Use requestAnimationFrame to ensure DOM has updated before scrolling
-        requestAnimationFrame(() => {
-            this.content.scrollTo({
-                top: this.content.scrollHeight + 10,
-                behavior: 'smooth'
+            
+            // Use requestAnimationFrame to ensure DOM has updated before scrolling
+            requestAnimationFrame(() => {
+                this.content.scrollTo({
+                    top: this.content.scrollHeight + 10,
+                    behavior: 'smooth'
+                });
             });
-        });
+        }
     }
 
     updateStreamingResponse(text) {
-        const historyContainer = this.shadowRoot.querySelector('#conversation-history');
-        if (!historyContainer) return;
+        // In history mode, we need to find the conversation-history inside the history view
+        let historyContainer;
+        if (this.action === 'history' || this.isHistoryMode) {
+            // Look specifically in the history view structure
+            historyContainer = this.shadowRoot.querySelector('.history-content #conversation-history');
+        } else {
+            // Regular mode - use the base conversation-history in .content
+            historyContainer = this.shadowRoot.querySelector('.content #conversation-history');
+        }
+        
+        if (!historyContainer) {
+            console.warn('updateStreamingResponse: conversation-history container not found', {
+                action: this.action,
+                isHistoryMode: this.isHistoryMode
+            });
+            return;
+        }
 
         // Find or create the current AI message element
         let currentAiMessage = historyContainer.querySelector('.ai-message.current-streaming');
@@ -2238,9 +2603,9 @@ export class PopoverAI {
     }
 
     showLoading() {
-        // For prompt and write actions, don't show the response section
-        // since we're using conversation history for streaming
-        if (this.action === 'prompt' || this.action === 'write') {
+        // For prompt, write, and history actions, don't show the response section
+        // since we're using conversation history for streaming (submit button shows loading instead)
+        if (this.action === 'prompt' || this.action === 'write' || this.action === 'history' || this.isHistoryMode) {
             return;
         }
 
@@ -2718,12 +3083,31 @@ export class PopoverAI {
     }
 
     setupHistoryActionButtons() {
-        const actionButtons = this.shadowRoot.querySelectorAll('.message-action-btn');
+        // In history mode, only select buttons within the conversation area, not the whole shadow root
+        let actionButtons;
+        if (this.action === 'history' || this.isHistoryMode) {
+            // Scope to only buttons inside the history-main area (excludes sidebar)
+            const historyMain = this.shadowRoot.querySelector('.history-main');
+            if (historyMain) {
+                actionButtons = historyMain.querySelectorAll('.message-action-btn');
+            } else {
+                actionButtons = [];
+            }
+        } else {
+            // For regular mode, scope to the conversation-history in .content area
+            const conversationHistory = this.shadowRoot.querySelector('.content #conversation-history');
+            actionButtons = conversationHistory ? conversationHistory.querySelectorAll('.message-action-btn') : [];
+        }
+        
         actionButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
+            // Remove any existing listeners to avoid duplicates
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            
+            newBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const action = btn.getAttribute('data-action');
-                const content = btn.getAttribute('data-content');
+                const action = newBtn.getAttribute('data-action');
+                const content = newBtn.getAttribute('data-content');
 
                 if (action === 'copy') {
                     this.copyText(content);
@@ -2775,8 +3159,25 @@ export class PopoverAI {
     }
 
     addUserMessageToHistory(userMessage) {
-        const historyContainer = this.shadowRoot.querySelector('#conversation-history');
-        if (!historyContainer) return;
+        // In history mode, we need to find the conversation-history inside the history view
+        let historyContainer;
+        if (this.action === 'history' || this.isHistoryMode) {
+            // Look specifically in the history view structure
+            historyContainer = this.shadowRoot.querySelector('.history-content #conversation-history');
+        } else {
+            // Regular mode - use the base conversation-history in .content
+            historyContainer = this.shadowRoot.querySelector('.content #conversation-history');
+        }
+        
+        if (!historyContainer) {
+            console.warn('addUserMessageToHistory: conversation-history container not found', {
+                action: this.action,
+                isHistoryMode: this.isHistoryMode
+            });
+            return;
+        }
+
+        console.log('addUserMessageToHistory: Adding message to history', { userMessage, sessionId: this.sessionId });
 
         // Store the current user message for later use
         this.currentUserMessage = userMessage;
@@ -2792,18 +3193,35 @@ export class PopoverAI {
         historyContainer.appendChild(userMessageEl);
         historyContainer.style.display = 'block';
 
-        // Scroll to bottom
+        // Scroll to bottom - use appropriate container for history mode
         requestAnimationFrame(() => {
-            this.content.scrollTo({
-                top: this.content.scrollHeight - 50,
-                behavior: 'smooth'
-            });
+            if (this.action === 'history' || this.isHistoryMode) {
+                const historyContent = this.shadowRoot.querySelector('.history-content');
+                if (historyContent) {
+                    historyContent.scrollTo({
+                        top: historyContent.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }
+            } else {
+                this.content.scrollTo({
+                    top: this.content.scrollHeight - 50,
+                    behavior: 'smooth'
+                });
+            }
         });
     }
 
     finalizeAiMessage() {
         // Remove the streaming class and add to conversation history
         const currentAiMessage = this.shadowRoot.querySelector('.ai-message.current-streaming');
+        console.log('finalizeAiMessage called', { 
+            currentAiMessage: !!currentAiMessage, 
+            currentUserMessage: this.currentUserMessage,
+            sessionId: this.sessionId,
+            conversationHistoryLength: this.conversationHistory.length
+        });
+        
         if (currentAiMessage && this.currentUserMessage) {
             currentAiMessage.classList.remove('current-streaming');
 
@@ -2812,26 +3230,36 @@ export class PopoverAI {
             if (aiMessageEl) {
                 const aiMessage = aiMessageEl.innerHTML;
 
-                // Add action buttons to the current AI message
-                this.addActionButtonsToMessage(currentAiMessage, aiMessage);
-
                 this.conversationHistory.push({
                     user: this.currentUserMessage,
                     ai: aiMessage,
                     timestamp: Date.now()
                 });
 
+                console.log('finalizeAiMessage: Added to conversation history, now saving...', {
+                    newLength: this.conversationHistory.length,
+                    sessionId: this.sessionId
+                });
+
                 this.saveConversationHistory();
 
+                // Add action buttons to the current AI message
+                this.addActionButtonsToMessage(currentAiMessage, aiMessage);
+
+                const initialActionButtons = this.shadowRoot.querySelector('.initial-action-buttons');
+
+                if (initialActionButtons) {
+                    initialActionButtons.style.display = 'none';
+                }
                 // Clear the current user message
                 this.currentUserMessage = null;
             }
         }
 
-        this.content.scrollTo({
-            top: this.content.scrollHeight,
-            behavior: 'smooth'
-        });
+        // this.content.scrollTo({
+        //     top: this.content.scrollHeight,
+        //     behavior: 'smooth'
+        // });
     }
 
     addActionButtonsToMessage(messageElement, content) {
@@ -2843,9 +3271,8 @@ export class PopoverAI {
         });
 
         // Add the action buttons to the message
+ 
         messageElement.appendChild(actionsContainer);
-
-        // Add event handlers for the new buttons
         this.setupHistoryActionButtons();
     }
 }

@@ -236,7 +236,8 @@ const ICONS = {
   prompt: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg>`,
   summarize: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/><path d="M8 11h8"/><path d="M8 7h6"/></svg>`,
   write: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 21h8"/><path d="m15 5 4 4"/><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>`,
-  page: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text-icon lucide-file-text"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>`
+  page: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text-icon lucide-file-text"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>`,
+  history: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-history-icon lucide-history"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>`
 }
 
 // Utils
@@ -640,9 +641,11 @@ class SelectionAI {
           : this.selectedText;
         this.popover = new this.PopoverAI(action, payload, position, this.selectionRange, selectionType || 'text');
         
-        // Set active state for settings or current page buttons
+        // Set active state for settings, history, or current page buttons
         if (action === 'settings') {
           this.setButtonActive('selection-ai-settings-btn', true);
+        } else if (action === 'history') {
+          this.setButtonActive('selection-ai-history-btn', true);
         } else if (selectionType === 'page') {
           this.setButtonActive('selection-ai-current-page-btn', true);
         }
@@ -666,9 +669,11 @@ class SelectionAI {
             : this.selectedText;
           this.popover = new this.PopoverAI(action, payload, position, this.selectionRange, selectionType || 'text');
           
-          // Set active state for settings or current page buttons
+          // Set active state for settings, history, or current page buttons
           if (action === 'settings') {
             this.setButtonActive('selection-ai-settings-btn', true);
+          } else if (action === 'history') {
+            this.setButtonActive('selection-ai-history-btn', true);
           } else if (selectionType === 'page') {
             this.setButtonActive('selection-ai-current-page-btn', true);
           }
@@ -709,6 +714,7 @@ class SelectionAI {
     // Remove active state from buttons
     this.setButtonActive('selection-ai-settings-btn', false);
     this.setButtonActive('selection-ai-current-page-btn', false);
+    this.setButtonActive('selection-ai-history-btn', false);
 
     // Clear any pending timeout
     if (this.buttonTimeout) {
@@ -805,6 +811,7 @@ class SelectionAI {
     // Remove active state from buttons
     this.setButtonActive('selection-ai-settings-btn', false);
     this.setButtonActive('selection-ai-current-page-btn', false);
+    this.setButtonActive('selection-ai-history-btn', false);
 
     // Clear any pending timeout
     if (this.buttonTimeout) {
@@ -1034,6 +1041,29 @@ class SelectionAI {
       });
     }
 
+    const historyBtn = document.createElement('button');
+    historyBtn.className = 'mode-btn hidden';
+    historyBtn.setAttribute('id', 'selection-ai-history-btn');
+    historyBtn.innerHTML = ICONS.history;
+    historyBtn.title = t('button_history');
+
+    historyBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Position above the mode switcher (centered horizontally), wider for history view
+      const rect = this.modeSwitcher.getBoundingClientRect();
+      const popoverWidth = 800; // Wider for sidebar layout
+      const margin = 20; // 20px above mode switcher
+      const pos = {
+        x: rect.left + (rect.width / 2) - (popoverWidth / 2),
+        bottomY: rect.top - margin, // Bottom edge should be 20px above mode switcher
+        anchorFromBottom: true
+      };
+      this.position = pos;
+      this.selectedText = ''; // No text selection for history
+      this.selectionRange = null;
+      this.showPopover('history').catch(console.error);
+    });
+
     const settingsBtn = document.createElement('button');
     settingsBtn.className = 'mode-btn hidden';
     settingsBtn.setAttribute('id', 'selection-ai-settings-btn');
@@ -1071,6 +1101,7 @@ class SelectionAI {
     if (textBtn) innerContainer.appendChild(textBtn);
     innerContainer.appendChild(dragBtn);
     if (currentPageBtn) innerContainer.appendChild(currentPageBtn);
+    innerContainer.appendChild(historyBtn);
     innerContainer.appendChild(settingsBtn);
     this.modeSwitcherShadowRoot.appendChild(innerContainer);
 
@@ -1123,6 +1154,8 @@ class SelectionAI {
         if (buttons[1]) buttons[1].title = t('mode_drag');
         const currentBtn = this.modeSwitcherShadowRoot.querySelector('#selection-ai-current-page-btn');
         if (currentBtn) currentBtn.title = t('mode_current_page');
+        const historyBtn = this.modeSwitcherShadowRoot.querySelector('#selection-ai-history-btn');
+        if (historyBtn) historyBtn.title = t('button_history');
         const settingsBtn = this.modeSwitcherShadowRoot.querySelector('#selection-ai-settings-btn');
         if (settingsBtn) settingsBtn.title = t('button_settings');
       } catch (e) {

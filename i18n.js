@@ -50,7 +50,10 @@ const MESSAGES = {
         err_generic: 'Failed to process request. Please try again.',
         colors_title: 'Image → Colors',
         selected_area: 'Selected Area',
-        mode_current_page: 'Query Current Page'
+        mode_current_page: 'Query Current Page',
+        button_history: 'History',
+        header_history: 'Conversations',
+        history_no_conversations: 'No conversations yet'
     },
 
     es: {
@@ -99,7 +102,10 @@ const MESSAGES = {
         err_generic: 'No se pudo procesar la solicitud. Inténtalo de nuevo.',
         colors_title: 'Imagen → Colores',
         selected_area: 'Área seleccionada',
-        mode_current_page: 'Consultar Página Actual'
+        mode_current_page: 'Consultar Página Actual',
+        button_history: 'Historial',
+        header_history: 'Conversaciones',
+        history_no_conversations: 'Aún no hay conversaciones'
     },
 
     ja: {
@@ -148,7 +154,10 @@ const MESSAGES = {
         err_generic: 'リクエストの処理に失敗しました。もう一度お試しください。',
         colors_title: '画像 → カラー',
         selected_area: '選択範囲',
-        mode_current_page: '現在のページをクエリ'
+        mode_current_page: '現在のページをクエリ',
+        button_history: '履歴',
+        header_history: '会話',
+        history_no_conversations: 'まだ会話がありません'
     }
 };
 
