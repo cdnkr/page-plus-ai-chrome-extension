@@ -8,7 +8,7 @@ export function createPulsingShape(element, size = 40, shape = 'grid', autoStart
     container.style.display = "flex";
     container.style.justifyContent = "center";
     container.style.alignItems = "center";
-    container.style.background = "rgba(254, 207, 2,0)";
+    container.style.background = `rgba(${PRIMARY_COLOR_RGB},0)`;
 
     container.innerHTML = "";
     const canvas = document.createElement("canvas");
@@ -99,7 +99,7 @@ export function createPulsingShape(element, size = 40, shape = 'grid', autoStart
         dots.forEach(dot => {
             ctx.beginPath();
             ctx.arc(dot.x, dot.y, baseDotSize, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(254, 207, 2, 1)`;
+            ctx.fillStyle = `rgba(${PRIMARY_COLOR_RGB}, 1)`;
             ctx.fill();
         });
     }

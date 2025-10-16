@@ -1,7 +1,11 @@
+import { BG_RGB, PRIMARY_COLOR_RGB } from '../../config.js';
+
+export const USER_MESSAGE_BG_HEX = "#2e2e2e";
+
 export const shadowRootCSS = `
 :host {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(${BG_RGB}, 0.9);
     backdrop-filter: blur(10px);
     border-radius: 30px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
@@ -38,7 +42,7 @@ button, .action-btn, .copy-color-btn {
     position: relative;
     cursor: move !important;
     user-select: none;
-    background: rgba(0, 0, 0, 1);
+    background: rgba(${BG_RGB}, 1);
 }
 
 .header.dragging {
@@ -52,7 +56,7 @@ button, .action-btn, .copy-color-btn {
     left: 0;
     right: 0;
     height: 40px;
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, transparent 100%);
+    background: linear-gradient(to bottom, rgba(${BG_RGB}, 1) 0%, transparent 100%);
     pointer-events: none;
     z-index: 1;
 }
@@ -72,7 +76,7 @@ button, .action-btn, .copy-color-btn {
     border-radius: 50%;
     border: none;
     color: rgba(255, 255, 255, 0.5);
-    background: rgba(0, 0, 0, 1);
+    background: rgba(${BG_RGB}, 0);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -108,7 +112,7 @@ button, .action-btn, .copy-color-btn {
 }
 
 .input-section-wrapper {
-    background: rgba(0, 0, 0, 1);
+    background: rgba(${BG_RGB}, 1);
     padding: 20px 20px 20px 20px;
     position: relative;
 }
@@ -120,7 +124,7 @@ button, .action-btn, .copy-color-btn {
     left: 0;
     right: 0;
     height: 35px;
-    background: linear-gradient(to top, rgba(0, 0, 0, 1) 0%, transparent 100%);
+    background: linear-gradient(to top, rgba(${BG_RGB}, 1) 0%, transparent 100%);
     pointer-events: none;
     z-index: 1;
 }
@@ -171,7 +175,7 @@ button, .action-btn, .copy-color-btn {
     width: 44px;
     height: 44px;
     padding: 8px;
-    background: #fad537;
+    background: rgba(${PRIMARY_COLOR_RGB}, 1);
     color: black;
     border: none;
     border-radius: 50%;
@@ -190,7 +194,7 @@ button, .action-btn, .copy-color-btn {
 }
 
 .submit-btn:hover:not(:disabled) {
-    background: #fecf02;
+    background: rgba(${PRIMARY_COLOR_RGB}, 1);
     transform: translateY(-1px);
 }
 
@@ -280,7 +284,7 @@ button, .action-btn, .copy-color-btn {
 }
 
 .response-content blockquote {
-    border-left: 4px solid #fecf02;
+    border-left: 4px solid rgba(${PRIMARY_COLOR_RGB}, 1);
     padding-left: 16px;
     margin: 16px 0;
     color: #ffffff;
@@ -289,7 +293,7 @@ button, .action-btn, .copy-color-btn {
 
 .response-content code {
     background: rgba(255, 255, 255, 0.1);
-    color: #fecf02;
+    color: rgba(${PRIMARY_COLOR_RGB}, 1);
     padding: 2px 6px;
     border-radius: 4px;
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
@@ -334,7 +338,7 @@ button, .action-btn, .copy-color-btn {
 }
 
 .response-content a {
-    color: #fecf02;
+    color: rgba(${PRIMARY_COLOR_RGB}, 1);
     text-decoration: none;
 }
 
@@ -362,7 +366,7 @@ button, .action-btn, .copy-color-btn {
     width: 20px;
     height: 20px;
     border: 2px solid rgba(255, 255, 255, 0.5);
-    border-top: 2px solid #fecf02;
+    border-top: 2px solid rgba(${PRIMARY_COLOR_RGB}, 1);
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -399,14 +403,14 @@ button, .action-btn, .copy-color-btn {
 }
 
 .action-btn.primary {
-    background: #fecf02;
+    background: rgba(${PRIMARY_COLOR_RGB}, 1);
     color: white;
-    border-color: #fecf02;
+    border-color: rgba(${PRIMARY_COLOR_RGB}, 1);
 }
 
 .action-btn.primary:hover {
-    background: #fecf02;
-    border-color: #fecf02;
+    background: rgba(${PRIMARY_COLOR_RGB}, 1);
+    border-color: rgba(${PRIMARY_COLOR_RGB}, 1);
 }
 
 .action-btn svg, 
@@ -489,7 +493,7 @@ button, .action-btn, .copy-color-btn {
 }
 
 .user-message .message-content {
-    background: #2e2e2e;
+    background: ${USER_MESSAGE_BG_HEX};
     color: white;
     padding: 12px 16px;
     border-radius: 18px 18px 4px 18px;
@@ -536,7 +540,7 @@ button, .action-btn, .copy-color-btn {
 }
 
 .message-action-btn:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.1);
     color: #ffffff;
 }
 
@@ -576,7 +580,7 @@ button, .action-btn, .copy-color-btn {
 
 .message-content code {
     background: rgba(255, 255, 255, 0.1);
-    color: #fecf02;
+    color: rgba(${PRIMARY_COLOR_RGB}, 1);
     padding: 2px 6px;
     border-radius: 4px;
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
@@ -594,7 +598,7 @@ button, .action-btn, .copy-color-btn {
 
 .message-content pre code {
     background: transparent;
-    color: #fecf02;
+    color: rgba(${PRIMARY_COLOR_RGB}, 1);
     background: rgba(0, 0, 0, 0.4);
     padding: 0;
     border-radius: 0;
@@ -762,7 +766,7 @@ button, .action-btn, .copy-color-btn {
 }
 
 .history-item.active {
-    background: rgba(254, 207, 2, 0.25);
+    background: rgba(${PRIMARY_COLOR_RGB}, 0.25);
 }
 
 .history-item-title {

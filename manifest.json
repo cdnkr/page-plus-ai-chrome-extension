@@ -25,7 +25,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["popover.js", "popover/**", "utils/**", "i18n.js", "icons/**"],
+      "resources": ["popover.js", "popover/**", "utils/**", "i18n.js", "icons/**", "config.js"],
       "matches": ["<all_urls>"]
     }
   ],
