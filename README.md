@@ -1,4 +1,4 @@
-# Selection AI Chrome Extension
+# Know AI Chrome Extension
 
 A Chrome extension that uses Google's new in-browser AI APIs (Prompt, Summarizer, and Writer) to provide AI-powered text and image analysis and generation directly in your browser.
 
