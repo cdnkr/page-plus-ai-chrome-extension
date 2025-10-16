@@ -367,7 +367,7 @@ class SelectionAI {
     try {
       console.log('Attempting to load PopoverAI module...');
       const [module, i18n] = await Promise.all([
-        import(chrome.runtime.getURL('popover.js')),
+        import(chrome.runtime.getURL('popover/index.js')),
         import(chrome.runtime.getURL('i18n.js')).catch(() => null)
       ]);
       console.log('Module loaded:', module);

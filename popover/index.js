@@ -1,22 +1,22 @@
-import { DragHandler } from './popover/utils/drag-handler.js';
+import { DragHandler } from './utils/drag-handler.js';
 import { 
     calculateSafePosition, 
     calculateAbsolutePosition, 
     setupHeightObserver 
-} from './utils/positioning.js';
-import { ConversationManager } from './popover/features/conversation-manager.js';
-import { SettingsManager } from './popover/features/settings-manager.js';
-import { ColorAnalyzer } from './popover/features/color-analyzer.js';
-import { VoiceInputManager } from './popover/features/voice-input.js';
-import { GoogleNanoHandler } from './popover/features/google-nano-handler.js';
-import { getPopoverElementCSS } from './popover/styles/css-utils.js';
-import { getShadowRootHTML } from './popover/templates/html-tamplates.js';
-import { shadowRootCSS } from './popover/styles/css-constants.js';
-import { getContextHTML } from './popover/templates/conversation-templates.js';
-import { createPulsingShape } from './utils/animations.js';
-import { getErrorMessageHTML } from './popover/templates/html-tamplates.js';
-import { notificationCSS } from './popover/styles/css-constants.js';
-import { parseMarkdownToHTML } from './utils/markdown-parser.js';
+} from '../utils/positioning.js';
+import { ConversationManager } from './features/conversation-manager.js';
+import { SettingsManager } from './features/settings-manager.js';
+import { ColorAnalyzer } from './features/color-analyzer.js';
+import { VoiceInputManager } from './features/voice-input.js';
+import { GoogleNanoHandler } from './features/google-nano-handler.js';
+import { getPopoverElementCSS } from './styles/css-utils.js';
+import { getShadowRootHTML } from './templates/html-tamplates.js';
+import { shadowRootCSS } from './styles/css-constants.js';
+import { getContextHTML } from './templates/conversation-templates.js';
+import { createPulsingShape } from '../utils/animations.js';
+import { getErrorMessageHTML } from './templates/html-tamplates.js';
+import { notificationCSS } from './styles/css-constants.js';
+import { parseMarkdownToHTML } from '../utils/markdown-parser.js';
 
 export class PopoverAI {
     constructor(action, selectedText, position, selectionRange, selectionType = 'text') {
