@@ -1,3 +1,5 @@
+import { PRIMARY_COLOR_RGB } from '../config.js';
+
 export function createPulsingShape(element, size = 40, shape = 'grid', autoStart = false) {
     const container = element;
     if (!container) return;

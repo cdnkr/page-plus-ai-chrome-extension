@@ -1,9 +1,9 @@
 /**
- * GoogleNanoHandler - Manages AI API interactions with Google Nano API's
+ * GoogleNanoManager - Manages AI API interactions with Google Nano API's
  * Handles Prompt API, Writer API, and Summarizer API
  */
 
-export class GoogleNanoHandler {
+export class GoogleNanoManager {
     constructor(popover) {
         this.popover = popover;
         

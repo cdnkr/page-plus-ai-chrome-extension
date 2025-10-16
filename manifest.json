@@ -19,13 +19,21 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"],
+      "js": ["index.js"],
       "css": ["styles.css"]
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["popover.js", "popover/**", "utils/**", "i18n.js", "icons/**", "config.js"],
+      "resources": [
+        "index.js",
+        "i18n.js",
+        "config.js",
+        "main/**",
+        "popover/**",
+        "utils/**",
+        "icons/**"
+      ],
       "matches": ["<all_urls>"]
     }
   ],

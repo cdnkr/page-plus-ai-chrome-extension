@@ -4,11 +4,11 @@ import {
     calculateAbsolutePosition, 
     setupHeightObserver 
 } from '../utils/positioning.js';
-import { ConversationManager } from './features/conversation-manager.js';
-import { SettingsManager } from './features/settings-manager.js';
+import { ConversationManager } from './managers/conversation-manager.js';
+import { SettingsManager } from './managers/settings-manager.js';
+import { GoogleNanoManager } from './managers/google-nano-manager.js';
 import { ColorAnalyzer } from './features/color-analyzer.js';
 import { VoiceInputManager } from './features/voice-input.js';
-import { GoogleNanoHandler } from './features/google-nano-handler.js';
 import { getPopoverElementCSS } from './styles/css-utils.js';
 import { getShadowRootHTML } from './templates/html-tamplates.js';
 import { shadowRootCSS } from './styles/css-constants.js';
@@ -266,7 +266,7 @@ export class PopoverAI {
         this.settingsManager = new SettingsManager(this);
         this.colorAnalyzer = new ColorAnalyzer(this);
         this.voiceInputManager = new VoiceInputManager(this);
-        this.googleNanoHandler = new GoogleNanoHandler(this);
+        this.googleNanoHandler = new GoogleNanoManager(this);
         this.sessionId = this.conversationManager.generateSessionId(this.action, this.selectionType, this.selectedText);
 
         // Setup voice input event listener
