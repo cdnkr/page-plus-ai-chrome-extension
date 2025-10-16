@@ -17,6 +17,7 @@ import { createPulsingShape } from '../utils/animations.js';
 import { getErrorMessageHTML } from './templates/html-tamplates.js';
 import { notificationCSS } from './styles/css-constants.js';
 import { parseMarkdownToHTML } from '../utils/markdown-parser.js';
+import { submitBtnHTML } from './templates/html-tamplates.js';
 
 export class PopoverAI {
     constructor(action, selectedText, position, selectionRange, selectionType = 'text') {
