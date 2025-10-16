@@ -1,6 +1,7 @@
-import { BG_RGB, PRIMARY_COLOR_HEX } from '../../config.js';
+import { BG_RGB, FG_RGB, PRIMARY_COLOR_HEX, SELECTION_COLOR_HEX } from '../../config.js';
 
 export const selectionActionButtonsCSS = `
+
   .selection-ai-buttons.visible {
     opacity: 1;
     filter: blur(0px);
@@ -11,6 +12,8 @@ export const selectionActionButtonsCSS = `
     display: flex;
     gap: 8px;
     border-radius: 25px;
+    background: rgba(${BG_RGB}, 1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   }
   
   .selection-ai-button {
@@ -18,7 +21,7 @@ export const selectionActionButtonsCSS = `
     height: 40px;
     border-radius: 50%;
     border: none;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(${FG_RGB}, 0.5);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -29,8 +32,8 @@ export const selectionActionButtonsCSS = `
   }
   
   .selection-ai-button:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 1);
+    background: rgba(${FG_RGB}, 0.1);
+    color: rgba(${FG_RGB}, 1);
   }
   
   .selection-ai-button svg {
@@ -42,11 +45,11 @@ export const selectionActionButtonsCSS = `
 
 export const selectionHighlightCSS = `
   ::selection {
-    background-color: ${PRIMARY_COLOR_HEX} !important;
+    background-color: ${SELECTION_COLOR_HEX} !important;
     color: black !important;
   }
   ::-moz-selection {
-    background-color: ${PRIMARY_COLOR_HEX} !important;
+    background-color: ${SELECTION_COLOR_HEX} !important;
     color: black !important;
   }
 `;
@@ -64,12 +67,16 @@ export const modeSwitcherRootCSS = `
     display: flex;
     background: rgba(${BG_RGB}, 1);
     backdrop-filter: blur(10px);
-    border-radius: 25px 25px 25px 25px;
+    border-radius: 12px 25px 25px 12px;
     padding: 8px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     position: relative;
     transition: all 0.4s ease;
     gap: 4px;
+  }
+
+  .mode-switcher:has(.hidden:nth-child(2)) {
+    border-radius: 12px 12px 12px 12px;
   }
 
   .mode-switcher.hidden {
@@ -101,7 +108,7 @@ export const modeSwitcherRootCSS = `
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(${FG_RGB}, 0.5);
   }
 
   .mode-btn.hidden {
@@ -119,13 +126,13 @@ export const modeSwitcherRootCSS = `
   }
   
   .mode-btn.active {
-    background: rgba(255, 255, 255, 0.07);
-    color: white;
+    background: rgba(${FG_RGB}, 0.07);
+    color: rgba(${FG_RGB}, 1);
   }
   
   .mode-btn:hover:not(.active) {
-    background: rgba(255, 255, 255, 0.05);
-    color: rgba(255, 255, 255, 1);
+    background: rgba(${FG_RGB}, 0.05);
+    color: rgba(${FG_RGB}, 1);
   }
   
   /* Override cursor for mode switcher */
@@ -175,6 +182,15 @@ export const cursorCSS = `
   [class*="selection-ai"] * {
     cursor: default !important;
   }
+
+  ::selection {
+    background-color: ${SELECTION_COLOR_HEX} !important;
+    color: black !important;
+  }
+  ::-moz-selection {
+    background-color: ${SELECTION_COLOR_HEX} !important;
+    color: black !important;
+  }
 `;
 
 export const dragBoxContainerCSS = `
@@ -188,7 +204,7 @@ export const dragBoxContainerCSS = `
 export const dragBoxCSS = `
   .drag-box {
     position: absolute;
-    border: 2px dashed ${PRIMARY_COLOR_HEX};
+    border: 2px dashed ${SELECTION_COLOR_HEX};
     pointer-events: none;
   }
 `;

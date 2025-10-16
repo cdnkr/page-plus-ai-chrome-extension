@@ -1,4 +1,5 @@
 import { DEBUG_MODE } from '../config.js';
+import { BG_RGB, FG_RGB, PRIMARY_COLOR_HEX } from '../../config.js';
 
 export function getModelDownloadButtonHTML({
     dataKey,
@@ -17,11 +18,11 @@ export function getCircularDownloadProgressHTML({
     return `
 <div style="position:relative; width:${size}px; height:${size}px; display:inline-flex; align-items:center; justify-content:center; padding: 2px 8px;">
     <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-    <circle cx="${size / 2}" cy="${size / 2}" r="${r}" stroke="rgba(255, 255, 255, 0.5)" stroke-width="${stroke}" fill="none" />
-    <circle cx="${size / 2}" cy="${size / 2}" r="${r}" stroke="#fecf02" stroke-width="${stroke}" fill="none" stroke-linecap="round"
+    <circle cx="${size / 2}" cy="${size / 2}" r="${r}" stroke="rgba(${FG_RGB}, 0.5)" stroke-width="${stroke}" fill="none" />
+    <circle cx="${size / 2}" cy="${size / 2}" r="${r}" stroke="${PRIMARY_COLOR_HEX}" stroke-width="${stroke}" fill="none" stroke-linecap="round"
         stroke-dasharray="${c.toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}" transform="rotate(-90 ${size / 2} ${size / 2})" />
     </svg>
-    <div style="position:absolute; font-size:8px; color:#111827; font-weight:600;">${pct}%</div>
+    <div style="position:absolute; font-size:8px; color:rgba(${FG_RGB}, 0.9); font-weight:600;">${pct}%</div>
 </div>`;
 }
 
@@ -30,7 +31,7 @@ export function getDebugSelectHTML({
     state,
 }) {
     return `
-    <select class="debug-state" data-key="${key}" style="padding:4px 6px; border-radius:8px; border:1px solid rgba(255, 255, 255, 0.5); background:rgba(255, 255, 255, 0.05); font-size:12px;">
+    <select class="debug-state" data-key="${key}" style="padding:4px 6px; border-radius:8px; border:1px solid rgba(${FG_RGB}, 0.5); background:rgba(${FG_RGB}, 0.05); font-size:12px;">
         ${['default', 'available', 'downloadable', 'downloading', 'unavailable'].map(v => `<option value="${v}" ${((state || 'default') === v) ? 'selected' : ''}>${v}</option>`).join('')}
     </select>
 `;
@@ -51,7 +52,7 @@ export function getSettingsAPIRowHTML({
         ${icon}
         <div style="display:flex; flex-direction:column; gap:4px; max-width:260px;">
             <span>${label}</span>
-            <div style="font-size:12px; color:rgba(255, 255, 255, 0.7);">${description}</div>
+            <div style="font-size:12px; color:rgba(${FG_RGB}, 0.7);">${description}</div>
         </div>
     </div>
     <div style="display:flex; align-items:center; justify-content:flex-end; gap:8px;">${statusBadgeHTML} ${actionHTML}</div>
@@ -66,10 +67,10 @@ export function getSettingsViewHTML({
     return `
 <div style="display:flex; flex-direction:column; gap:16px;">
     <div>
-        <div style="font-weight:600; color:white; margin-bottom:8px;">${t('settings_api_availability')}</div>
-        <div style="font-size:12px; color:rgba(255, 255, 255, 0.7); margin-bottom:8px;">${t('settings_api_availability_description')}</div>
+        <div style="font-weight:600; color:rgba(${FG_RGB}, 1); margin-bottom:8px;">${t('settings_api_availability')}</div>
+        <div style="font-size:12px; color:rgba(${FG_RGB}, 0.7); margin-bottom:8px;">${t('settings_api_availability_description')}</div>
         ${apiRowsHTML}
-        <div style="margin-top:8px; font-size:12px; color:rgba(255, 255, 255, 0.7);">${t('settings_flags_help')}</div>
+        <div style="margin-top:8px; font-size:12px; color:rgba(${FG_RGB}, 0.7);">${t('settings_flags_help')}</div>
         <div style="display:flex; gap:8px; margin-top:8px;">
             <button class="ghost-btn" id="open-flags">
                 ${t('settings_open_flags')}
@@ -83,8 +84,8 @@ export function getSettingsViewHTML({
     </div>
 
     <div>
-        <div style="font-weight:600; color:rgba(255, 255, 255, 0.8); margin-bottom:8px;">${t('settings_language')}</div>
-        <select id="language-select" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255, 255, 255, 0.5); background:rgba(255, 255, 255, 0.05); color:rgba(255, 255, 255, 0.8); font-size:13px;">
+        <div style="font-weight:600; color:rgba(${FG_RGB}, 0.8); margin-bottom:8px;">${t('settings_language')}</div>
+        <select id="language-select" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(${FG_RGB}, 0.5); background:rgba(${FG_RGB}, 0.05); color:rgba(${FG_RGB}, 0.8); font-size:13px;">
             ${languageOptions}
         </select>
     </div>

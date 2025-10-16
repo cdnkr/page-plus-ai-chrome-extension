@@ -1,4 +1,4 @@
-import { BG_RGB, PRIMARY_COLOR_RGB } from '../../config.js';
+import { BG_RGB, FG_RGB, PRIMARY_COLOR_RGB } from '../../config.js';
 
 export const USER_MESSAGE_BG_HEX = "#2e2e2e";
 
@@ -66,7 +66,7 @@ button, .action-btn, .copy-color-btn {
     align-items: center;
     gap: 8px;
     font-size: 16px;
-    color: #ffffff;
+    color: rgba(${FG_RGB}, 1);
     margin: 0;
 }
 
@@ -75,7 +75,7 @@ button, .action-btn, .copy-color-btn {
     height: 32px;
     border-radius: 50%;
     border: none;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(${FG_RGB}, 0.5);
     background: rgba(${BG_RGB}, 0);
     cursor: pointer;
     display: flex;
@@ -89,8 +89,8 @@ button, .action-btn, .copy-color-btn {
 }
 
 .close-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 1);
+    background: rgba(${FG_RGB}, 0.1);
+    color: rgba(${FG_RGB}, 1);
 }
 
 .content {
@@ -98,6 +98,7 @@ button, .action-btn, .copy-color-btn {
     flex-direction: column;
     padding: 20px;
     max-height: 40vh;
+    background: rgba(${BG_RGB}, 1);
     overflow: auto;
 }
 
@@ -131,7 +132,7 @@ button, .action-btn, .copy-color-btn {
 
 .input-section {
     padding: 16px 12px 12px 18px;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(${FG_RGB}, 0.1);
     border-radius: 30px;
     box-sizing: border-box;
 }
@@ -150,7 +151,7 @@ button, .action-btn, .copy-color-btn {
     display: block;
     font-size: 14px;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(${FG_RGB}, 0.6);
     margin-bottom: 8px;
 }
 
@@ -163,12 +164,12 @@ button, .action-btn, .copy-color-btn {
     background: transparent !important;
     border: none !important;
     font-family: sans-serif !important;
-    color: #ffffff !important;
+    color: rgba(${FG_RGB}, 1) !important;
     cursor: text !important;
 }
 
 .input-field::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(${FG_RGB}, 0.6);
 }
 
 .submit-btn {
@@ -199,7 +200,7 @@ button, .action-btn, .copy-color-btn {
 }
 
 .submit-btn:disabled {
-    background: rgba(255, 255, 255, 0);
+    background: rgba(${FG_RGB}, 0);
     cursor: not-allowed;
     transform: none;
 }
@@ -215,7 +216,7 @@ button, .action-btn, .copy-color-btn {
     margin-top: 6px;
     padding: 1rem;
     border-radius: 20px;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(${FG_RGB}, 0.1);
 }
 
 .selected-text-context:has(div > img) {
@@ -227,20 +228,20 @@ button, .action-btn, .copy-color-btn {
     display: flex;
     align-items: flex-start;
     gap: 8px;
-    color: rgba(255, 255, 255, 1);
+    color: rgba(${FG_RGB}, 1);
     font-weight: 500;
 }
 
 .context-text .context-icon {
     flex-shrink: 0;
     margin-top: 2px;
-    color: rgba(255, 255, 255, 1);
+    color: rgba(${FG_RGB}, 1);
 }
 
 .context-text .context-icon svg {
     width: 20px;
     height: 20px;
-    stroke: rgba(255, 255, 255, 1);
+    stroke: rgba(${FG_RGB}, 1);
 }
 
 .context-text .context-content {
@@ -253,13 +254,13 @@ button, .action-btn, .copy-color-btn {
     border-radius: 12px;
     font-size: 14px;
     line-height: 1.6;
-    color: #ffffff;
+    color: rgba(${FG_RGB}, 1);
 }
 
 .response-content h1, 
 .response-content h2, 
 .response-content h3 {
-    color: #ffffff;
+    color: rgba(${FG_RGB}, 1);
     margin: 16px 0 8px 0;
 }
 
@@ -287,12 +288,12 @@ button, .action-btn, .copy-color-btn {
     border-left: 4px solid rgba(${PRIMARY_COLOR_RGB}, 1);
     padding-left: 16px;
     margin: 16px 0;
-    color: #ffffff;
+    color: rgba(${FG_RGB}, 1);
     font-style: italic;
 }
 
 .response-content code {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(${FG_RGB}, 0.1);
     color: rgba(${PRIMARY_COLOR_RGB}, 1);
     padding: 2px 6px;
     border-radius: 4px;
@@ -301,8 +302,8 @@ button, .action-btn, .copy-color-btn {
 }
 
 .response-content pre {
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(${BG_RGB}, 0.4);
+    border: 1px solid rgba(${FG_RGB}, 0.1);
     border-radius: 8px;
     padding: 16px;
     margin: 16px 0;
@@ -311,7 +312,7 @@ button, .action-btn, .copy-color-btn {
 
 .response-content pre code {
     background: transparent;
-    color: #ffffff;
+    color: rgba(${FG_RGB}, 1);
     padding: 0;
     border-radius: 0;
     display: block;
@@ -327,13 +328,13 @@ button, .action-btn, .copy-color-btn {
 
 .response-content th,
 .response-content td {
-    border: 1px solid #ffffff;
+    border: 1px solid rgba(${FG_RGB}, 1);
     padding: 8px 12px;
     text-align: left;
 }
 
 .response-content th {
-    background: #ffffff;
+    background: rgba(${FG_RGB}, 1);
     font-weight: 600;
 }
 
@@ -359,13 +360,13 @@ button, .action-btn, .copy-color-btn {
     align-items: center;
     justify-content: center;
     padding: 40px;
-    color: #ffffff;
+    color: rgba(${FG_RGB}, 1);
 }
 
 .loading-spinner {
     width: 20px;
     height: 20px;
-    border: 2px solid rgba(255, 255, 255, 0.5);
+    border: 2px solid rgba(${FG_RGB}, 0.5);
     border-top: 2px solid rgba(${PRIMARY_COLOR_RGB}, 1);
     border-radius: 50%;
     animation: spin 1s linear infinite;
@@ -384,7 +385,7 @@ button, .action-btn, .copy-color-btn {
 .action-btn {
     padding: 10px;
     border-radius: 50%;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(${FG_RGB}, 0.5);
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
@@ -398,8 +399,8 @@ button, .action-btn, .copy-color-btn {
 }
 
 .action-btn:hover {
-    color: rgba(255, 255, 255, 1);
-    background: rgba(255, 255, 255, 0.1) !important;
+    color: rgba(${FG_RGB}, 1);
+    background: rgba(${FG_RGB}, 0.1) !important;
 }
 
 .action-btn.primary {
@@ -432,7 +433,7 @@ button, .action-btn, .copy-color-btn {
     border: none !important;
     cursor: pointer !important;
     padding: 8px 12px !important;
-    color: #ffffff !important;
+    color: rgba(${FG_RGB}, 1) !important;
     font-size: 14px !important;
     font-weight: 500 !important;
     border-radius: 11px !important;
@@ -444,7 +445,7 @@ button, .action-btn, .copy-color-btn {
 }
 
 .ghost-btn:hover {
-    background: rgba(255, 255, 255, 0.1) !important;
+    background: rgba(${FG_RGB}, 0.1) !important;
 }
 
 /* Voice ghost button */
@@ -493,8 +494,8 @@ button, .action-btn, .copy-color-btn {
 }
 
 .user-message .message-content {
-    background: ${USER_MESSAGE_BG_HEX};
-    color: white;
+    background: rgba(${FG_RGB}, 0.1);
+    color: rgba(${FG_RGB}, 1);
     padding: 12px 16px;
     border-radius: 18px 18px 4px 18px;
     font-size: 14px;
@@ -508,7 +509,7 @@ button, .action-btn, .copy-color-btn {
 }
 
 .ai-message .message-content {
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(${FG_RGB}, 0.8);
     font-size: 14px;
     line-height: 1.4;
     word-wrap: break-word;
@@ -532,7 +533,7 @@ button, .action-btn, .copy-color-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(${FG_RGB}, 0.5);
 }
 
 .message-action-btn, .message-action-btn svg, .message-action-btn path {
@@ -540,8 +541,8 @@ button, .action-btn, .copy-color-btn {
 }
 
 .message-action-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #ffffff;
+    background: rgba(${FG_RGB}, 0.1);
+    color: rgba(${FG_RGB}, 1);
 }
 
 .message-content h1, 
@@ -579,7 +580,7 @@ button, .action-btn, .copy-color-btn {
 }
 
 .message-content code {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(${FG_RGB}, 0.1);
     color: rgba(${PRIMARY_COLOR_RGB}, 1);
     padding: 2px 6px;
     border-radius: 4px;
@@ -588,7 +589,7 @@ button, .action-btn, .copy-color-btn {
 }
 
 .message-content pre {
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(${BG_RGB}, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
     padding: 16px;
@@ -599,7 +600,7 @@ button, .action-btn, .copy-color-btn {
 .message-content pre code {
     background: transparent;
     color: rgba(${PRIMARY_COLOR_RGB}, 1);
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(${BG_RGB}, 0.4);
     padding: 0;
     border-radius: 0;
     display: block;
@@ -622,7 +623,7 @@ button, .action-btn, .copy-color-btn {
 }
 
 .message-content th {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(${FG_RGB}, 0.05);
     font-weight: 600;
 }
 
@@ -655,7 +656,7 @@ button, .action-btn, .copy-color-btn {
     height: 60px;
     border-radius: 14px;
     margin-bottom: 8px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(${BG_RGB}, 0.1);
 }
 
 .color-info {
@@ -666,14 +667,14 @@ button, .action-btn, .copy-color-btn {
     font-family: monospace;
     font-size: 12px;
     font-weight: 600;
-    color: #ffffff;
+    color: rgba(${FG_RGB}, 1);
     margin-bottom: 2px;
 }
 
 .color-rgb {
     font-family: monospace;
     font-size: 10px;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(${FG_RGB}, 0.6);
 }
 
 .copy-color-btn {
@@ -687,17 +688,17 @@ button, .action-btn, .copy-color-btn {
     justify-content: center;
     opacity: 0.7;
     border: none;
-    background: rgba(0, 0, 0, 0);
+    background: rgba(${BG_RGB}, 0);
 }
 
 .copy-color-btn svg, .copy-color-btn path {
     cursor: pointer;
-    color: rgba(255, 255, 255, 0.5) !important;
+    color: rgba(${FG_RGB}, 0.5) !important;
 }
 
 .copy-color-btn:hover {
     opacity: 1;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(${FG_RGB}, 0.1);
 }
 
 .colors-grid {
@@ -731,12 +732,12 @@ button, .action-btn, .copy-color-btn {
 
 .history-sidebar {
     width: 240px;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    border-right: 1px solid rgba(${FG_RGB}, 0.1);
     max-height: 40vh;
     overflow-y: auto;
     padding: 12px;
     padding-top: 20px;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(${BG_RGB}, 0.3);
 }
 
 .history-sidebar::-webkit-scrollbar {
@@ -748,7 +749,7 @@ button, .action-btn, .copy-color-btn {
 }
 
 .history-sidebar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(${FG_RGB}, 0.2);
     border-radius: 3px;
 }
 
@@ -758,11 +759,11 @@ button, .action-btn, .copy-color-btn {
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.2s ease;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(${FG_RGB}, 0.05);
 }
 
 .history-item:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(${FG_RGB}, 0.1);
 }
 
 .history-item.active {
@@ -772,7 +773,7 @@ button, .action-btn, .copy-color-btn {
 .history-item-title {
     font-size: 13px;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.9);
+    color: rgba(${FG_RGB}, 0.9);
     margin-bottom: 4px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -781,7 +782,7 @@ button, .action-btn, .copy-color-btn {
 
 .history-item-date {
     font-size: 11px;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(${FG_RGB}, 0.5);
 }
 
 .history-main {
@@ -796,7 +797,7 @@ button, .action-btn, .copy-color-btn {
     align-items: center;
     justify-content: center;
     height: 100%;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(${FG_RGB}, 0.5);
     font-size: 14px;
 }
 
@@ -817,9 +818,9 @@ export const notificationCSS = `
     position: fixed;
     top: 20px;
     right: 20px;
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(${BG_RGB}, 0.9);
     backdrop-filter: blur(10px);
-    color: #ffffff;
+    color: rgba(${FG_RGB}, 1);
     padding: 12px 20px;
     border-radius: 50px;
     z-index: 10002;

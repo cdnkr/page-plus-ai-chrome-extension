@@ -18,6 +18,7 @@ import { getErrorMessageHTML } from './templates/html-tamplates.js';
 import { notificationCSS } from './styles/css-constants.js';
 import { parseMarkdownToHTML } from '../utils/markdown-parser.js';
 import { submitBtnHTML } from './templates/html-tamplates.js';
+import { DARK_MODE } from '../config.js';
 
 export class PopoverAI {
     constructor(action, selectedText, position, selectionRange, selectionType = 'text') {
@@ -338,7 +339,7 @@ export class PopoverAI {
                 this.colorAnalyzer.startColorAnalysis(this.selectedText);
                 break;
             case 'settings':
-                this.headerTitle.innerHTML = `<div class="header-logo"><img src="${chrome.runtime.getURL('icons/logo.png')}" alt="Logo"></div>`;
+                this.headerTitle.innerHTML = `<div class="header-logo"><img src="${chrome.runtime.getURL(`icons/logo_${DARK_MODE ? 'dark' : 'light'}.png`)}" alt="Logo"></div>`;
                 this.inputSection.classList.add('hidden');
                 this.selectedTextContext.style.display = 'none';
                 this.actionButtons.style.display = 'none';
@@ -375,7 +376,7 @@ export class PopoverAI {
         this.submitBtn.disabled = true;
         this.submitBtn.innerHTML = `<div id="orbital"></div>`;
 
-        createPulsingShape(this.submitBtn.querySelector('#orbital'), 40, 'circle', true);
+        createPulsingShape(this.submitBtn.querySelector('#orbital'), 40, 'grid', true);
 
         try {
             switch (actionToHandle) {
@@ -453,7 +454,7 @@ export class PopoverAI {
             <div id="orbital-loading"></div>
         </div>`;
 
-        createPulsingShape(this.responseContent.querySelector('#orbital-loading'), 40, 'circle', true);
+        createPulsingShape(this.responseContent.querySelector('#orbital-loading'), 40, 'grid', true);
     }
 
     showError(message) {

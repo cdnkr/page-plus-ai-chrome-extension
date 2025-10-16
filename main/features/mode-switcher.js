@@ -116,7 +116,7 @@ export class ModeSwitcher {
     document.body.appendChild(this.modeSwitcher);
 
     // Create home button animation
-    this.homeButtonPulse = createPulsingShape(homeButton, 40, 'circle');
+    this.homeButtonPulse = createPulsingShape(homeButton, 40, 'grid');
 
     // Setup first-time user experience
     this.setupFirstTimeUse();

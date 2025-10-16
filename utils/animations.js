@@ -136,7 +136,7 @@ export function createPulsingShape(element, size = 40, shape = 'grid', autoStart
 
             ctx.beginPath();
             ctx.arc(dot.x, dot.y, radius, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(254, 207, 2, ${opacity})`;
+            ctx.fillStyle = `rgba(${PRIMARY_COLOR_RGB}, ${opacity})`;
             ctx.fill();
         });
 
