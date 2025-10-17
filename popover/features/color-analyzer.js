@@ -64,9 +64,9 @@ export class ColorAnalyzer {
                         if (a < 128) continue;
 
                         // Quantize colors to reduce noise
-                        const quantizedR = Math.round(r / 32) * 32;
-                        const quantizedG = Math.round(g / 32) * 32;
-                        const quantizedB = Math.round(b / 32) * 32;
+                        const quantizedR = Math.min(255, Math.max(0, Math.round(r / 32) * 32));
+                        const quantizedG = Math.min(255, Math.max(0, Math.round(g / 32) * 32));
+                        const quantizedB = Math.min(255, Math.max(0, Math.round(b / 32) * 32));
 
                         const colorKey = `${quantizedR},${quantizedG},${quantizedB}`;
                         colorCounts.set(colorKey, (colorCounts.get(colorKey) || 0) + 1);
@@ -101,7 +101,11 @@ export class ColorAnalyzer {
     }
 
     rgbToHex(r, g, b) {
-        return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        const toHex = (n) => {
+            const hex = Math.round(n).toString(16);
+            return hex.length === 1 ? '0' + hex : hex;
+        };
+        return "#" + toHex(r) + toHex(g) + toHex(b);
     }
 
     displayColors(colors) {
