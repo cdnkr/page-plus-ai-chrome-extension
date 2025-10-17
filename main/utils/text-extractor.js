@@ -6,20 +6,55 @@ export function extractStructuredTextWithLinks(html) {
         const segments = [];
         if (node.nodeType === Node.TEXT_NODE) {
             const text = node.textContent?.trim();
-            if (text) segments.push({ type: 'text', content: text });
+            if (text && !segments.some(seg => seg.type === 'text' && seg.content === text)) {
+                segments.push({ type: 'text', content: text });
+            }
             return segments;
         }
         if (node.nodeType === Node.ELEMENT_NODE) {
             const el = node;
             const tagName = el.tagName.toLowerCase();
-            if (tagName === 'style' || tagName === 'script' || tagName === 'noscript' || tagName === 'meta' || tagName === 'link') {
+            
+            // Skip elements we don't want to process at all
+            if (tagName === 'style' || tagName === 'script' || tagName === 'noscript' || 
+                tagName === 'meta' || tagName === 'link' || tagName === 'header' || 
+                tagName === 'nav' || tagName === 'footer') {
+                return segments;
+            }
+            
+            // Only process specific elements we care about
+            const allowedElements = ['p', 'li', 'label', 'span', 'a', 'figcaption', 'h1', 'h2', 'h3', 'h4', 'h5'];
+            if (!allowedElements.includes(tagName)) {
+                // For elements we don't care about, just process their children
+                for (const child of Array.from(el.childNodes)) {
+                    segments.push(...traverse(child));
+                }
                 return segments;
             }
             if (tagName === 'a') {
-                const hrefAttr = el.getAttribute('href') || '';
-                const href = hrefAttr.startsWith('/') ? origin + hrefAttr : hrefAttr;
+                const hrefAttr = el.getAttribute('href');
+                if (!hrefAttr) {
+                    // Skip anchor tags without href
+                    for (const child of Array.from(el.childNodes)) {
+                        segments.push(...traverse(child));
+                    }
+                    return segments;
+                }
+                
+                // Remove search params from href
+                const url = new URL(hrefAttr.startsWith('/') ? origin + hrefAttr : hrefAttr, origin);
+                url.search = '';
+                const href = url.toString();
                 const text = el.textContent?.trim() || '';
-                segments.push({ type: 'link', text, href });
+                
+                // Check for exact matches on text or href
+                const hasExactMatch = segments.some(seg => 
+                    (seg.type === 'link' && (seg.text === text || seg.href === href))
+                );
+                
+                if (!hasExactMatch) {
+                    segments.push({ type: 'link', text, href });
+                }
                 return segments;
             }
             for (const child of Array.from(el.childNodes)) {
@@ -32,7 +67,7 @@ export function extractStructuredTextWithLinks(html) {
 }
 
 export function segmentsToMarkdown(segments) {
-    const limit = 2000;
+    const limit = 8000;
     // Simple joiner: links -> [text](href), text -> content; keep spacing
     const parts = [];
     for (const seg of segments) {
@@ -43,7 +78,7 @@ export function segmentsToMarkdown(segments) {
             parts.push(seg.content);
         }
     }
-    const response = parts.join(' ').replace(/\s{2,}/g, ' ').trim();
+    const response = parts.join('\n').replace(/\s{2,}/g, ' ').trim();
 
     console.log('response length', response.length)
 
