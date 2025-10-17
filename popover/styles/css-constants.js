@@ -192,6 +192,7 @@ button, .action-btn, .copy-color-btn {
 
 .submit-btn, .submit-btn svg, .submit-btn path {
     cursor: pointer !important;
+    color: rgba(${BG_RGB}, 1) !important;
 }
 
 .submit-btn:hover:not(:disabled) {
@@ -216,7 +217,9 @@ button, .action-btn, .copy-color-btn {
     margin-top: 6px;
     padding: 1rem;
     border-radius: 20px;
-    background: rgba(${FG_RGB}, 0.1);
+    border: 1px solid rgba(${FG_RGB}, 0.2);
+    line-height: 1.4;
+    color: rgba(${FG_RGB}, 0.8);
 }
 
 .selected-text-context:has(div > img) {
@@ -252,10 +255,10 @@ button, .action-btn, .copy-color-btn {
 /* History context styles */
 .history-context {
     margin-bottom: 16px;
-    padding: 12px 16px;
+    padding: 1rem;
     background: rgba(${BG_RGB}, 0.3);
-    border-radius: 12px;
-    border: 1px solid rgba(${FG_RGB}, 0.1);
+    border-radius: 20px;
+    border: 1px solid rgba(${FG_RGB}, 0.2);
     display: flex;
     align-items: flex-start;
     gap: 8px;
