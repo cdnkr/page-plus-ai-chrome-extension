@@ -6,7 +6,7 @@
 // export const PRIMARY_COLOR_HEX = "#2080e0";
 // export const PRIMARY_COLOR_RGB = "32, 128, 224";
 
-export const DARK_MODE = true;
+export const DARK_MODE = false;
 
 export const BG_RGB = DARK_MODE ? "0, 0, 0" : "255, 255, 255";
 export const FG_RGB = DARK_MODE ? "255, 255, 255" : "0, 0, 0";
