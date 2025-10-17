@@ -249,6 +249,43 @@ button, .action-btn, .copy-color-btn {
     min-width: 0;
 }
 
+/* History context styles */
+.history-context {
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    background: rgba(${BG_RGB}, 0.3);
+    border-radius: 12px;
+    border: 1px solid rgba(${FG_RGB}, 0.1);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    color: rgba(${FG_RGB}, 0.8);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.history-context .context-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    color: rgba(${FG_RGB}, 0.7);
+}
+
+.history-context .context-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: rgba(${FG_RGB}, 0.7);
+}
+
+.history-context .context-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.history-context .context-text {
+    color: rgba(${FG_RGB}, 0.8);
+    font-weight: 500;
+}
+
 .response-content {
     padding: 0;
     border-radius: 12px;
@@ -446,6 +483,10 @@ button, .action-btn, .copy-color-btn {
 
 .ghost-btn:hover {
     background: rgba(${FG_RGB}, 0.1) !important;
+}
+
+.popover-container a:hover {
+    cursor: pointer !important;
 }
 
 /* Voice ghost button */

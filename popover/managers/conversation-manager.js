@@ -14,6 +14,7 @@ import {
     getMessageActionButtonsHTML,
     getMessageContentHTML
 } from '../templates/conversation-templates.js';
+import { FG_RGB, SELECTION_COLOR_HEX } from '../../config.js';
 
 export class ConversationManager {
     constructor(popover) {
@@ -52,10 +53,24 @@ export class ConversationManager {
             console.log('Loading conversation history for session:', sessionId);
             const result = await chrome.storage.local.get([sessionId]);
             if (result[sessionId]) {
-                this.popover.conversationHistory = result[sessionId];
+                const sessionData = result[sessionId];
+
+                // Handle both old format (array) and new format (object with conversation array)
+                if (Array.isArray(sessionData)) {
+                    // Old format - convert to new format
+                    this.popover.conversationHistory = sessionData;
+                    console.log('Loaded conversation history (old format):', this.popover.conversationHistory);
+                } else if (sessionData.conversation && Array.isArray(sessionData.conversation)) {
+                    // New format - extract conversation array
+                    this.popover.conversationHistory = sessionData.conversation;
+                    console.log('Loaded conversation history (new format):', this.popover.conversationHistory);
+                } else {
+                    console.log('Invalid session data format for session:', sessionId);
+                    this.popover.conversationHistory = [];
+                }
+
                 this.popover.isHistoryLoaded = true;
                 this.displayConversationHistory();
-                console.log('Loaded conversation history:', this.popover.conversationHistory);
             } else {
                 console.log('No existing conversation history found for session:', sessionId);
             }
@@ -66,10 +81,20 @@ export class ConversationManager {
 
     async saveConversationHistory(sessionId, history) {
         try {
+            // Create new session format
+            const sessionData = {
+                mode: this.popover.selectionType, // "text" | "drag" | "page"
+                action: this.popover.action, // "ask" | "summarize" | "write"
+                selectedText: this.popover.selectedText, // can be null for images
+                url: window.location.href, // current page URL
+                timestamp: Date.now(), // timestamp of session start
+                conversation: history
+            };
+
             await chrome.storage.local.set({
-                [sessionId]: history
+                [sessionId]: sessionData
             });
-            console.log('Saved conversation history:', history);
+            console.log('Saved conversation history:', sessionData);
         } catch (error) {
             console.error('Failed to save conversation history:', error);
         }
@@ -115,19 +140,44 @@ export class ConversationManager {
                     // Parse session info from key
                     const parts = key.split('_');
                     const action = parts[1]; // prompt, write, etc.
-                    
-                    // Get the first message for the title
+
+                    let sessionInfo = null;
+
+                    // Handle both old format (array) and new format (object)
                     if (Array.isArray(value) && value.length > 0) {
+                        // Old format - array of conversation entries
                         const firstEntry = value[0];
                         const timestamp = firstEntry.timestamp || Date.now();
-                        
-                        sessions.push({
+
+                        sessionInfo = {
                             sessionId: key,
                             action: action,
                             title: firstEntry.user?.substring(0, 50) || 'Untitled conversation',
                             timestamp: timestamp,
-                            entries: value
-                        });
+                            entries: value,
+                            sessionData: null // No session data for old format
+                        };
+                    } else if (value && value.conversation && Array.isArray(value.conversation) && value.conversation.length > 0) {
+                        // New format - object with conversation array
+                        const firstEntry = value.conversation[0];
+                        const timestamp = value.timestamp || firstEntry.timestamp || Date.now();
+
+                        sessionInfo = {
+                            sessionId: key,
+                            action: value.action || action,
+                            title: firstEntry.user?.substring(0, 50) || 'Untitled conversation',
+                            timestamp: timestamp,
+                            entries: value.conversation,
+                            sessionData: {
+                                mode: value.mode,
+                                action: value.action,
+                                selectedText: value.selectedText
+                            }
+                        };
+                    }
+
+                    if (sessionInfo) {
+                        sessions.push(sessionInfo);
                     }
                 }
             }
@@ -143,7 +193,7 @@ export class ConversationManager {
                 sidebarHTML = sessions.map((session, index) => {
                     const date = new Date(session.timestamp);
                     const dateStr = this.formatHistoryDate(date);
-                    
+
                     return getHistoryItemHTML({
                         sessionId: session.sessionId,
                         title: session.title,
@@ -160,16 +210,16 @@ export class ConversationManager {
                 this.popover.currentHistorySession = activeSession;
                 this.popover.sessionId = activeSession.sessionId;
                 this.popover.conversationHistory = activeSession.entries;
-                
+
                 // Preserve the original action type from the session for handling new messages
                 this.popover.originalAction = activeSession.action;
                 this.popover.isHistoryMode = true;
-                
+
                 // Build conversation HTML
                 mainHTML = `
                     <div class="history-content">
                         <div class="conversation-history" id="conversation-history" style="display: block;">
-                            ${this.buildHistoryConversationHTML(activeSession.entries)}
+                            ${this.buildHistoryConversationHTML(activeSession.entries, activeSession.sessionData)}
                         </div>
                     </div>`;
             } else {
@@ -208,15 +258,78 @@ export class ConversationManager {
         if (minutes < 60) return `${minutes}m ago`;
         if (hours < 24) return `${hours}h ago`;
         if (days < 7) return `${days}d ago`;
-        
+
         return date.toLocaleDateString();
     }
 
-    buildHistoryConversationHTML(entries) {
-        return entries.map(entry => {
+    buildHistoryConversationHTML(entries, sessionData = null) {
+        // Build context section if session data is available
+        let contextHTML = '';
+        if (sessionData) {
+            if (sessionData.mode === 'dragbox') {
+                // Image context - show info text
+                contextHTML = `
+                    <div class="history-context">
+                        <div class="context-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image-icon lucide-image">
+                                <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+                                <circle cx="9" cy="9" r="2"/>
+                                <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                            </svg>
+                        </div>
+                        <div class="context-content">
+                            <span class="context-text">We don't store images due to space constraints</span>
+                        </div>
+                    </div>
+                `;
+            } else if (sessionData.mode === 'page') {
+                // Page context - show page icon and URL
+                const pageIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text-icon lucide-file-text"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>`;
+                const pageText = sessionData.selectedText ?
+                    (sessionData.selectedText.length > 200 ? sessionData.selectedText.slice(0, 200) + '...' : sessionData.selectedText) :
+                    `${window.location.host}${window.location.pathname}` || 'Current Page';
+                const url = sessionData.url || window.location.href;
+                contextHTML = `
+                    <div class="history-context">
+                        <div class="context-icon">${pageIcon}</div>
+                        <div class="context-content">
+                            <a href="${this.escapeHtml(url)}" target="_blank" rel="noopener noreferrer">
+                                ${this.escapeHtml(url?.replace(/^https?:\/\//, ''))}
+                            </a>
+
+                            <p style="color: rgba(${FG_RGB}, 0.6);">
+                                ${this.escapeHtml(pageText)}
+                            </p>
+                        </div>
+                    </div>
+                `;
+            } else if (sessionData.mode === 'text' && sessionData.selectedText) {
+                // Text selection - show text icon and snippet
+                const textIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-italic-icon lucide-italic"><line x1="19" x2="10" y1="4" y2="4"/><line x1="14" x2="5" y1="20" y2="20"/><line x1="15" x2="9" y1="4" y2="20"/></svg>`;
+                const textContent = sessionData.selectedText.length > 200 ? sessionData.selectedText.slice(0, 200) + '...' : sessionData.selectedText;
+                const url = sessionData.url || window.location.href;
+                contextHTML = `
+                    <div class="history-context">
+                        <div class="context-icon">${textIcon}</div>
+                        <div class="context-content">
+                            <a href="${this.escapeHtml(url)}" target="_blank" rel="noopener noreferrer">
+                                ${this.escapeHtml(url?.replace(/^https?:\/\//, ''))}
+                            </a>
+
+                            <p style="color: rgba(${FG_RGB}, 0.6);">
+                                ${this.escapeHtml(textContent)}
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Build conversation entries
+        const conversationHTML = entries.map(entry => {
             const userContent = this.escapeHtml(entry.user);
             const aiContent = this.isHtmlContent(entry.ai) ? entry.ai : parseMarkdownToHTML(entry.ai);
-            
+
             return `
                 <div class="message user-message">
                     <div class="message-content">${userContent}</div>
@@ -225,27 +338,29 @@ export class ConversationManager {
                     <div class="message-content">${aiContent}</div>
                     <div class="message-actions">
                         ${getMessageActionButtonsHTML({
-                            content: this.escapeHtml(this.stripHtml(entry.ai))
-                        })}
+                content: this.escapeHtml(this.stripHtml(entry.ai))
+            })}
                     </div>
                 </div>
             `;
         }).join('');
+
+        return contextHTML + conversationHTML;
     }
 
     setupHistoryItemClickHandlers(sessions) {
         const historyItems = this.shadowRoot.querySelectorAll('.history-item');
-        
+
         historyItems.forEach((item, index) => {
             item.addEventListener('click', (e) => {
                 e.stopPropagation();
-                
+
                 // Remove active class from all items
                 historyItems.forEach(i => i.classList.remove('active'));
-                
+
                 // Add active class to clicked item
                 item.classList.add('active');
-                
+
                 // Load the selected session
                 const session = sessions[index];
                 this.loadHistorySession(session);
@@ -257,7 +372,7 @@ export class ConversationManager {
         this.popover.currentHistorySession = session;
         this.popover.sessionId = session.sessionId;
         this.popover.conversationHistory = session.entries;
-        
+
         // Preserve the original action type from the session for handling new messages
         this.popover.originalAction = session.action;
         this.popover.isHistoryMode = true;
@@ -268,10 +383,10 @@ export class ConversationManager {
             historyMain.innerHTML = `
                 <div class="history-content">
                     <div class="conversation-history" id="conversation-history" style="display: block;">
-                        ${this.buildHistoryConversationHTML(session.entries)}
+                        ${this.buildHistoryConversationHTML(session.entries, session.sessionData)}
                     </div>
                 </div>`;
-            
+
             // Re-setup action buttons for the new conversation
             this.setupHistoryActionButtons();
         }
@@ -311,7 +426,7 @@ export class ConversationManager {
             // Regular mode - use the base conversation-history in .content
             historyContainer = this.shadowRoot.querySelector('.content #conversation-history');
         }
-        
+
         if (!historyContainer) {
             console.warn('addUserMessageToHistory: conversation-history container not found', {
                 action: this.popover.action,
@@ -320,9 +435,9 @@ export class ConversationManager {
             return;
         }
 
-        console.log('addUserMessageToHistory: Adding message to history', { 
-            userMessage, 
-            sessionId: this.popover.sessionId 
+        console.log('addUserMessageToHistory: Adding message to history', {
+            userMessage,
+            sessionId: this.popover.sessionId
         });
 
         // Store the current user message for later use
@@ -368,7 +483,7 @@ export class ConversationManager {
             // Regular mode - use the base conversation-history in .content
             historyContainer = this.shadowRoot.querySelector('.content #conversation-history');
         }
-        
+
         if (!historyContainer) {
             console.warn('updateStreamingResponse: conversation-history container not found', {
                 action: this.popover.action,
@@ -398,13 +513,13 @@ export class ConversationManager {
     finalizeAiMessage() {
         // Remove the streaming class and add to conversation history
         const currentAiMessage = this.shadowRoot.querySelector('.ai-message.current-streaming');
-        console.log('finalizeAiMessage called', { 
-            currentAiMessage: !!currentAiMessage, 
+        console.log('finalizeAiMessage called', {
+            currentAiMessage: !!currentAiMessage,
             currentUserMessage: this.popover.currentUserMessage,
             sessionId: this.popover.sessionId,
             conversationHistoryLength: this.popover.conversationHistory.length
         });
-        
+
         if (currentAiMessage && this.popover.currentUserMessage) {
             currentAiMessage.classList.remove('current-streaming');
 
@@ -471,12 +586,12 @@ export class ConversationManager {
             const conversationHistory = this.shadowRoot.querySelector('.content #conversation-history');
             actionButtons = conversationHistory ? conversationHistory.querySelectorAll('.message-action-btn') : [];
         }
-        
+
         actionButtons.forEach(btn => {
             // Remove any existing listeners to avoid duplicates
             const newBtn = btn.cloneNode(true);
             btn.parentNode.replaceChild(newBtn, btn);
-            
+
             newBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const action = newBtn.getAttribute('data-action');
