@@ -135,9 +135,10 @@ export class ModeSwitcher {
     homeButton.innerHTML = `<div id="home-button" class="home-button"></div>`;
     homeButton.addEventListener('click', () => {
       if (this.homeButtonPulse) {
-        this.homeButtonPulse.start(300);
+        this.toggleActionButtons();
+
         setTimeout(() => {
-          this.toggleActionButtons();
+          // this.homeButtonPulse.start(300);
           this.onHomeButtonClick();
         }, 300);
       }
