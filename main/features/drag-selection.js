@@ -16,6 +16,7 @@ export class DragSelectionHandler {
     this.isDragging = false;
     this.dragBoxContainer = null;
     this.dragBoxShadowRoot = null;
+    this.fullPageOverlay = null;
 
     // Configuration
     this.positionManager = config.positionManager;
@@ -49,6 +50,7 @@ export class DragSelectionHandler {
     this.dragStart = { x: event.clientX, y: event.clientY };
     this.dragEnd = { x: event.clientX, y: event.clientY };
 
+    this.createFullPageOverlay();
     this.createDragBox();
     
     // Notify parent
@@ -97,6 +99,8 @@ export class DragSelectionHandler {
         width,
         height
       };
+
+      this.hideFullPageOverlay();
 
       // Notify parent
       this.onDragComplete(dragData);
@@ -196,6 +200,27 @@ export class DragSelectionHandler {
       this.dragBoxContainer = null;
       this.dragBox = null;
       this.dragBoxShadowRoot = null;
+    }
+  }
+
+  createFullPageOverlay() {
+    this.fullPageOverlay = document.createElement('div');
+    this.fullPageOverlay.className = 'selection-ai-full-page-overlay';
+    this.fullPageOverlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0);
+    `;
+    document.body.appendChild(this.fullPageOverlay);
+  }
+
+  hideFullPageOverlay() {
+    if (this.fullPageOverlay) {
+      this.fullPageOverlay.remove();
+      this.fullPageOverlay = null;
     }
   }
 
