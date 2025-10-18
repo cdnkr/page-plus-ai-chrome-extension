@@ -28,6 +28,9 @@ export class GoogleNanoManager {
             // Build Prompt API options with languages per docs
             const promptOptions = this.popover.selectionType === 'dragbox'
                 ? {
+                    initialPrompts: [
+                        { role: 'system', content: `You are website content analyzer on the website: ${window.location.host}. You are given a screenshot from the web page: ${window.location.host}/${window.location.pathname} and a user question. Understand the users question and provide a clear answer. Response must be in html format.` },
+                    ],
                     expectedInputs: [
                         { type: 'image' },
                         { type: 'text', languages: [baseLang] }
@@ -37,6 +40,9 @@ export class GoogleNanoManager {
                     ]
                 }
                 : {
+                    initialPrompts: [
+                        { role: 'system', content: `You are website content analyzer on the website: ${window.location.host}. You are given selected text from the web page: ${window.location.host}/${window.location.pathname} and a user question. Understand the users question and provide a clear answer. Response must be in html format.` },
+                    ],
                     expectedInputs: [
                         { type: 'text', languages: [baseLang] }
                     ],
