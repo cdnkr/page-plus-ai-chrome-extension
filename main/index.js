@@ -260,9 +260,6 @@ export class SelectionAI {
     // Hide drag box when popover is closed
     this.hideDragBox();
 
-    this.closePopover();
-    this.actionButtons.hideButtons();
-
     // Reset state to allow new selections
     this.selectionRange = null;
     this.selectedText = '';
