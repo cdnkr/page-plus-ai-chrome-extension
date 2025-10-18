@@ -126,8 +126,8 @@ export const modeSwitcherRootCSS = `
   }
   
   .mode-btn.active {
-    background: rgba(${FG_RGB}, 0.07);
-    color: rgba(${FG_RGB}, 1);
+    background: rgba(${FG_RGB}, 1);
+    color: rgba(${BG_RGB}, 1);
   }
   
   .mode-btn:hover:not(.active) {
@@ -181,15 +181,6 @@ export const cursorCSS = `
   
   [class*="selection-ai"] * {
     cursor: default !important;
-  }
-
-  ::selection {
-    background-color: ${SELECTION_COLOR_HEX} !important;
-    color: black !important;
-  }
-  ::-moz-selection {
-    background-color: ${SELECTION_COLOR_HEX} !important;
-    color: black !important;
   }
 `;
 
