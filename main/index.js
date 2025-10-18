@@ -242,6 +242,9 @@ export class SelectionAI {
 
   handleKeydown(event) {
     if (event.key === 'Escape') {
+      // Deactivates current mode
+      this.modeSwitcherComponent.toggleMode(null);
+
       this.closePopover();
       this.actionButtons.hideButtons();
     }
@@ -370,7 +373,8 @@ export class SelectionAI {
   handleDragStart(event) {
     const started = this.dragSelection.handleDragStart(event);
     if (started) {
-    event.preventDefault();
+      event.stopPropagation();
+      event.preventDefault();
     }
   }
 
@@ -384,8 +388,9 @@ export class SelectionAI {
   handleDragEnd(event) {
     const dragData = this.dragSelection.handleDragEnd(event);
     if (dragData) {
-    event.preventDefault();
-  }
+      event.stopPropagation();
+      event.preventDefault();
+    }
   }
 
   hideDragBox() {
