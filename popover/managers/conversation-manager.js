@@ -504,7 +504,20 @@ export class ConversationManager {
 
         // Update the content with parsed markdown
         const messageContent = currentAiMessage.querySelector('.message-content');
-        messageContent.innerHTML = parseMarkdownToHTML(text);
+        
+        text = text.replace(/```html/g, '');
+        text = text.replace(/```/g, '');
+
+        if (this.isHtmlContent(text)) {
+            text = text.replace(/<html>/g, '');
+            text = text.replace(/<\/html>/g, '');
+            text = text.replace(/<body>/g, '');
+            text = text.replace(/<\/body>/g, '');
+    
+            messageContent.innerHTML = text;    
+        } else {
+            messageContent.innerHTML = parseMarkdownToHTML(text);
+        }
 
         // Show the conversation history
         historyContainer.style.display = 'block';
