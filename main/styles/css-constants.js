@@ -225,7 +225,7 @@ export const modeSwitcherRootCSS = `
 
   .mode-tooltip-action {
     font-size: 11px;
-    color: rgba(${FG_RGB}, 0.5);
+    color: rgba(${PRIMARY_COLOR_RGB}, 0.8);
     font-style: italic;
   }
 
