@@ -91,11 +91,6 @@ export class PopoverManager {
     console.log('Selection range:', selectionRange);
     console.log('Calculated position:', position);
 
-    // Apply selection highlighting (not needed for settings)
-    if (action !== 'settings') {
-      this.highlightSelection();
-    }
-
     // Wait for PopoverAI to be loaded
     const isLoaded = await this.waitForModule();
     
