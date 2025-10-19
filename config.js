@@ -26,4 +26,4 @@ export const FG_RGB = DARK_MODE ? "255, 255, 255" : "0, 0, 0";
 export const PRIMARY_COLOR_HEX = DARK_MODE ? "#cdff03" : "#2400ff";
 export const PRIMARY_COLOR_RGB = DARK_MODE ? "205, 255, 3" : "36, 0, 255";
 
-export const SELECTION_COLOR_HEX = DARK_MODE ? "#cdff03" : "#2400ff";
+export const SELECTION_COLOR_HEX = DARK_MODE ? "#b0dc00" : "#2400ff";

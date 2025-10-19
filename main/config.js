@@ -6,7 +6,7 @@ export const BUTTON_TIMEOUT = 3000;
 export const MIN_DRAG_SIZE = 20;
 
 // Screenshot
-export const SCREENSHOT_BORDER_OFFSET = 3;
+export const SCREENSHOT_BORDER_OFFSET = 5;
 
 // Text extraction
 export const MARKDOWN_LIMIT = 4000;

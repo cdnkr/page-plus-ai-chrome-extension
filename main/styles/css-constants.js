@@ -292,7 +292,7 @@ export const dragBoxContainerCSS = `
 export const dragBoxCSS = `
   .drag-box {
     position: absolute;
-    border: 2px dashed ${SELECTION_COLOR_HEX};
+    border: 4px dashed ${SELECTION_COLOR_HEX};
     pointer-events: none;
   }
 `;
