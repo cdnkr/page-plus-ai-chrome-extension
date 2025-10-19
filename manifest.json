@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Know: Select → Prompt, Summarize, Write",
+  "name": "Page Plus: On-device AI for analyzing text, images and pages",
   "version": "1.0.0",
   "description": "On-device AI analysis on text, images and pages. Powered by Google's in-browser AI APIs.",
   "permissions": [
@@ -34,7 +34,8 @@
         "main/**",
         "popover/**",
         "utils/**",
-        "icons/**"
+        "icons/**",
+        "assets/**"
       ],
       "matches": ["<all_urls>"]
     }

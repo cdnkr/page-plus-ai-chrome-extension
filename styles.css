@@ -20,6 +20,17 @@
   animation: slideInRight 0.3s ease-out;
 }
 
+.selection-ai-buttons {
+  transition: all 0.2s ease;
+  opacity: 0;
+  filter: blur(20px);
+}
+
+.selection-ai-buttons.visible {
+  opacity: 1;
+  filter: blur(0px);
+}
+
 @keyframes slideInRight {
   from {
     opacity: 0;

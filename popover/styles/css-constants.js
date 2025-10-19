@@ -244,7 +244,7 @@ button, .action-btn, .copy-color-btn {
 .context-text .context-icon svg {
     width: 20px;
     height: 20px;
-    stroke: rgba(${FG_RGB}, 1);
+    stroke: rgba(${PRIMARY_COLOR_RGB}, 1);
 }
 
 .context-text .context-content {

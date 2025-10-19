@@ -95,13 +95,15 @@ export function createPulsingShape(element, size = 40, shape = 'grid', autoStart
     let animationDuration = 2000;
     let animationId = null;
 
+    const transparentDots = [0, 1, 4, 5, 6, 7, 10, 11, 24, 25, 28, 29, 30, 31, 34, 35];
+
     function drawStaticFrame() {
         ctx.clearRect(0, 0, size, size);
 
-        dots.forEach(dot => {
+        dots.forEach((dot, i) => {
             ctx.beginPath();
             ctx.arc(dot.x, dot.y, baseDotSize, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(${PRIMARY_COLOR_RGB}, 1)`;
+            ctx.fillStyle = transparentDots.includes(i) ? `rgba(${PRIMARY_COLOR_RGB}, 0.2)` : `rgba(${PRIMARY_COLOR_RGB}, 1)`;
             ctx.fill();
         });
     }
@@ -125,14 +127,16 @@ export function createPulsingShape(element, size = 40, shape = 'grid', autoStart
 
         ctx.clearRect(0, 0, size, size);
 
-        dots.forEach(dot => {
+        dots.forEach((dot, i) => {
             // Create a wave-like offset for each dot based on distance from center
             const delay = dot.distanceFromCenter * 0.15;
 
             const pulse =
                 Math.sin((time - delay) * Math.PI * pulseFrequency) * 0.5 + 0.5;
             const radius = baseDotSize + pulse * pulseAmplitude;
-            const opacity = 0.5 + pulse * 0.5;
+            // const opacity = 0.5 + pulse * 0.5;
+
+            const opacity = transparentDots.includes(i) ? 0.2 : 0.5 + pulse * 0.5;
 
             ctx.beginPath();
             ctx.arc(dot.x, dot.y, radius, 0, Math.PI * 2);

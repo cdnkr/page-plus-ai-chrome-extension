@@ -1,9 +1,15 @@
-import { BG_RGB, FG_RGB, PRIMARY_COLOR_HEX, SELECTION_COLOR_HEX } from '../../config.js';
+import { BG_RGB, FG_RGB, PRIMARY_COLOR_HEX, PRIMARY_COLOR_RGB, SELECTION_COLOR_HEX } from '../../config.js';
 
 export const selectionActionButtonsCSS = `
 
+  .selection-ai-buttons {
+    transition: all 0.2s ease;
+    opacity: 0;
+    filter: blur(20px);
+  }
+
   .selection-ai-buttons.visible {
-    opacity: 1;
+    opacity: 0.5;
     filter: blur(0px);
   }
   
@@ -32,8 +38,13 @@ export const selectionActionButtonsCSS = `
   }
   
   .selection-ai-button:hover {
-    background: rgba(${FG_RGB}, 0.1);
-    color: rgba(${FG_RGB}, 1);
+    background: rgba(${PRIMARY_COLOR_RGB}, 0.2);
+    color: rgba(${PRIMARY_COLOR_RGB}, 1);
+  }
+
+  .selection-ai-button:active {
+    background: rgba(${PRIMARY_COLOR_RGB}, 0.4);
+    color: rgba(${PRIMARY_COLOR_RGB}, 1);
   }
   
   .selection-ai-button svg {
@@ -141,8 +152,8 @@ export const modeSwitcherRootCSS = `
   }
   
   .mode-btn.active {
-    background: rgba(${FG_RGB}, 1);
-    color: rgba(${BG_RGB}, 1);
+    background: rgba(${PRIMARY_COLOR_RGB}, 0.2);
+    color: rgba(${PRIMARY_COLOR_RGB}, 1);
   }
   
   .mode-btn:hover:not(.active) {
@@ -166,7 +177,7 @@ export const modeSwitcherRootCSS = `
   /* Tooltip styles */
   .mode-tooltip {
     position: absolute;
-    bottom: calc(100% + 20px);
+    bottom: calc(100% + 10px);
     left: 50%;
     transform: translateX(-50%);
     margin-bottom: 8px;
@@ -179,10 +190,10 @@ export const modeSwitcherRootCSS = `
     opacity: 0;
     filter: blur(20px);
     visibility: hidden;
-    transition: all 0.3s ease;
+    transition: all 0.418s ease;
     pointer-events: none;
     z-index: 10001;
-    width: 150px;
+    width: 250px;
     white-space: normal;
     text-align: left;
   }
@@ -214,7 +225,7 @@ export const modeSwitcherRootCSS = `
     font-style: italic;
   }
 
-  /* Tooltip arrow */
+  /* Tooltip arrow 
   .mode-tooltip::after {
     content: '';
     position: absolute;
@@ -228,6 +239,7 @@ export const modeSwitcherRootCSS = `
     width: 12px;
     transform: rotate(45deg);
   }
+    */
 `;
 
 export const cursorCSS = `
