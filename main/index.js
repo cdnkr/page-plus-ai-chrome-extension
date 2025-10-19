@@ -198,13 +198,14 @@ export class SelectionAI {
     }
   }
 
-  async showPopover(action, selectionType) {
+  async showPopover(action, selectionType, pageScreenshot = null) {
     await this.popoverManager.showPopover(
       action,
       this.selectedText,
       this.position,
       this.selectionRange,
-      selectionType
+      selectionType,
+      pageScreenshot
     );
   }
 
@@ -360,7 +361,7 @@ export class SelectionAI {
     if (config.range !== undefined) {
       this.selectionRange = config.range;
     }
-    this.showPopover(config.action, config.selectionType).catch(console.error);
+    this.showPopover(config.action, config.selectionType, config.pageScreenshot).catch(console.error);
   }
 
   updateSettingsButtonIcon() {

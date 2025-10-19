@@ -83,9 +83,10 @@ export class PopoverManager {
    * @param {Object} position - Position coordinates
    * @param {Range} selectionRange - Selection range object
    * @param {string} selectionType - Type of selection (text, page)
+   * @param {string} pageScreenshot - Pre-captured screenshot for page mode
    * @returns {Promise<boolean>} Success status
    */
-  async showPopover(action, text, position, selectionRange = null, selectionType = 'text') {
+  async showPopover(action, text, position, selectionRange = null, selectionType = 'text', pageScreenshot = null) {
     console.log('showPopover called with action:', action);
     console.log('Selected text:', text);
     console.log('Selection range:', selectionRange);
@@ -114,7 +115,7 @@ export class PopoverManager {
           ? JSON.stringify({ availability: this.getApiAvailability(), locale: this.getLocale() })
           : text;
         
-        this.popover = new this.PopoverAI(action, payload, position, selectionRange, selectionType);
+        this.popover = new this.PopoverAI(action, payload, position, selectionRange, selectionType, pageScreenshot);
         
         // Set active state for special buttons
         if (action === 'settings') {

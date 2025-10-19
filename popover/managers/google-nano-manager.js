@@ -111,18 +111,16 @@ export class GoogleNanoManager {
                     }
                 ]);
             } else if (this.popover.selectionType === 'page' && !this.popover.isHistoryMode) {
-                // For page mode, capture full page screenshot and send with page content
-                console.log('Capturing full page screenshot for page prompt...');
-                const pageScreenshot = await this.captureFullPageScreenshot();
-                if (pageScreenshot) {
-                    console.log('Full page screenshot captured successfully');
-                    const imageFile = await this.dataURLtoFile(pageScreenshot, 'page-screenshot.png');
+                // For page mode, use pre-captured screenshot if available
+                if (this.popover.pageScreenshot) {
+                    console.log('Using pre-captured page screenshot for page prompt...');
+                    const imageFile = await this.dataURLtoFile(this.popover.pageScreenshot, 'page-screenshot.png');
                     console.log('Page screenshot file created:', imageFile.name, imageFile.size, 'bytes');
-                    console.log('Screenshot data URL (first 100 chars):', pageScreenshot.substring(0, 100) + '...');
+                    console.log('Screenshot data URL (first 100 chars):', this.popover.pageScreenshot.substring(0, 100) + '...');
                     
                     // Create a temporary image element to display the screenshot
                     const tempImg = document.createElement('img');
-                    tempImg.src = pageScreenshot;
+                    tempImg.src = this.popover.pageScreenshot;
                     tempImg.style.cssText = 'position: fixed; top: 10px; right: 10px; max-width: 300px; max-height: 200px; border: 2px solid red; z-index: 9999; background: white;';
                     tempImg.title = 'Page Screenshot Preview';
                     document.body.appendChild(tempImg);
@@ -151,8 +149,8 @@ export class GoogleNanoManager {
                         }
                     ]);
                 } else {
-                    console.log('Screenshot capture failed, falling back to text-only mode');
-                    // Fallback to text-only if screenshot capture fails
+                    console.log('No pre-captured screenshot available, falling back to text-only mode');
+                    // Fallback to text-only if no pre-captured screenshot
                     const prompt = `${historyContext}Page content: ${this.popover.selectedText}\n\nUser question: ${userInput}`;
                     stream = this.session.promptStreaming(prompt);
                 }

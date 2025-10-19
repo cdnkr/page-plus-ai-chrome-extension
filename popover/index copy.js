@@ -21,7 +21,7 @@ import { submitBtnHTML } from './templates/html-tamplates.js';
 import { DARK_MODE } from '../config.js';
 
 export class PopoverAI {
-    constructor(action, selectedText, position, selectionRange, selectionType = 'text', pageScreenshot = null) {
+    constructor(action, selectedText, position, selectionRange, selectionType = 'text') {
         try {
             console.log('PopoverAI constructor called with:', { action, selectedText: selectedText.substring(0, 50) + '...', position, selectionType });
             this.action = action;
@@ -29,7 +29,6 @@ export class PopoverAI {
             this.position = position;
             this.selectionRange = selectionRange;
             this.selectionType = selectionType; // 'text' or 'dragbox'
-            this.pageScreenshot = pageScreenshot; // Pre-captured screenshot for page mode
             this.currentResponse = '';
             this.popoverElement = null;
 
@@ -442,7 +441,13 @@ export class PopoverAI {
             });
         }
 
-        this.popoverElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Scroll to position element 10px from bottom (instant to avoid competing with content scroll)
+        requestAnimationFrame(() => {
+            const elementRect = this.popoverElement.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+            const targetPosition = elementRect.top + window.scrollY - (viewportHeight - elementRect.height - 10);
+            window.scrollTo({ top: targetPosition, behavior: 'smooth' });
+        });
     }
 
     showLoading() {
@@ -462,7 +467,13 @@ export class PopoverAI {
 
         createPulsingShape(this.responseContent.querySelector('#orbital-loading'), 40, 'grid', true);
 
-        this.popoverElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Scroll to position element 10px from bottom (instant to avoid competing with content scroll)
+        requestAnimationFrame(() => {
+            const elementRect = this.popoverElement.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+            const targetPosition = elementRect.top + window.scrollY - (viewportHeight - elementRect.height - 10);
+            window.scrollTo({ top: targetPosition, behavior: 'smooth' });
+        });
     }
 
     showError(message) {

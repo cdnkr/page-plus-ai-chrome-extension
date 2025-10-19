@@ -309,7 +309,7 @@ export class ModeSwitcher {
   /**
    * Handle current page button click
    */
-  handleCurrentPageClick(e) {
+  async handleCurrentPageClick(e) {
     e.stopPropagation();
     
     // Deactivate any active text/drag mode
@@ -335,15 +335,53 @@ export class ModeSwitcher {
       const segments = extractStructuredTextWithLinks(document.body.innerHTML);
       const markdown = segmentsToMarkdown(segments);
 
+      // Capture full page screenshot BEFORE showing popover
+      console.log('Capturing full page screenshot for page mode...');
+      const pageScreenshot = await this.captureFullPageScreenshot();
+      
       this.onShowPopover({
         action: 'prompt',
         selectionType: 'page',
         position,
         text: markdown,
-        range: null
+        range: null,
+        pageScreenshot: pageScreenshot // Pass the pre-captured screenshot
       });
     } catch (err) {
       console.error('Failed to open current page prompt', err);
+    }
+  }
+
+  /**
+   * Capture a full page screenshot using the Chrome extension API
+   * @returns {Promise<string|null>} Data URL of the captured screenshot
+   */
+  async captureFullPageScreenshot() {
+    try {
+      console.log('Requesting full page screenshot from background script...');
+      // Use Chrome extension API to capture the full visible tab
+      const response = await new Promise((resolve) => {
+        chrome.runtime.sendMessage(
+          { action: 'captureVisibleTab' },
+          (response) => {
+            if (chrome.runtime.lastError) {
+              console.error('Screenshot capture failed:', chrome.runtime.lastError);
+              resolve(null);
+            } else if (response.error) {
+              console.error('Screenshot capture error:', response.error);
+              resolve(null);
+            } else {
+              console.log('Screenshot captured successfully, data URL length:', response.dataUrl?.length || 0);
+              resolve(response.dataUrl);
+            }
+          }
+        );
+      });
+
+      return response;
+    } catch (error) {
+      console.error('Failed to capture full page screenshot:', error);
+      return null;
     }
   }
 
