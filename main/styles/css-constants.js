@@ -110,6 +110,11 @@ export const modeSwitcherRootCSS = `
     transition: all 0.2s ease;
     color: rgba(${FG_RGB}, 0.5);
   }
+    
+  .mode-switcher .mode-btn:focus-visible {
+    outline: none !important;
+    border: none !important;
+  }
 
   .mode-btn.hidden {
     display: none;
