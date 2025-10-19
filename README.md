@@ -23,12 +23,18 @@ A Chrome extension that uses Google's new in-browser AI APIs (Prompt, Summarizer
 
 #### Basic Functionality Tests
 1. **Text Selection Mode**:
+
+![Text Selection](https://github.com/cdnkr/page-plus-ai-chrome-extension/blob/main/assets/screenshots/text-selection-2.png?raw=true)
+
    - Navigate to any webpage (e.g., news article, Wikipedia)
    - Select any text on the page
    - Verify 3 circular buttons appear: Prompt, Summarize, Write
    - Test each button to ensure popover opens
 
 2. **Drag Box Selection Mode**:
+
+![Drag Selection](https://github.com/cdnkr/page-plus-ai-chrome-extension/blob/main/assets/screenshots/drag-selection-2.png?raw=true)
+
    - Click the mode switcher (top-left corner of extension UI)
    - Switch to "Drag Box" mode
    - Drag to create a selection box on any part of the page
@@ -36,6 +42,9 @@ A Chrome extension that uses Google's new in-browser AI APIs (Prompt, Summarizer
    - Test both buttons
 
 3. **Page Mode**:
+
+![Page Query](https://github.com/cdnkr/page-plus-ai-chrome-extension/blob/main/assets/screenshots/page-query.png?raw=true)
+
    - Switch to "Page" mode using the mode switcher
    - Click the prompt button to query the entire page
    - Verify AI responds with page content analysis
@@ -70,6 +79,9 @@ A Chrome extension that uses Google's new in-browser AI APIs (Prompt, Summarizer
    - Test voice input with different languages
 
 2. **Conversation History**:
+
+![History](https://github.com/cdnkr/page-plus-ai-chrome-extension/blob/main/assets/screenshots/history.png?raw=true)
+
    - Have a conversation with the AI
    - Close and reopen the popover
    - Verify conversation history is preserved
