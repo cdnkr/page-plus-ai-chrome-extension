@@ -112,6 +112,14 @@ export const modeSwitcherRootCSS = `
     color: rgba(${FG_RGB}, 0.5);
     position: relative;
   }
+
+  .mode-switcher canvas {
+    transition: all 0.2s ease;
+  }
+
+  .mode-switcher:hover canvas {
+    scale: 1 1;
+  }
     
   .mode-switcher .mode-btn:focus-visible {
     outline: none !important;
@@ -169,8 +177,9 @@ export const modeSwitcherRootCSS = `
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     white-space: nowrap;
     opacity: 0;
+    filter: blur(20px);
     visibility: hidden;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     pointer-events: none;
     z-index: 10001;
     width: 150px;
@@ -182,6 +191,7 @@ export const modeSwitcherRootCSS = `
   .mode-tooltip.show {
     opacity: 1;
     visibility: visible;
+    filter: blur(0px);
   }
 
   .mode-tooltip-title {
@@ -208,11 +218,15 @@ export const modeSwitcherRootCSS = `
   .mode-tooltip::after {
     content: '';
     position: absolute;
-    top: 100%;
-    left: 50%;
+    top: calc(100% - 24px);
+    left: calc(50% - 14px);
     transform: translateX(-50%);
     border: 10px solid transparent;
-    border-top-color: rgba(${BG_RGB}, 0.95);
+    background-color: rgba(${BG_RGB}, 0.95);
+    border-radius: 6px;
+    height: 12px;
+    width: 12px;
+    transform: rotate(45deg);
   }
 `;
 

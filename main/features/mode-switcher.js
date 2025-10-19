@@ -25,6 +25,8 @@ export class ModeSwitcher {
     this.onModeChange = config.onModeChange || (() => {});
     this.onShowPopover = config.onShowPopover || (() => {});
     this.onHomeButtonClick = config.onHomeButtonClick || (() => {});
+    this.isPopoverOpen = config.isPopoverOpen || (() => false);
+    this.closePopover = config.closePopover || (() => {});
 
     // Cursor manager
     this.cursorManager = new CursorManager();
@@ -195,7 +197,7 @@ export class ModeSwitcher {
     button.className = className;
     if (id) button.setAttribute('id', id);
     button.innerHTML = icon;
-    button.title = title;
+    // button.title = title;
     button.addEventListener('click', onClick);
     
     // Add tooltip if content is provided
@@ -282,6 +284,16 @@ export class ModeSwitcher {
    */
   handleCurrentPageClick(e) {
     e.stopPropagation();
+    
+    // Deactivate any active text/drag mode
+    this.toggleMode(null);
+    
+    // If popover is already open, close it
+    if (this.isPopoverOpen()) {
+      this.closePopover();
+      return;
+    }
+    
     try {
       const rect = this.modeSwitcher.getBoundingClientRect();
       const popoverWidth = 400;
@@ -313,6 +325,16 @@ export class ModeSwitcher {
    */
   handleHistoryClick(e) {
     e.stopPropagation();
+    
+    // Deactivate any active text/drag mode
+    this.toggleMode(null);
+    
+    // If popover is already open, close it
+    if (this.isPopoverOpen()) {
+      this.closePopover();
+      return;
+    }
+    
     const rect = this.modeSwitcher.getBoundingClientRect();
     const popoverWidth = 800;
     const margin = 20;
@@ -336,6 +358,16 @@ export class ModeSwitcher {
    */
   handleSettingsClick(e) {
     e.stopPropagation();
+    
+    // Deactivate any active text/drag mode
+    this.toggleMode(null);
+    
+    // If popover is already open, close it
+    if (this.isPopoverOpen()) {
+      this.closePopover();
+      return;
+    }
+    
     const rect = this.modeSwitcher.getBoundingClientRect();
     const popoverWidth = 400;
     const margin = 20;

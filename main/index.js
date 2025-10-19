@@ -135,6 +135,9 @@ export class SelectionAI {
     // Listen for popover closed event
     window.addEventListener('popoverClosed', this.handlePopoverClosed.bind(this));
 
+    // Listen for popover close requested event (from close button)
+    window.addEventListener('popoverCloseRequested', this.handlePopoverCloseRequested.bind(this));
+
     // Listen for AI streaming events to animate home button
     window.addEventListener('aiStreamingStart', this.handleStreamingStart.bind(this));
     window.addEventListener('aiStreamingEnd', this.handleStreamingEnd.bind(this));
@@ -254,18 +257,18 @@ export class SelectionAI {
     // Optional: Handle any post-creation tasks
   }
 
+  handlePopoverCloseRequested() {
+    // Handle close button click - same behavior as escape key
+    this.modeSwitcherComponent.toggleMode(null);
+    this.closePopover();
+    this.actionButtons.hideButtons();
+  }
+
   handlePopoverClosed() {
     // Hide action buttons when popover is closed from within
     this.actionButtons.hideButtons();
     // Hide drag box when popover is closed
     this.hideDragBox();
-
-    this.closePopover();
-    this.actionButtons.hideButtons();
-
-    if (this.action === 'history' || this.action === 'settings') {
-      this.modeSwitcherComponent.toggleMode(null);
-    }
 
     // Reset state to allow new selections
     this.selectionRange = null;
@@ -320,6 +323,7 @@ export class SelectionAI {
       onModeChange: (mode) => this.handleModeChange(mode),
       onShowPopover: (config) => this.handleModeSwitcherPopover(config),
       closePopover: () => this.closePopover(),
+      isPopoverOpen: () => this.popoverManager.isPopoverOpen(),
       onHomeButtonClick: () => { }
     });
 

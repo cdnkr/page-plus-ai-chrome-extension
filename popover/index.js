@@ -238,6 +238,8 @@ export class PopoverAI {
         // Add event listeners
         this.closeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
+            // Dispatch custom event to notify main script before closing
+            window.dispatchEvent(new CustomEvent('popoverCloseRequested'));
             this.close();
         });
         this.submitBtn.addEventListener('click', (e) => {
