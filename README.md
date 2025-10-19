@@ -1,4 +1,4 @@
-![Logo](https://github.com/cdnkr/page-plus-ai-chrome-extension/blob/main/icons/logo_dark.png?raw=true)
+![Logo](/icons/logo_dark.png?raw=true)
 
 # Page Plus AI Chrome Extension
 
@@ -25,7 +25,7 @@ A Chrome extension that uses Google's new in-browser AI APIs (Prompt, Summarizer
 - **Text Selection**: 
    - Activated by clicking the *I* icon on the extension menu (bottom left)
 
-![Text Selection Menu](/assets/screenshots/text-selection-menu.png)
+![Text Selection Menu](/assets/screenshots/text-selection-menu.png?raw=true)
 
    - While active, select any text on a webpage to trigger AI actions
    - Select the action:
@@ -33,24 +33,24 @@ A Chrome extension that uses Google's new in-browser AI APIs (Prompt, Summarizer
       - Summarize
       - Write
 
-![Text Selection](https://github.com/cdnkr/page-plus-ai-chrome-extension/blob/main/assets/screenshots/text-selection-2.png?raw=true)
+![Text Selection](/assets/screenshots/text-selection-2.png?raw=true)
 
 - **Drag Box Selection**: 
    - Activated by clicking the *Dashed box* icon on the extension menu (bottom left)
    
-![Drag Selection Menu](/assets/screenshots/drag-selection-menu.png)
+![Drag Selection Menu](/assets/screenshots/drag-selection-menu.png?raw=true)
 
    - Draw a selection box anywhere on the page to capture screenshots for analysis
       - Prompt
       - Get colors of area
 
-![Drag Selection](https://github.com/cdnkr/page-plus-ai-chrome-extension/blob/main/assets/screenshots/drag-selection-3.png?raw=true)
+![Drag Selection](/assets/screenshots/drag-selection-3.png?raw=true)
 
 - **Page Mode**: 
    - Select the *Page* icon on the extension menu (bottom left)
       - Prompt the current page content
 
-![Page Query](https://github.com/cdnkr/page-plus-ai-chrome-extension/blob/main/assets/screenshots/page-query.png?raw=true)
+![Page Query](/assets/screenshots/page-query.png?raw=true)
 
 ### AI Capabilities
 - **Prompt**: Ask questions about selected text, images, or entire pages using Google's Prompt API
@@ -61,7 +61,7 @@ A Chrome extension that uses Google's new in-browser AI APIs (Prompt, Summarizer
 ### Advanced Features
 - **Conversation History**: Persistent chat history for each session
 
-![History](https://github.com/cdnkr/page-plus-ai-chrome-extension/blob/main/assets/screenshots/history.png?raw=true)
+![History](/assets/screenshots/history.png?raw=true)
 
 - **Voice Input**: Speech-to-text input using browser's speech recognition
 - **Streaming Responses**: Real-time streaming of AI responses
