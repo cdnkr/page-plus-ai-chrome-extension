@@ -59,6 +59,7 @@ export class SelectionAI {
     this.textSelection = new TextSelectionHandler({
       positionManager: this.positionManager,
       shouldHandle: () => this.currentMode === 'text' && !this.actionButtons.isVisible() && !this.popoverManager.isPopoverOpen(),
+      onShouldNotHandle: () => this.onShouldNotHandle(),
       onSelectionChange: (selectionData) => {
         this.selectedText = selectionData.text;
         this.position = selectionData.position;
@@ -161,6 +162,9 @@ export class SelectionAI {
     this.textSelection.handleTextSelection(event);
   }
 
+  onShouldNotHandle() {
+    if (this.currentMode === 'text') this.actionButtons.hideButtons();
+  }
 
   async handleButtonClick(action) {
     console.log('Button clicked:', action);

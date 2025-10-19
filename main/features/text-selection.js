@@ -11,11 +11,12 @@ export class TextSelectionHandler {
     this.selectionPosition = null;
     this.selectionRange = null;
     this.originalSelectionStyle = null;
-    
+    this.onShouldNotHandle = config.onShouldNotHandle || (() => {});
     // Configuration
     this.positionManager = config.positionManager;
     this.onSelectionChange = config.onSelectionChange || (() => {});
     this.shouldHandle = config.shouldHandle || (() => true);
+
   }
 
   /**
@@ -26,6 +27,7 @@ export class TextSelectionHandler {
   handleTextSelection(event) {
     // Check if selection should be handled
     if (!this.shouldHandle()) {
+      this.onShouldNotHandle();
       return null;
     }
 
