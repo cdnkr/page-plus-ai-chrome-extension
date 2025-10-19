@@ -104,7 +104,8 @@ export class PopoverAI {
                 position = { x: safeX, y: -10000 };
             } else {
                 const popoverWidth = this.action === 'history' ? 800 : 400;
-                const safePosition = calculateSafePosition(this.position, { width: popoverWidth, height: 360 });
+                const popoverHeight = this.selectionType === 'dragbox' ? 622 : 360;
+                const safePosition = calculateSafePosition(this.position, { width: popoverWidth, height: popoverHeight });
                 position = shouldUseAbsolutePosition ? safePosition : calculateAbsolutePosition(safePosition);
             }
 
