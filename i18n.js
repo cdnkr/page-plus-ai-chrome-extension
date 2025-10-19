@@ -67,7 +67,7 @@ const MESSAGES = {
         tooltip_settings_title: 'Settings',
         tooltip_settings_description: 'API status & language preferences',
         tooltip_action: 'Click to select',
-        tooltip_action_open: 'Click to open the menu',
+        tooltip_action_open: 'Click to open',
         tooltip_action_activate: 'Click to activate',
     },
 
@@ -134,7 +134,7 @@ const MESSAGES = {
         tooltip_settings_title: 'Configuración',
         tooltip_settings_description: 'Estado de API y preferencias de idioma',
         tooltip_action: 'Haz clic para seleccionar',
-        tooltip_action_open: 'Haz clic para abrir',
+        tooltip_action_open: 'Haga clic para abrir',
         tooltip_action_activate: 'Haz clic para activar',
     },
 
@@ -201,7 +201,7 @@ const MESSAGES = {
         tooltip_settings_title: '設定',
         tooltip_settings_description: 'APIステータスと言語設定',
         tooltip_action: 'クリックして選択',
-        tooltip_action_open: 'クリックして開く',
+        tooltip_action_open: 'クリックして開きます',
         tooltip_action_activate: 'クリックしてアクティブ化',
     }
 };
