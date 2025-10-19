@@ -639,6 +639,7 @@ button, .action-btn, .copy-color-btn {
     padding: 16px;
     margin: 12px 0;
     overflow-x: auto;
+    white-space: pre-wrap;
 }
 
 .message-content pre code {
