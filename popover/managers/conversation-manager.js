@@ -278,7 +278,7 @@ export class ConversationManager {
                             </svg>
                         </div>
                         <div class="context-content">
-                            <span class="context-text">We don't store images due to space constraints</span>
+                            <img style="width: 100%; height: auto; border-radius: 20px;" src="${sessionData.selectedText}" alt="Selected image">
                         </div>
                     </div>
                 `;
