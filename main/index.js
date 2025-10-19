@@ -51,7 +51,7 @@ export class SelectionAI {
 
     // Mode switching (must be defined before textSelection handler)
     this.currentMode = null; // null, 'text', or 'drag'
-    
+
     // Mode switcher (will be initialized after API availability check)
     this.modeSwitcherComponent = null;
 
@@ -102,11 +102,11 @@ export class SelectionAI {
   async loadModules() {
     // Load popover module
     const { i18n } = await this.popoverManager.loadPopoverModule();
-    
+
     // Initialize i18n if available
-      if (i18n && i18n.initI18n) {
-        try { await i18n.initI18n(); } catch (_) { }
-        this.i18n = i18n;
+    if (i18n && i18n.initI18n) {
+      try { await i18n.initI18n(); } catch (_) { }
+      this.i18n = i18n;
     }
   }
 
@@ -209,7 +209,7 @@ export class SelectionAI {
 
   closePopover() {
     this.popoverManager.closePopover();
-    
+
     // Hide buttons when popover is closed
     this.actionButtons.hideButtons();
     // Hide drag box when popover is closed
@@ -259,6 +259,13 @@ export class SelectionAI {
     this.actionButtons.hideButtons();
     // Hide drag box when popover is closed
     this.hideDragBox();
+
+    this.closePopover();
+    this.actionButtons.hideButtons();
+
+    if (this.action === 'history' || this.action === 'settings') {
+      this.modeSwitcherComponent.toggleMode(null);
+    }
 
     // Reset state to allow new selections
     this.selectionRange = null;
@@ -312,14 +319,15 @@ export class SelectionAI {
       i18n: this.i18n,
       onModeChange: (mode) => this.handleModeChange(mode),
       onShowPopover: (config) => this.handleModeSwitcherPopover(config),
-      onHomeButtonClick: () => {}
+      closePopover: () => this.closePopover(),
+      onHomeButtonClick: () => { }
     });
 
     this.modeSwitcherComponent.createModeSwitcher();
   }
 
   handleModeChange(mode) {
-      this.currentMode = mode;
+    this.currentMode = mode;
 
     // Clear any existing selections
     this.actionButtons.hideButtons();
@@ -378,8 +386,8 @@ export class SelectionAI {
   handleDragMove(event) {
     const moved = this.dragSelection.handleDragMove(event);
     if (moved) {
-    event.preventDefault();
-  }
+      event.preventDefault();
+    }
   }
 
   handleDragEnd(event) {
