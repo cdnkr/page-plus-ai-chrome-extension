@@ -8,6 +8,7 @@ import { modeSwitcherCSS, modeSwitcherRootCSS } from '../styles/css-constants.js
 import { extractStructuredTextWithLinks, segmentsToMarkdown } from '../utils/text-extractor.js';
 import { createPulsingShape } from '../../utils/animations.js';
 import { CursorManager } from '../managers/cursor-manager.js';
+import { t } from '../../i18n.js';
 
 export class ModeSwitcher {
   constructor(config = {}) {
@@ -15,6 +16,8 @@ export class ModeSwitcher {
     this.modeSwitcher = null;
     this.modeSwitcherShadowRoot = null;
     this.homeButtonPulse = null;
+    this.tooltipTimeout = null;
+    this.currentTooltip = null;
 
     // Configuration callbacks
     this.apiAvailability = config.apiAvailability || { prompt: 'unknown', summarizer: 'unknown', writer: 'unknown' };
@@ -52,7 +55,7 @@ export class ModeSwitcher {
     innerContainer.appendChild(homeButton);
 
     // Create mode buttons based on API availability
-    const t = this.i18n?.t || ((k) => k);
+    // const t = this.i18n?.t || ((k) => k);
 
     // Text mode button (only if any API is available)
     if (this.apiAvailability.prompt === 'available' || 
@@ -63,7 +66,12 @@ export class ModeSwitcher {
         className: 'mode-btn hidden',
         icon: ICONS.text,
         title: t('mode_text'),
-        onClick: () => this.toggleMode('text')
+        onClick: () => this.toggleMode('text'),
+        tooltipContent: {
+          title: t('tooltip_text_title'),
+          description: t('tooltip_text_description')
+        },
+        actionContent: t('tooltip_action_activate')
       });
       innerContainer.appendChild(textBtn);
     }
@@ -74,7 +82,12 @@ export class ModeSwitcher {
       className: 'mode-btn hidden',
       icon: ICONS.dashedBox,
       title: t('mode_drag'),
-      onClick: () => this.toggleMode('drag')
+      onClick: () => this.toggleMode('drag'),
+      tooltipContent: {
+        title: t('tooltip_drag_title'),
+        description: t('tooltip_drag_description')
+      },
+      actionContent: t('tooltip_action_activate')
     });
     innerContainer.appendChild(dragBtn);
 
@@ -85,7 +98,12 @@ export class ModeSwitcher {
         className: 'mode-btn hidden',
         icon: ICONS.page,
         title: t('mode_current_page'),
-        onClick: (e) => this.handleCurrentPageClick(e)
+        onClick: (e) => this.handleCurrentPageClick(e),
+        tooltipContent: {
+          title: t('tooltip_page_title'),
+          description: t('tooltip_page_description')
+        },
+        actionContent: t('tooltip_action_open')
       });
       innerContainer.appendChild(currentPageBtn);
     }
@@ -96,7 +114,12 @@ export class ModeSwitcher {
       className: 'mode-btn hidden',
       icon: ICONS.history,
       title: t('button_history'),
-      onClick: (e) => this.handleHistoryClick(e)
+      onClick: (e) => this.handleHistoryClick(e),
+      tooltipContent: {
+        title: t('tooltip_history_title'),
+        description: t('tooltip_history_description')
+      },
+      actionContent: t('tooltip_action_open')
     });
     innerContainer.appendChild(historyBtn);
 
@@ -106,7 +129,12 @@ export class ModeSwitcher {
       className: 'mode-btn hidden',
       icon: ICONS.settings,
       title: t('button_settings'),
-      onClick: (e) => this.handleSettingsClick(e)
+      onClick: (e) => this.handleSettingsClick(e),
+      tooltipContent: {
+        title: t('tooltip_settings_title'),
+        description: t('tooltip_settings_description')
+      },
+      actionContent: t('tooltip_action_open')
     });
     innerContainer.appendChild(settingsBtn);
 
@@ -117,6 +145,9 @@ export class ModeSwitcher {
 
     // Create home button animation
     this.homeButtonPulse = createPulsingShape(homeButton, 40, 'grid');
+
+    // Setup tooltip management
+    this.setupTooltipManagement();
 
     // Setup first-time user experience
     this.setupFirstTimeUse();
@@ -143,6 +174,14 @@ export class ModeSwitcher {
         }, 300);
       }
     });
+    
+    // Add tooltip to home button
+    const t = this.i18n?.t || ((k) => k);
+    this.addTooltipToButton(homeButton, {
+      title: t('tooltip_home_title'),
+      description: t('tooltip_home_description')
+    });
+    
     return homeButton;
   }
 
@@ -151,14 +190,91 @@ export class ModeSwitcher {
    * @param {Object} config - Button configuration
    * @returns {HTMLElement}
    */
-  createButton({ id, className, icon, title, onClick }) {
+  createButton({ id, className, icon, title, onClick, tooltipContent, actionContent = t('tooltip_action_activate') }) {
     const button = document.createElement('button');
     button.className = className;
     if (id) button.setAttribute('id', id);
     button.innerHTML = icon;
     button.title = title;
     button.addEventListener('click', onClick);
+    
+    // Add tooltip if content is provided
+    if (tooltipContent) {
+      this.addTooltipToButton(button, tooltipContent, actionContent);
+    }
+    
     return button;
+  }
+
+  /**
+   * Add tooltip to a button
+   * @param {HTMLElement} button - Button element
+   * @param {Object} tooltipContent - Tooltip content
+   */
+  addTooltipToButton(button, tooltipContent, actionContent = t('tooltip_action_activate')) {
+    const t = this.i18n?.t || ((k) => k);
+    const tooltip = document.createElement('div');
+    tooltip.className = 'mode-tooltip';
+    tooltip.innerHTML = `
+      <div class="mode-tooltip-title">${tooltipContent.title}</div>
+      <div class="mode-tooltip-description">${tooltipContent.description}</div>
+      <div class="mode-tooltip-action">${actionContent}</div>
+    `;
+    
+    button.appendChild(tooltip);
+    
+    // Add hover events
+    button.addEventListener('mouseenter', () => {
+      // Clear any existing timeout
+      if (this.tooltipTimeout) {
+        clearTimeout(this.tooltipTimeout);
+        this.tooltipTimeout = null;
+      }
+      
+      // Hide all other tooltips first
+      this.hideAllTooltips();
+      
+      // Set this as current tooltip and show it
+      this.currentTooltip = tooltip;
+      tooltip.classList.add('show');
+    });
+    
+    button.addEventListener('mouseleave', () => {
+      this.tooltipTimeout = setTimeout(() => {
+        if (this.currentTooltip === tooltip) {
+          tooltip.classList.remove('show');
+          this.currentTooltip = null;
+        }
+      }, 150);
+    });
+  }
+
+  /**
+   * Hide all tooltips
+   */
+  hideAllTooltips() {
+    if (!this.modeSwitcherShadowRoot) return;
+    
+    const allTooltips = this.modeSwitcherShadowRoot.querySelectorAll('.mode-tooltip');
+    allTooltips.forEach(tooltip => {
+      tooltip.classList.remove('show');
+    });
+    
+    this.currentTooltip = null;
+  }
+
+  /**
+   * Setup tooltip management
+   */
+  setupTooltipManagement() {
+    // Add mouse leave listener to the entire mode switcher
+    this.modeSwitcher.addEventListener('mouseleave', () => {
+      if (this.tooltipTimeout) {
+        clearTimeout(this.tooltipTimeout);
+        this.tooltipTimeout = null;
+      }
+      this.hideAllTooltips();
+    });
   }
 
   /**
@@ -320,6 +436,15 @@ export class ModeSwitcher {
    * Recreate the mode switcher (useful when API availability changes)
    */
   recreateModeSwitcher() {
+    // Clear any pending tooltip timeouts
+    if (this.tooltipTimeout) {
+      clearTimeout(this.tooltipTimeout);
+      this.tooltipTimeout = null;
+    }
+    
+    // Reset tooltip state
+    this.currentTooltip = null;
+    
     // Remove existing mode switcher
     if (this.modeSwitcher) {
       this.modeSwitcher.remove();

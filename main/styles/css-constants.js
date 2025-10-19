@@ -91,6 +91,7 @@ export const modeSwitcherRootCSS = `
     border-radius: 50%;
     flex-shrink: 0;
     cursor: pointer !important;
+    position: relative;
   }
 
   .mode-switcher .home-button:active {
@@ -109,6 +110,7 @@ export const modeSwitcherRootCSS = `
     justify-content: center;
     transition: all 0.2s ease;
     color: rgba(${FG_RGB}, 0.5);
+    position: relative;
   }
     
   .mode-switcher .mode-btn:focus-visible {
@@ -151,6 +153,66 @@ export const modeSwitcherRootCSS = `
   
   .mode-btn {
     cursor: pointer !important;
+  }
+
+  /* Tooltip styles */
+  .mode-tooltip {
+    position: absolute;
+    bottom: calc(100% + 20px);
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 8px;
+    background: rgba(${BG_RGB}, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 12px 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    pointer-events: none;
+    z-index: 10001;
+    width: 150px;
+    white-space: normal;
+    text-align: left;
+  }
+
+
+  .mode-tooltip.show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .mode-tooltip-title {
+    font-size: 14px;
+    color: rgba(${FG_RGB}, 1);
+    margin-bottom: 4px;
+    line-height: 1.2;
+  }
+
+  .mode-tooltip-description {
+    font-size: 12px;
+    color: rgba(${FG_RGB}, 0.7);
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+
+  .mode-tooltip-action {
+    font-size: 11px;
+    color: rgba(${FG_RGB}, 0.5);
+    font-style: italic;
+  }
+
+  /* Tooltip arrow */
+  .mode-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 10px solid transparent;
+    border-top-color: rgba(${BG_RGB}, 0.95);
   }
 `;
 

@@ -1,4 +1,4 @@
-import { BG_RGB, FG_RGB, PRIMARY_COLOR_RGB } from '../../config.js';
+import { BG_RGB, DARK_MODE, FG_RGB, PRIMARY_COLOR_RGB } from '../../config.js';
 
 export const USER_MESSAGE_BG_HEX = "#2e2e2e";
 
@@ -217,7 +217,7 @@ button, .action-btn, .copy-color-btn {
     margin-top: 6px;
     padding: 1rem;
     border-radius: 20px;
-    border: 1px solid rgba(${FG_RGB}, 0.2);
+    border: 1px solid rgba(${FG_RGB}, ${DARK_MODE ? 0.4 : 0.2});
     line-height: 1.4;
     color: rgba(${FG_RGB}, 0.8);
 }
