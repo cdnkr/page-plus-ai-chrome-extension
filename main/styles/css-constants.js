@@ -198,6 +198,10 @@ export const modeSwitcherRootCSS = `
     text-align: left;
   }
 
+  .mode-tooltip:has(video) {
+    width: 350px;
+    left: calc(50% + 53px);
+  }
 
   .mode-tooltip.show {
     opacity: 1;

@@ -43,7 +43,7 @@ export function getMessageContentHTML({
 export function getContextHTML({
     selectedText,
 }) {
-    return `<div style="margin-bottom: 12px;width: 100%;">
+    return `<div style="width: 100%;">
     <img src="${selectedText}" style="width: 100%; height: auto; border-radius: 20px;" alt="Selected area screenshot" />
 </div>`;
 }

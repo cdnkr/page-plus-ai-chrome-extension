@@ -224,6 +224,7 @@ button, .action-btn, .copy-color-btn {
 
 .selected-text-context:has(div > img) {
     padding: 0;
+    border: none;
 }
 
 .context-text {
