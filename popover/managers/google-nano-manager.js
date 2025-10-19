@@ -39,6 +39,19 @@ export class GoogleNanoManager {
                         { type: 'text', languages: [baseLang] }
                     ]
                 }
+                : this.popover.selectionType === 'page'
+                ? {
+                    initialPrompts: [
+                        { role: 'system', content: `You are website content analyzer on the website: ${window.location.host}. You are given a full page screenshot and page content from the web page: ${window.location.host}/${window.location.pathname} and a user question. Understand the users question and provide a clear answer. Response must be in html format.` },
+                    ],
+                    expectedInputs: [
+                        { type: 'image' },
+                        { type: 'text', languages: [baseLang] }
+                    ],
+                    expectedOutputs: [
+                        { type: 'text', languages: [baseLang] }
+                    ]
+                }
                 : {
                     initialPrompts: [
                         { role: 'system', content: `You are website content analyzer on the website: ${window.location.host}. You are given selected text from the web page: ${window.location.host}/${window.location.pathname} and a user question. Understand the users question and provide a clear answer. Response must be in html format.` },
@@ -97,6 +110,52 @@ export class GoogleNanoManager {
                         ]
                     }
                 ]);
+            } else if (this.popover.selectionType === 'page' && !this.popover.isHistoryMode) {
+                // For page mode, capture full page screenshot and send with page content
+                console.log('Capturing full page screenshot for page prompt...');
+                const pageScreenshot = await this.captureFullPageScreenshot();
+                if (pageScreenshot) {
+                    console.log('Full page screenshot captured successfully');
+                    const imageFile = await this.dataURLtoFile(pageScreenshot, 'page-screenshot.png');
+                    console.log('Page screenshot file created:', imageFile.name, imageFile.size, 'bytes');
+                    console.log('Screenshot data URL (first 100 chars):', pageScreenshot.substring(0, 100) + '...');
+                    
+                    // Create a temporary image element to display the screenshot
+                    const tempImg = document.createElement('img');
+                    tempImg.src = pageScreenshot;
+                    tempImg.style.cssText = 'position: fixed; top: 10px; right: 10px; max-width: 300px; max-height: 200px; border: 2px solid red; z-index: 9999; background: white;';
+                    tempImg.title = 'Page Screenshot Preview';
+                    document.body.appendChild(tempImg);
+                    
+                    // Remove the preview after 5 seconds
+                    setTimeout(() => {
+                        if (tempImg.parentNode) {
+                            tempImg.parentNode.removeChild(tempImg);
+                        }
+                    }, 5000);
+                    const fullPrompt = `${historyContext}Page content: ${this.popover.selectedText}\n\nUser question: ${userInput}`;
+
+                    stream = this.session.promptStreaming([
+                        {
+                            role: 'user',
+                            content: [
+                                {
+                                    type: 'text',
+                                    value: fullPrompt
+                                },
+                                {
+                                    type: 'image',
+                                    value: imageFile
+                                }
+                            ]
+                        }
+                    ]);
+                } else {
+                    console.log('Screenshot capture failed, falling back to text-only mode');
+                    // Fallback to text-only if screenshot capture fails
+                    const prompt = `${historyContext}Page content: ${this.popover.selectedText}\n\nUser question: ${userInput}`;
+                    stream = this.session.promptStreaming(prompt);
+                }
             } else {
                 // For text selection or history mode, use text prompt with history
                 let prompt;
@@ -272,6 +331,39 @@ export class GoogleNanoManager {
         const response = await fetch(dataUrl);
         const blob = await response.blob();
         return new File([blob], filename, { type: blob.type });
+    }
+
+    /**
+     * Capture a full page screenshot using the Chrome extension API
+     * @returns {Promise<string|null>} Data URL of the captured screenshot
+     */
+    async captureFullPageScreenshot() {
+        try {
+            console.log('Requesting full page screenshot from background script...');
+            // Use Chrome extension API to capture the full visible tab
+            const response = await new Promise((resolve) => {
+                chrome.runtime.sendMessage(
+                    { action: 'captureVisibleTab' },
+                    (response) => {
+                        if (chrome.runtime.lastError) {
+                            console.error('Screenshot capture failed:', chrome.runtime.lastError);
+                            resolve(null);
+                        } else if (response.error) {
+                            console.error('Screenshot capture error:', response.error);
+                            resolve(null);
+                        } else {
+                            console.log('Screenshot captured successfully, data URL length:', response.dataUrl?.length || 0);
+                            resolve(response.dataUrl);
+                        }
+                    }
+                );
+            });
+
+            return response;
+        } catch (error) {
+            console.error('Failed to capture full page screenshot:', error);
+            return null;
+        }
     }
 }
 
