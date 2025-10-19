@@ -4,7 +4,7 @@
  */
 
 import { ICONS } from '../icons.js';
-import { modeSwitcherCSS, modeSwitcherRootCSS } from '../styles/css-constants.js';
+import { modeSwitcherCSS, modeSwitcherRootCSS, selectionHighlightCSS } from '../styles/css-constants.js';
 import { extractStructuredTextWithLinks, segmentsToMarkdown } from '../utils/text-extractor.js';
 import { createPulsingShape } from '../../utils/animations.js';
 import { CursorManager } from '../managers/cursor-manager.js';
@@ -18,6 +18,7 @@ export class ModeSwitcher {
     this.homeButtonPulse = null;
     this.tooltipTimeout = null;
     this.currentTooltip = null;
+    this.selectedTextCSS = null;
 
     // Configuration callbacks
     this.apiAvailability = config.apiAvailability || { prompt: 'unknown', summarizer: 'unknown', writer: 'unknown' };
@@ -73,7 +74,8 @@ export class ModeSwitcher {
           title: t('tooltip_text_title'),
           description: t('tooltip_text_description')
         },
-        actionContent: t('tooltip_action_activate')
+        actionContent: t('tooltip_action_activate'),
+        type: 'text'
       });
       innerContainer.appendChild(textBtn);
     }
@@ -89,7 +91,8 @@ export class ModeSwitcher {
         title: t('tooltip_drag_title'),
         description: t('tooltip_drag_description')
       },
-      actionContent: t('tooltip_action_activate')
+      actionContent: t('tooltip_action_activate'),
+      type: 'drag'
     });
     innerContainer.appendChild(dragBtn);
 
@@ -105,7 +108,8 @@ export class ModeSwitcher {
           title: t('tooltip_page_title'),
           description: t('tooltip_page_description')
         },
-        actionContent: t('tooltip_action_open')
+        actionContent: t('tooltip_action_open'),
+        type: 'page'
       });
       innerContainer.appendChild(currentPageBtn);
     }
@@ -121,7 +125,8 @@ export class ModeSwitcher {
         title: t('tooltip_history_title'),
         description: t('tooltip_history_description')
       },
-      actionContent: t('tooltip_action_open')
+      actionContent: t('tooltip_action_open'),
+      type: 'history'
     });
     innerContainer.appendChild(historyBtn);
 
@@ -136,7 +141,8 @@ export class ModeSwitcher {
         title: t('tooltip_settings_title'),
         description: t('tooltip_settings_description')
       },
-      actionContent: t('tooltip_action_open')
+      actionContent: t('tooltip_action_open'),
+      type: 'settings'
     });
     innerContainer.appendChild(settingsBtn);
 
@@ -144,6 +150,9 @@ export class ModeSwitcher {
 
     // Add to DOM
     document.body.appendChild(this.modeSwitcher);
+
+    // Append all tooltips to the container now that it exists
+    this.appendTooltipsToContainer();
 
     // Create home button animation
     this.homeButtonPulse = createPulsingShape(homeButton, 40, 'grid');
@@ -177,13 +186,6 @@ export class ModeSwitcher {
       }
     });
     
-    // Add tooltip to home button
-    const t = this.i18n?.t || ((k) => k);
-    this.addTooltipToButton(homeButton, {
-      title: t('tooltip_home_title'),
-      description: t('tooltip_home_description')
-    });
-    
     return homeButton;
   }
 
@@ -192,7 +194,7 @@ export class ModeSwitcher {
    * @param {Object} config - Button configuration
    * @returns {HTMLElement}
    */
-  createButton({ id, className, icon, title, onClick, tooltipContent, actionContent = t('tooltip_action_activate') }) {
+  createButton({ id, className, icon, title, onClick, tooltipContent, actionContent = t('tooltip_action_activate'), type }) {
     const button = document.createElement('button');
     button.className = className;
     if (id) button.setAttribute('id', id);
@@ -202,7 +204,7 @@ export class ModeSwitcher {
     
     // Add tooltip if content is provided
     if (tooltipContent) {
-      this.addTooltipToButton(button, tooltipContent, actionContent);
+      this.addTooltipToButton(button, tooltipContent, actionContent, type);
     }
     
     return button;
@@ -213,17 +215,24 @@ export class ModeSwitcher {
    * @param {HTMLElement} button - Button element
    * @param {Object} tooltipContent - Tooltip content
    */
-  addTooltipToButton(button, tooltipContent, actionContent = t('tooltip_action_activate')) {
+  addTooltipToButton(button, tooltipContent, actionContent = t('tooltip_action_activate'), type) {
     const t = this.i18n?.t || ((k) => k);
     const tooltip = document.createElement('div');
     tooltip.className = 'mode-tooltip';
     tooltip.innerHTML = `
       <div class="mode-tooltip-title">${tooltipContent.title}</div>
       <div class="mode-tooltip-description">${tooltipContent.description}</div>
+      ${type === 'text' ? 
+        `<video style="width: 100%; height: auto; border-radius: 10px; margin-top: 4px;" src="${chrome.runtime.getURL('assets/text-selection-demo.mp4')}" autoplay loop muted playsinline></video>` 
+        : type === 'drag' ?
+        `<video style="width: 100%; height: auto; border-radius: 10px; margin-top: 4px;" src="${chrome.runtime.getURL('assets/drag-selection-demo.mp4')}" autoplay loop muted playsinline></video>`
+        : ""
+      }
       <div class="mode-tooltip-action">${actionContent}</div>
     `;
     
-    button.appendChild(tooltip);
+    // Store tooltip reference on the button for later appending
+    button._tooltip = tooltip;
     
     // Add hover events
     button.addEventListener('mouseenter', () => {
@@ -248,6 +257,24 @@ export class ModeSwitcher {
           this.currentTooltip = null;
         }
       }, 150);
+    });
+  }
+
+  /**
+   * Append all tooltips to the mode-switcher container
+   */
+  appendTooltipsToContainer() {
+    if (!this.modeSwitcherShadowRoot) return;
+    
+    const modeSwitcherContainer = this.modeSwitcherShadowRoot.querySelector('.mode-switcher');
+    if (!modeSwitcherContainer) return;
+    
+    // Find all buttons with tooltips and append them to the container
+    const buttons = this.modeSwitcherShadowRoot.querySelectorAll('.mode-btn');
+    buttons.forEach(button => {
+      if (button._tooltip) {
+        modeSwitcherContainer.appendChild(button._tooltip);
+      }
     });
   }
 
@@ -394,9 +421,23 @@ export class ModeSwitcher {
     // If clicking the same mode that's already active, deactivate it
     if (this.currentMode === mode) {
       this.currentMode = null;
+
+      if (this.selectedTextCSS) {
+        this.selectedTextCSS.remove();
+      }
     } else {
       // Otherwise, switch to the new mode
       this.currentMode = mode;
+
+      if (mode === 'text') {
+        this.selectedTextCSS = document.createElement('style');
+        this.selectedTextCSS.textContent = selectionHighlightCSS;
+        document.head.appendChild(this.selectedTextCSS);
+      } else {
+        if (this.selectedTextCSS) {
+          this.selectedTextCSS.remove();
+        }
+      }
     }
 
     // Update button states
